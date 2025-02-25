@@ -1,7 +1,10 @@
+import CardCarousel from './CardCarousel';
+import styled from 'styled-components';
+
 export default function MatchingFeature() {
   return (
     <div>
-      <h1>Matching</h1>
+      <CardCarousel />
     </div>
   )
 }
