@@ -13,11 +13,13 @@ interface AnimationRefs {
 }
 
 /**
- * GSAP를 사용하여 배너 컴포넌트에 애니메이션을 적용하는 커스텀 훅
  * @param isTypingComplete 타이핑 애니메이션 완료 여부
  * @param refs 애니메이션을 적용할 엘리먼트의 ref 객체들
  */
-const useGsapAnimation = (isTypingComplete: boolean, refs: AnimationRefs): void => {
+const useGsapAnimation = (
+  isTypingComplete: boolean,
+  refs: AnimationRefs,
+): void => {
   const {
     sloganRef,
     title1Ref,
@@ -31,65 +33,54 @@ const useGsapAnimation = (isTypingComplete: boolean, refs: AnimationRefs): void 
 
   useEffect(() => {
     if (isTypingComplete) {
-      // 타이틀 애니메이션 타임라인 생성
-      const tl = gsap.timeline()
-
-      // 슬로건 완전히 표시
+      const tl = gsap.timeline({ defaults: { duration: 1.0 } })
       tl.to(sloganRef.current, {
         opacity: 1,
-        duration: 0.5,
+        duration: 1.2,
       })
-
-        // 첫 번째 타이틀 애니메이션
         .to(
           title1Ref.current,
           {
             opacity: 1,
             y: 0,
-            duration: 0.8,
+            duration: 1.0,
             ease: 'power3.out',
           },
-          '-=0.2',
+          '-=0.3',
         )
-
-        // 두 번째 타이틀 애니메이션
         .to(
           title2Ref.current,
           {
             opacity: 1,
             y: 0,
-            duration: 0.8,
+            duration: 0.5,
             ease: 'power3.out',
           },
-          '-=0.3',
+          '-=0.4',
         )
-
-        // 하이라이트 밑줄 애니메이션
         .to(
           underline1Ref.current,
           {
             scaleX: 1,
-            duration: 0.4,
+            duration: 0.3,
             ease: 'power1.out',
           },
-          '-=0.1',
+          '-=0.2',
         )
         .to(
           underline2Ref.current,
           {
             scaleX: 1,
-            duration: 0.4,
+            duration: 0.3,
             ease: 'power1.out',
           },
-          '-=0.2',
+          '-=0.3',
         )
-
-        // 하이라이트 단어 강조 효과
         .to(
           highlight1Ref.current,
           {
             scale: 1.05,
-            duration: 0.25,
+            duration: 0.2,
             yoyo: true,
             repeat: 1,
           },
@@ -99,22 +90,20 @@ const useGsapAnimation = (isTypingComplete: boolean, refs: AnimationRefs): void 
           highlight2Ref.current,
           {
             scale: 1.05,
-            duration: 0.25,
+            duration: 0.2,
             yoyo: true,
             repeat: 1,
           },
           '-=0.3',
         )
-
-        // 설명 텍스트 페이드인
         .to(
           descRef.current,
           {
             opacity: 1,
-            duration: 0.5,
+            duration: 0.4,
             ease: 'power2.out',
           },
-          '-=0.2',
+          '-=0.3',
         )
     }
   }, [

@@ -7,8 +7,8 @@ import Title from './components/Title'
 import Description from './components/Description'
 const Banner: React.FC = () => {
   const SLOGAN_TEXT = 'Together, We Create a Happy Dorm Life'
-  const TYPING_SPEED = 50
-  const TYPING_COMPLETION_PERCENTAGE = 0.7
+  const TYPING_SPEED = 25 // 타이핑 속도를 50ms에서 25ms로 줄임
+  const TYPING_COMPLETION_PERCENTAGE = 0.5 // 완료 비율을 70%에서 50%로 낮춤
   const sloganRef = useRef<HTMLDivElement>(null)
   const title1Ref = useRef<HTMLDivElement>(null)
   const title2Ref = useRef<HTMLDivElement>(null)
