@@ -2,6 +2,7 @@ import Navigation from '@/components/navigation/Navigation'
 import styled from 'styled-components'
 import Banner from './components/banner'
 import AboutUsComponent from './components/intro/aboutus'
+import Calendar from './components/calendar'
 export default function Onboarding() {
   return (
     <>
@@ -9,6 +10,7 @@ export default function Onboarding() {
       <Container>
         <Banner />
         <AboutUsComponent />
+        <Calendar />
       </Container>
     </>
   )
