@@ -7,7 +7,7 @@ import {
   useAutoSlide,
   useSliderNavigation,
   useSliderHover,
-} from '../../../../hooks/calendar-hooks'
+} from '../../../../hooks/onboarding/calendar-hooks/calendar-hooks'
 
 const Calendar: React.FC = () => {
   const { maxIndex } = useCardLayout(dormitoryNotices.length)

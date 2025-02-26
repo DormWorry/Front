@@ -1,23 +1,57 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import * as S from './banner-styles'
+import useTypingAnimation from '../../../../hooks/onboarding/banner-hooks/useTypingAnimation'
+import useGsapAnimation from '../../../../hooks/onboarding/banner-hooks/useGsapAnimation'
+import Slogan from './components/Slogan'
+import Title from './components/Title'
+import Description from './components/Description'
 const Banner: React.FC = () => {
+  const SLOGAN_TEXT = 'Together, We Create a Happy Dorm Life'
+  const TYPING_SPEED = 50
+  const TYPING_COMPLETION_PERCENTAGE = 0.7
+  const sloganRef = useRef<HTMLDivElement>(null)
+  const title1Ref = useRef<HTMLDivElement>(null)
+  const title2Ref = useRef<HTMLDivElement>(null)
+  const descRef = useRef<HTMLDivElement>(null)
+  const highlight1Ref = useRef<HTMLSpanElement>(null)
+  const highlight2Ref = useRef<HTMLSpanElement>(null)
+  const underline1Ref = useRef<HTMLSpanElement>(null)
+  const underline2Ref = useRef<HTMLSpanElement>(null)
+
+  const { typedText, isTypingComplete } = useTypingAnimation({
+    text: SLOGAN_TEXT,
+    typingSpeed: TYPING_SPEED,
+    completionTriggerPercentage: TYPING_COMPLETION_PERCENTAGE,
+  })
+
+  useGsapAnimation(isTypingComplete, {
+    sloganRef,
+    title1Ref,
+    title2Ref,
+    descRef,
+    highlight1Ref,
+    highlight2Ref,
+    underline1Ref,
+    underline2Ref,
+  })
+
   return (
     <S.BannerContainer>
       <S.TextContainer>
-        <S.Slogan>Together, We Create a Happy Dorm Life</S.Slogan>
-        <S.TitleContainer>
-          <S.Title>새로운 디지털 문화의 도입으로</S.Title>
-          <S.HighlightTitle>
-            기숙사 생활에 <S.Highlight>혁신</S.Highlight>과{' '}
-            <S.Highlight>편리함</S.Highlight>을 선사하다.
-          </S.HighlightTitle>
-        </S.TitleContainer>
-        <S.Description>
-          기숙사생들 간의 네트워킹 공간을 마련해 소통과 정보 공유를 통해
-          불편함을 해소합니다.
-          <br />
-          혁신적 솔루션으로 기숙사 생활의 편리함을 선사합니다.
-        </S.Description>
+        <Slogan
+          typedText={typedText}
+          isTypingComplete={isTypingComplete}
+          sloganRef={sloganRef}
+        />
+        <Title
+          title1Ref={title1Ref}
+          title2Ref={title2Ref}
+          highlight1Ref={highlight1Ref}
+          highlight2Ref={highlight2Ref}
+          underline1Ref={underline1Ref}
+          underline2Ref={underline2Ref}
+        />
+        <Description descRef={descRef} />
       </S.TextContainer>
     </S.BannerContainer>
   )
