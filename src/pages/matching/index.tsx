@@ -1,30 +1,20 @@
 import { useState } from 'react';
 import CardCarousel from './CardCarousel';
 import SurveyForm from './Survey';
-import styled from 'styled-components';
-
-const Container = styled.div`
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
+import BackButton from '@/components/common/BackButton';
+import { IndexContainer } from './styles';
 
 export default function MatchingFeature() {
   const [isSurveyCompleted, setIsSurveyCompleted] = useState(false);
 
-  const handleSurveyComplete = () => {
-    setIsSurveyCompleted(true);
-  };
-
   return (
-    <Container>
+    <IndexContainer>
+      <BackButton />
       {!isSurveyCompleted ? (
-        <SurveyForm onComplete={handleSurveyComplete} />
+        <SurveyForm onComplete={() => setIsSurveyCompleted(true)} />
       ) : (
         <CardCarousel />
       )}
-    </Container>
+    </IndexContainer>
   );
 }
