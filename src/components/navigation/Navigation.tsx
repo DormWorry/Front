@@ -11,19 +11,18 @@ const Nav = styled.nav`
 `
 
 const Logo = styled.img`
-  height: 30px;
+  height: 35px;
   align-self: center;
 `
 
-const NavLinks = styled.ul`
+const NavLinks = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  list-style: none;
   gap: 2rem;
 `
 
-const NavLink = styled.li`
+const NavLink = styled.div`
   font-size: 1rem;
   font-family: 'Pretendard-bold';
   cursor: pointer;
