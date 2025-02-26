@@ -2,10 +2,11 @@ import React from 'react'
 import styled from 'styled-components'
 
 const Nav = styled.nav`
+  height: 70px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 15px 50px;
+  padding: 0px 50px 0px 50px;
   background-color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `
