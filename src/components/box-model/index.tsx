@@ -1,4 +1,3 @@
-/* 서비스 소개에 들어갈 Box Container*/
 import styled from 'styled-components'
 
 interface IProps {
@@ -7,7 +6,6 @@ interface IProps {
   description: string
 }
 
-// 기존 BoxModel 컴포넌트
 const BoxModel = ({ imgSrc, title, description }: IProps) => {
   return (
     <BoxContainer>
@@ -20,7 +18,6 @@ const BoxModel = ({ imgSrc, title, description }: IProps) => {
   )
 }
 
-// 캘린더용 BoxModel 컴포넌트
 interface CalendarBoxProps {
   category: string
   title: string
@@ -34,11 +31,14 @@ export const CalendarBox = ({
   content,
   date,
 }: CalendarBoxProps) => {
+  // 50글자 제한 적용
+  const limitedContent = content.length > 50 ? `${content.substring(0, 50)}...` : content;
+  
   return (
     <CalendarBoxContainer>
       <CalendarTag>{category}</CalendarTag>
       <CalendarTitle>{title}</CalendarTitle>
-      <CalendarContent>{content}</CalendarContent>
+      <CalendarContent>{limitedContent}</CalendarContent>
       <CalendarDate>{date}</CalendarDate>
     </CalendarBoxContainer>
   )
@@ -46,7 +46,6 @@ export const CalendarBox = ({
 
 export default BoxModel
 
-// 기존 BoxModel 컴포넌트
 const BoxContainer = styled.div`
   width: 450px;
   height: 250px;
@@ -67,12 +66,35 @@ const BoxContainer = styled.div`
       0px 15px 35px rgba(0, 0, 0, 0.15),
       0px 3px 10px rgba(0, 0, 0, 0.07);
   }
+
+  @media (max-width: 1200px) {
+    width: 400px;
+  }
+
+  @media (max-width: 1024px) {
+    width: 100%;
+    max-width: 450px;
+    height: 250px; /* 고정된 높이 유지 */
+    padding: 30px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    height: 230px; /* 모바일에서도 높이 고정 */
+    padding: 25px;
+    min-width: 0; /* 모바일에서 최소 너비 제거 */
+  }
 `
 
 const IconImage = styled.img`
   width: 70px;
   height: auto;
   margin: 0 0 0 auto;
+
+  @media (max-width: 768px) {
+    width: 60px;
+  }
 `
 
 const ContentWrapper = styled.div`
@@ -80,6 +102,10 @@ const ContentWrapper = styled.div`
   display: flex;
   flex-direction: column;
   margin-top: 30px;
+
+  @media (max-width: 768px) {
+    margin-top: 20px;
+  }
 `
 
 const Title = styled.div`
@@ -87,6 +113,10 @@ const Title = styled.div`
   font-family: 'Pretendard-bold';
   color: black;
   text-align: left;
+
+  @media (max-width: 768px) {
+    font-size: 22px;
+  }
 `
 
 const Description = styled.div`
@@ -96,26 +126,42 @@ const Description = styled.div`
   text-align: left;
 `
 
-// 캘린더용 컴포넌트
 export const CalendarBoxContainer = styled.div`
   width: 100%;
+  height: 260px; /* 고정 높이 */
   display: flex;
   flex-direction: column;
   border: solid 1px rgba(169, 169, 169, 0.3);
   border-radius: 20px;
-  padding: 25px;
+  padding: 20px;
   background: white;
   box-shadow:
     0px 10px 30px rgba(0, 0, 0, 0.1),
     0px 1px 5px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
-  height: 300px;
   cursor: pointer;
+  box-sizing: border-box;
+  margin: 20px auto;
+
   &:hover {
     transform: translateY(-5px);
     box-shadow:
       0px 15px 35px rgba(0, 0, 0, 0.15),
       0px 3px 10px rgba(0, 0, 0, 0.07);
+  }
+
+  @media (max-width: 1024px) {
+    width: 100%;
+    max-width: 450px;
+    height: 250px; /* 고정된 높이 유지 */
+    padding: 20px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 768px) {
+    height: 230px; /* 모바일에서도 높이 고정 */
+    padding: 16px;
+    margin: 15px auto;
   }
 `
 
@@ -136,6 +182,15 @@ export const CalendarTitle = styled.h3`
   margin: 0 0 15px 0;
   line-height: 1.4;
   color: black;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @media (max-width: 768px) {
+    font-size: 18px;
+  }
 `
 
 export const CalendarContent = styled.p`
@@ -145,10 +200,12 @@ export const CalendarContent = styled.p`
   line-height: 1.6;
   flex-grow: 1;
   overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
+  margin: 0 0 10px 0;
+  word-break: break-word;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+  }
 `
 
 export const CalendarDate = styled.p`
@@ -157,4 +214,8 @@ export const CalendarDate = styled.p`
   color: #999;
   margin-top: 10px;
   text-align: right;
+
+  @media (max-width: 768px) {
+    font-size: 12px;
+  }
 `

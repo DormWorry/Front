@@ -23,25 +23,52 @@ export const TextContainer = styled.div`
   align-items: flex-start;
   gap: 100px;
   padding: 0px 50px;
+
+  @media (max-width: 768px) {
+    gap: 60px;
+    padding: 0px 30px;
+  }
+
+  @media (max-width: 480px) {
+    gap: 40px;
+    padding: 0px 20px;
+  }
 `
 
 export const Slogan = styled.div`
-  font-size: 28px;
+  font-size: 24px;
   font-family: 'Pretendard-bold';
   margin-bottom: 1rem;
   opacity: 0;
+
+  @media (max-width: 768px) {
+    font-size: 20px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 18px;
+  }
 `
 
 export const TitleContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  text-align: left;
 `
 
 export const Title = styled.div`
-  font-size: 52px;
+  font-size: 44px;
   opacity: 0;
   transform: translateY(20px);
+
+  @media (max-width: 768px) {
+    font-size: 24px !important;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 28px;
+  }
 `
 
 export const HighlightTitle = styled(Title)`
@@ -56,10 +83,18 @@ export const Highlight = styled.span`
 `
 
 export const Description = styled.div`
-  font-size: 18px;
+  font-size: 16px;
   text-align: left;
   line-height: 1.5;
   opacity: 0;
+
+  @media (max-width: 768px) {
+    font-size: 15px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 14px;
+  }
 `
 
 export const blink = keyframes`

@@ -11,11 +11,6 @@ interface UseTypingAnimationReturn {
   isTypingComplete: boolean
 }
 
-/*
- * @param text 타이핑할 텍스트
- * @param typingSpeed 타이핑 속도 (ms)
- * @param completionTriggerPercentage 타이핑 완료로 간주할 비율
- */
 const useTypingAnimation = ({
   text,
   typingSpeed = 50,

@@ -31,7 +31,7 @@ const Title: React.FC<TitleProps> = ({
           편리함
           <S.HighlightUnderline ref={underline2Ref} />
         </S.Highlight>
-        을 선사하다.
+        을 제공하다.
       </S.HighlightTitle>
     </S.TitleContainer>
   )

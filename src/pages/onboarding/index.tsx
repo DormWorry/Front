@@ -20,4 +20,5 @@ const Container = styled.div`
   width: 100vw;
   margin: 0 auto;
   overflow-y: auto;
+  overflow-x: hidden;
 `

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import styled from 'styled-components'
 
 const Nav = styled.nav`
@@ -6,9 +6,13 @@ const Nav = styled.nav`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0px 50px 0px 50px;
+  padding: 0px 50px;
   background-color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 768px) {
+    padding: 0px 20px;
+  }
 `
 
 const Logo = styled.img`
@@ -16,11 +20,28 @@ const Logo = styled.img`
   align-self: center;
 `
 
-const NavLinks = styled.div`
+const NavLinks = styled.div<{ isOpen: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 2rem;
+
+  @media (max-width: 768px) {
+    position: fixed;
+    top: 70px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    background-color: white;
+    padding: 20px;
+    gap: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transform: ${({ isOpen }) => isOpen ? 'translateY(0)' : 'translateY(-100%)'};
+    opacity: ${({ isOpen }) => isOpen ? 1 : 0};
+    visibility: ${({ isOpen }) => isOpen ? 'visible' : 'hidden'};
+    transition: all 0.3s ease-in-out;
+    z-index: 10;
+  }
 `
 
 const NavLink = styled.div`
@@ -46,13 +67,39 @@ const Button = styled.button`
   &:hover {
     background-color: #00bfa5;
   }
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+`
+
+const MobileMenuButton = styled.button`
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #333;
+
+  @media (max-width: 768px) {
+    display: block;
+  }
 `
 
 const Navigation: React.FC = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
   return (
     <Nav>
       <Logo src="/logo.png" alt="Logo" />
-      <NavLinks>
+      <MobileMenuButton onClick={toggleMenu}>
+        {isMenuOpen ? '✕' : '☰'}
+      </MobileMenuButton>
+      <NavLinks isOpen={isMenuOpen}>
         <NavLink>홈</NavLink>
         <NavLink>서비스 소개</NavLink>
         <NavLink>주요 기능</NavLink>

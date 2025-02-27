@@ -12,10 +12,6 @@ interface AnimationRefs {
   underline2Ref: RefObject<HTMLSpanElement | null>
 }
 
-/**
- * @param isTypingComplete 타이핑 애니메이션 완료 여부
- * @param refs 애니메이션을 적용할 엘리먼트의 ref 객체들
- */
 const useGsapAnimation = (
   isTypingComplete: boolean,
   refs: AnimationRefs,
