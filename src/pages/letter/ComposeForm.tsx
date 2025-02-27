@@ -124,6 +124,8 @@ const ComposeForm: React.FC<ComposeFormProps> = ({
                   id="sender"
                   {...field}
                   disabled={isAnonymous}
+                  //1205호 -> 실제 사용자 호수
+                  value={isAnonymous ? '익명' : '1205호'}
                   placeholder="예: 303호, 404호"
                 />
               )}
