@@ -1,13 +1,10 @@
 import styled from 'styled-components'
 
-// 메인 컨테이너
 export const Container = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
 `
-
-// 헤더 영역
 export const MainHeader = styled.div`
   display: flex;
   flex-direction: column;
@@ -18,6 +15,33 @@ export const MainHeader = styled.div`
   border-radius: 12px;
   margin-bottom: 32px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  position: relative;
+`
+
+export const BackButton = styled.button`
+  position: absolute;
+  left: 24px;
+  top: 32px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #555;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: #333;
+  }
+
+  &:focus {
+    outline: none;
+  }
 `
 
 export const PageTitle = styled.h1`
@@ -68,7 +92,6 @@ export const RoomsList = styled.div`
   }
 `
 
-// 빈 상태 스타일
 export const EmptyState = styled.div`
   display: flex;
   flex-direction: column;
@@ -85,8 +108,6 @@ export const EmptyMessage = styled.p`
   text-align: center;
   margin-bottom: 20px;
 `
-
-// 페이지네이션 스타일
 export const PaginationContainer = styled.div`
   display: flex;
   justify-content: center;
@@ -98,10 +119,10 @@ export const PageButton = styled.button<{ isActive?: boolean }>`
   width: 36px;
   height: 36px;
   border-radius: 6px;
-  border: 1px solid ${props => props.isActive ? '#13cfb8' : '#ddd'};
-  background-color: ${props => props.isActive ? '#13cfb8' : 'white'};
-  color: ${props => props.isActive ? 'white' : '#444'};
-  font-weight: ${props => props.isActive ? '600' : 'normal'};
+  border: 1px solid ${(props) => (props.isActive ? '#13cfb8' : '#ddd')};
+  background-color: ${(props) => (props.isActive ? '#13cfb8' : 'white')};
+  color: ${(props) => (props.isActive ? 'white' : '#444')};
+  font-weight: ${(props) => (props.isActive ? '600' : 'normal')};
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -109,7 +130,7 @@ export const PageButton = styled.button<{ isActive?: boolean }>`
   transition: all 0.2s;
 
   &:hover {
-    background-color: ${props => props.isActive ? '#13cfb8' : '#f5f5f5'};
+    background-color: ${(props) => (props.isActive ? '#13cfb8' : '#f5f5f5')};
   }
 
   &:disabled {
@@ -129,7 +150,6 @@ export const PageButtonText = styled.span`
   font-size: 14px;
 `
 
-// 버튼 스타일
 export const CreateRoomButton = styled.button`
   background-color: #13cfb8;
   color: white;

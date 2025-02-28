@@ -8,11 +8,15 @@ import {
   CreateRoomModal,
   RoomDetail,
 } from './components'
+import { useRouter } from 'next/router'
 
-/**
- * 주문 기능 메인 컴포넌트
- */
 export default function OrderFeature() {
+  const router = useRouter()
+
+  const goToMainPage = () => {
+    router.push('/main')
+  }
+
   // 주문 상태 관리 훅 호출
   const {
     selectedCategory,
@@ -66,7 +70,7 @@ export default function OrderFeature() {
     const filteredRooms = getFilteredRooms()
     const paginatedRooms = getPaginatedRooms()
     const totalPages = getTotalPages()
-    
+
     const categoryName = selectedCategory
       ? FOOD_CATEGORIES.find((c) => c.id === selectedCategory)?.name
       : null
@@ -106,17 +110,17 @@ export default function OrderFeature() {
                 />
               ))}
             </S.RoomsList>
-            
+
             {/* 페이지네이션 UI */}
             {totalPages > 1 && (
               <S.PaginationContainer>
-                <S.PageNavButton 
-                  onClick={goToPrevPage} 
+                <S.PageNavButton
+                  onClick={goToPrevPage}
                   disabled={currentPage === 1}
                 >
                   <S.PageButtonText>이전</S.PageButtonText>
                 </S.PageNavButton>
-                
+
                 {Array.from({ length: totalPages }).map((_, index) => (
                   <S.PageButton
                     key={index + 1}
@@ -126,8 +130,8 @@ export default function OrderFeature() {
                     {index + 1}
                   </S.PageButton>
                 ))}
-                
-                <S.PageNavButton 
+
+                <S.PageNavButton
                   onClick={goToNextPage}
                   disabled={currentPage === totalPages}
                 >
@@ -160,6 +164,7 @@ export default function OrderFeature() {
   return (
     <S.Container>
       <S.MainHeader>
+        <S.BackButton onClick={goToMainPage}>←</S.BackButton>
         <S.PageTitle>주문하기</S.PageTitle>
         <S.HeaderDescription>
           기숙사 친구들과 함께 배달음식을 주문하세요!
