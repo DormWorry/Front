@@ -15,6 +15,13 @@ export const Container = styled.div`
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
     Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+
+  @media (max-width: 768px) {
+    min-height: 100vh;
+    height: 100vh;
+    margin: 0;
+    border-radius: 0;
+  }
 `
 
 export const MacFrame = styled.div`
@@ -62,6 +69,11 @@ export const ContentWrapper = styled.div`
   flex: 1;
   width: 100%;
   overflow: hidden;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
 `
 
 export const ProfileContainer = styled.div`
@@ -73,6 +85,15 @@ export const ProfileContainer = styled.div`
   height: 100%;
   border-right: 1px solid #eaeaea;
   overflow-y: auto;
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+    border-right: none;
+    border-bottom: 1px solid #eaeaea;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 1rem;
+  }
 `
 
 export const ContentContainer = styled.div`
@@ -82,6 +103,10 @@ export const ContentContainer = styled.div`
   height: 100%;
   background-color: #ffffff;
   overflow: hidden;
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
 `
 
 export const BackButton = styled.button`
@@ -113,6 +138,14 @@ export const BackButton = styled.button`
     width: 18px;
     height: 18px;
   }
+
+  @media (max-width: 768px) {
+    padding: 0.5rem;
+
+    span {
+      display: none;
+    }
+  }
 `
 
 export const Avatar = styled.div`
@@ -125,6 +158,12 @@ export const Avatar = styled.div`
   align-items: center;
   background-color: #f0f0f0;
   margin-bottom: 1rem;
+
+  @media (max-width: 768px) {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 0;
+  }
 `
 
 export const AvatarImage = styled.img`
@@ -137,12 +176,22 @@ export const RoomNumber = styled.h2`
   font-size: 1.5rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
+
+  @media (max-width: 768px) {
+    font-size: 1.2rem;
+    margin-bottom: 0.2rem;
+  }
 `
 
 export const UserName = styled.p`
   font-size: 1.2rem;
   color: #666;
   margin-bottom: 2rem;
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    margin-bottom: 0;
+  }
 `
 
 export const ActionButton = styled.button`
@@ -167,6 +216,11 @@ export const ActionButton = styled.button`
     transform: translateY(0);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
+
+  @media (max-width: 768px) {
+    padding: 0.5rem 1.5rem;
+    font-size: 0.9rem;
+  }
 `
 
 export const Header = styled.div`
@@ -185,6 +239,14 @@ export const Header = styled.div`
     flex-grow: 1;
     text-align: center;
     margin: 0;
+  }
+
+  @media (max-width: 768px) {
+    margin-bottom: 1rem;
+
+    h1 {
+      font-size: 1.4rem;
+    }
   }
 `
 
@@ -401,7 +463,7 @@ export const Input = styled.input`
   border: 1px solid #e0e0e0;
   border-radius: 4px;
   transition: all 0.2s;
-  background-color: #fffdf7;
+  background-color: #ffffff;
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
   color: black;
   font-family:
@@ -418,6 +480,11 @@ export const Input = styled.input`
     border-color: #13cfb8;
     box-shadow: 0 0 0 3px rgba(19, 207, 184, 0.15);
   }
+
+  @media (max-width: 768px) {
+    padding: 0.6rem;
+    font-size: 0.9rem;
+  }
 `
 
 export const TextArea = styled.textarea`
@@ -430,9 +497,8 @@ export const TextArea = styled.textarea`
   resize: vertical;
   min-height: 120px;
   transition: all 0.2s;
-  background-color: #fffdf7;
-  background-image: linear-gradient(#e0e0e0 1px, transparent 1px);
-  background-size: 100% 2rem;
+  background-color: #ffffff;
+  background-image: none;
   line-height: 2rem;
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
   font-family:
@@ -453,6 +519,12 @@ export const TextArea = styled.textarea`
   &::placeholder {
     color: #adb5bd;
     opacity: 0.7;
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.6rem;
+    font-size: 0.9rem;
+    min-height: 80px;
   }
 `
 
@@ -497,6 +569,11 @@ export const SubmitButton = styled.button`
     transform: translateY(0);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
+
+  @media (max-width: 768px) {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+  }
 `
 
 export const CancelButton = styled.button`
@@ -513,6 +590,11 @@ export const CancelButton = styled.button`
   &:hover {
     background-color: #e9ecef;
   }
+
+  @media (max-width: 768px) {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+  }
 `
 
 // ComposeForm 관련 스타일 컴포넌트
@@ -527,7 +609,7 @@ export const ComposeForm = styled.form`
   flex-direction: column;
   gap: 0.5rem;
   flex-grow: 1;
-  background-color: #fffdf7;
+  background-color: #ffffff;
   border-radius: 8px;
   padding: 0.75rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);

@@ -65,9 +65,28 @@ export default function LetterFeature() {
 
       {/* 컨텐츠 영역 - 오른쪽 메인 */}
       <S.ContentContainer>
-        <S.Header>
-          <h1>마음의 편지함</h1>
-        </S.Header>
+        {!isComposing && (
+          <S.Header>
+            <S.BackButton onClick={handleGoBack}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M19 12H5" />
+                <path d="M12 19l-7-7 7-7" />
+              </svg>
+              <span>메인페이지</span>
+            </S.BackButton>
+            <h1>마음의 편지함</h1>
+          </S.Header>
+        )}
 
         {isComposing ? (
           <ComposeSection
