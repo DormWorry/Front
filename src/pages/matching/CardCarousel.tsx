@@ -1,4 +1,3 @@
-import React from 'react';
 import { useCarousel } from '../../hooks/useCarousel';
 import {
     Container,
@@ -32,23 +31,22 @@ const CardCarousel = ({ selectedType }: Props) => {
     const {
         activeIndex,
         selectedCard,
+        isMobile,
         handlePrevClick,
         handleNextClick,
         handleCardClick,
-        handleCloseModal
+        handleCloseModal,
+        getCardStyle
     } = useCarousel(cardData.length);
 
     return (
         <Container>
-            <CarouselContainer>
+            <CarouselContainer style={isMobile ? { transformStyle: 'flat' } : undefined}>
                 {cardData.map((card, index) => (
                     <Card
                         key={card.id}
                         onClick={() => handleCardClick(card.id)}
-                        style={{
-                            transform: `rotateY(${(index - activeIndex) * 60}deg) translateZ(300px)`,
-                            opacity: index === activeIndex ? 1 : 0.5
-                        }}
+                        style={getCardStyle(index)}
                     >
                         <ProfileImage>
                             <img src={card.image} alt={card.name} />

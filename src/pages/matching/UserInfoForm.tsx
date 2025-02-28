@@ -50,7 +50,7 @@ export default function UserInfoForm({ onSubmit }: Props) {
                 </StepWrapper>
             </StepIndicator>
             <FormTitle>프로필 정보 입력</FormTitle>
-            <form onSubmit={handleSubmit}>
+            <form style={{ display: 'flex', flexDirection: 'column', gap: '40px' }} onSubmit={handleSubmit}>
                 <FormGroup>
                     <Label>카카오톡 ID</Label>
                     <Input
@@ -114,4 +114,4 @@ export default function UserInfoForm({ onSubmit }: Props) {
             </form>
         </FormContainer>
     );
-} 
+}

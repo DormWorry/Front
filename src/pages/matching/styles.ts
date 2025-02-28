@@ -3,7 +3,6 @@ import styled from 'styled-components'
 // 전체 페이지를 감싸는 컨테이너. 3D 효과를 위한 perspective 설정 포함
 export const Container = styled.div`
   position: relative;
-  height: 100vh;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -11,8 +10,7 @@ export const Container = styled.div`
   align-items: center;
   perspective: 1000px;
   gap: 50px;
-  padding: 20px;
-
+  padding-top: 200px;
   @media (max-width: 768px) {
     gap: 30px;
   }
@@ -87,7 +85,7 @@ export const ProfileImage = styled.div`
 export const CardContent = styled.div`
   width: 100%;
   text-align: center;
-  margin-top: 20px;
+  padding-top: 8px;
 `
 
 // 이름 표시 스타일
@@ -145,6 +143,7 @@ export const ButtonContainer = styled.div`
   justify-content: center;
   gap: 70px;
   position: relative;
+  padding-top: 20px;
 
   @media (max-width: 768px) {
     gap: 40px;
@@ -178,36 +177,35 @@ export const Button = styled.button<{ left?: boolean; right?: boolean }>`
 
 // 설문조사 폼을 감싸는 컨테이너
 export const FormContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   max-width: 600px;
   margin: 0 auto;
-  padding: 2rem;
+  padding-top: 80px;
 `
 
 // 설문조사 제목 스타일
 export const FormTitle = styled.h2`
   text-align: center;
-  margin-bottom: 2rem;
   color: #333;
   font-size: 2rem;
 `
 
 // 설문조사 그룹 스타일
 export const FormGroup = styled.div`
-  margin-bottom: 1.5rem;
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: space-between;
 `
 
 // 라벨 스타일
 export const Label = styled.label`
   display: block;
-  margin-bottom: 0.5rem;
   color: #666;
   font-size: 1.1rem;
   align-self: flex-start;
-  margin-left: 80px;
 `
 
 // 입력 필드 스타일
@@ -277,7 +275,6 @@ export const SubmitButton = styled.button`
 // 전체 페이지를 감싸는 컨테이너
 export const IndexContainer = styled.div`
   width: 100%;
-  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -388,26 +385,120 @@ export const BackButton = styled.button`
 export const TypeGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-  padding: 2rem;
+  gap: 1rem;
+  padding: 0.5rem;
   max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0 auto 1rem;
+  overflow-y: auto;
+  height: 450px;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black 10%,
+    black 90%,
+    transparent
+  );
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+    height: 280px;
+    margin-bottom: 0.8rem;
+    mask-image: none;
+  }
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #00b8b8;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #009999;
+  }
 `
 
 // 룸메이트 타입 카드 스타일
 export const TypeCard = styled.div`
   background: white;
-  border-radius: 20px;
-  padding: 2rem;
+  border-radius: 16px;
+  padding: 1.2rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   transition:
     transform 0.2s,
     box-shadow 0.2s;
+  position: relative;
 
   &:hover {
     transform: translateY(-5px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.8rem;
+    gap: 0.6rem;
+  }
+`
+
+export const TypeHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+
+  @media (max-width: 768px) {
+    flex: 1;
+  }
+`
+
+export const MobileButtons = styled.div`
+  display: none;
+
+  @media (max-width: 768px) {
+    display: flex;
+    gap: 0.5rem;
+  }
+`
+
+export const ToggleButton = styled.button<{ isActive?: boolean }>`
+  background: ${(props) => (props.isActive ? '#00b8b8' : '#f0f0f0')};
+  color: ${(props) => (props.isActive ? 'white' : '#666')};
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: ${(props) => (props.isActive ? '#009999' : '#e0e0e0')};
+  }
+`
+
+export const MobileContent = styled.div<{ isVisible: boolean }>`
+  @media (max-width: 768px) {
+    display: ${(props) => (props.isVisible ? 'block' : 'none')};
+    width: 100%;
+    margin-top: ${(props) => (props.isVisible ? '1rem' : '0')};
+    padding-top: ${(props) => (props.isVisible ? '1rem' : '0')};
+    border-top: ${(props) => (props.isVisible ? '1px solid #eee' : 'none')};
   }
 `
 
@@ -418,11 +509,20 @@ export const TypeTitle = styled.h2`
   display: flex;
   align-items: center;
   gap: 0.5rem;
+
+  @media (max-width: 768px) {
+    margin: 0 !important;
+    font-size: 1.2rem;
+  }
 `
 
 // 룸메이트 타입 이모지 스타일
 export const TypeEmoji = styled.span`
   font-size: 2rem;
+
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+  }
 `
 
 // 룸메이트 특성 목록을 감싸는 컨테이너
@@ -448,18 +548,27 @@ export const TypeDescription = styled.p`
 
 // 타입 선택 단계 제목 스타일
 export const StepTitle = styled.h1`
-  font-size: 2rem;
+  font-size: 1.6rem;
   color: #333;
   text-align: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.3rem;
+
+  @media (max-width: 768px) {
+    font-size: 1.3rem;
+  }
 `
 
 // 타입 선택 단계 설명 스타일
 export const StepDescription = styled.p`
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   color: #666;
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+    margin-bottom: 0.8rem;
+  }
 `
 
 // 타입 선택 단계를 감싸는 컨테이너
@@ -468,21 +577,9 @@ export const StepContainer = styled.div`
   flex-direction: column;
   align-items: center;
   width: 100%;
+  height: 100%;
+  padding-top: 80px;
   overflow: hidden;
-  padding: 2rem;
-`
-
-// 단계 전환 애니메이션을 위한 컨테이너
-export const StepContent = styled.div<{ step: number }>`
-  display: flex;
-  width: 200%;
-  transition: transform 0.5s ease-in-out;
-  transform: translateX(${(props) => (props.step === 1 ? '0' : '-50%')});
-`
-
-export const StepSection = styled.div`
-  width: 50%;
-  padding: 0 1rem;
 `
 
 // 단계 인디케이터 컨테이너
@@ -491,7 +588,12 @@ export const StepIndicator = styled.div`
   justify-content: center;
   align-items: center;
   gap: 40px;
-  margin-bottom: 32px;
+  margin-bottom: 1rem;
+
+  @media (max-width: 768px) {
+    gap: 20px;
+    margin-bottom: 0.8rem;
+  }
 `
 
 export const StepWrapper = styled.div`
@@ -545,13 +647,13 @@ export const StepLabel = styled.span<{ active: boolean }>`
 
 // 다음 단계 버튼 스타일
 export const NextButton = styled.button`
-  margin-top: 2rem;
-  padding: 1rem 2rem;
+  margin-top: 0.5rem;
+  padding: 0.8rem 1.5rem;
   background-color: #00b8b8;
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 1.1rem;
+  font-size: 1rem;
   cursor: pointer;
   transition: all 0.3s ease;
 
@@ -562,5 +664,10 @@ export const NextButton = styled.button`
   &:disabled {
     background-color: #cccccc;
     cursor: not-allowed;
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
   }
 `

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { RoommateType } from './types';
 import { roommateTypes } from './roommateTypes';
 import { useStep } from '../../hooks/useStep';
@@ -19,6 +19,10 @@ import {
     StepWrapper,
     StepText,
     StepLine,
+    TypeHeader,
+    MobileButtons,
+    ToggleButton,
+    MobileContent,
 } from './styles';
 
 interface Props {
@@ -34,6 +38,21 @@ export default function RoommateTypeSelector({ onTypeSelect }: Props) {
         handlePreferredTypeSelect,
         handleNextStep,
     } = useStep();
+
+    const [showDescription, setShowDescription] = useState<number | null>(null);
+    const [showTraits, setShowTraits] = useState<number | null>(null);
+
+    const toggleDescription = (typeId: number, event: React.MouseEvent) => {
+        event.stopPropagation();
+        setShowDescription(showDescription === typeId ? null : typeId);
+        setShowTraits(null);
+    };
+
+    const toggleTraits = (typeId: number, event: React.MouseEvent) => {
+        event.stopPropagation();
+        setShowTraits(showTraits === typeId ? null : typeId);
+        setShowDescription(null);
+    };
 
     return (
         <StepContainer>
@@ -72,16 +91,37 @@ export default function RoommateTypeSelector({ onTypeSelect }: Props) {
                                 : 'none'
                         }}
                     >
-                        <TypeTitle>
-                            <TypeEmoji>{type.emoji}</TypeEmoji>
-                            {type.title}
-                        </TypeTitle>
-                        <TraitList>
-                            {type.traits.map((trait, index) => (
-                                <Trait key={index}>{trait}</Trait>
-                            ))}
-                        </TraitList>
-                        <TypeDescription>{type.description}</TypeDescription>
+                        <TypeHeader>
+                            <TypeTitle>
+                                <TypeEmoji>{type.emoji}</TypeEmoji>
+                                {type.title}
+                            </TypeTitle>
+                            <MobileButtons>
+                                <ToggleButton
+                                    isActive={showDescription === type.id}
+                                    onClick={(e) => toggleDescription(type.id, e)}
+                                >
+                                    ...
+                                </ToggleButton>
+                                <ToggleButton
+                                    isActive={showTraits === type.id}
+                                    onClick={(e) => toggleTraits(type.id, e)}
+                                >
+                                    ?
+                                </ToggleButton>
+                            </MobileButtons>
+                        </TypeHeader>
+
+                        <MobileContent isVisible={showDescription === type.id}>
+                            <TypeDescription>{type.description}</TypeDescription>
+                        </MobileContent>
+                        <MobileContent isVisible={showTraits === type.id}>
+                            <TraitList>
+                                {type.traits.map((trait, index) => (
+                                    <Trait key={index}>{trait}</Trait>
+                                ))}
+                            </TraitList>
+                        </MobileContent>
                     </TypeCard>
                 ))}
             </TypeGrid>
