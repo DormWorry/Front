@@ -14,12 +14,20 @@ import {
     ModalOverlay,
     ModalContent,
     ModalClose,
-    SurveyResult
+    TypeTitle,
+    TypeEmoji,
+    TraitList,
+    Trait,
+    TypeDescription
 } from './styles';
 import { cardData } from './cardData';
-import { surveyQuestions, dummySurveyResults } from './surveyData';
+import { RoommateType } from './types';
 
-const CardCarousel = () => {
+interface Props {
+    selectedType: RoommateType;
+}
+
+const CardCarousel = ({ selectedType }: Props) => {
     const [activeIndex, setActiveIndex] = useState(0);
     const [selectedCard, setSelectedCard] = useState<number | null>(null);
 
@@ -37,12 +45,6 @@ const CardCarousel = () => {
 
     const handleCloseModal = () => {
         setSelectedCard(null);
-    };
-
-    const getAnswerLabel = (questionId: string, value: string) => {
-        const question = [...surveyQuestions[1], ...surveyQuestions[2]]
-            .find(q => q.id === questionId);
-        return question?.options.find(opt => opt.value === value)?.label || value;
     };
 
     return (
@@ -90,21 +92,17 @@ const CardCarousel = () => {
                 <ModalOverlay onClick={handleCloseModal}>
                     <ModalContent onClick={e => e.stopPropagation()}>
                         <ModalClose onClick={handleCloseModal}>&times;</ModalClose>
-                        <h2>{cardData.find(card => card.id === selectedCard)?.name}님의 설문 결과</h2>
-                        <SurveyResult>
-                            {Object.entries(dummySurveyResults[selectedCard] || {}).map(([questionId, answer]) => {
-                                const question = [...surveyQuestions[1], ...surveyQuestions[2]]
-                                    .find(q => q.id === questionId);
-                                return (
-                                    <div key={questionId} className="question">
-                                        <div>{question?.question}</div>
-                                        <div className="answer">
-                                            {getAnswerLabel(questionId, answer)}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </SurveyResult>
+                        <h2>{cardData.find(card => card.id === selectedCard)?.name}님의 성격 유형</h2>
+                        <TypeTitle>
+                            <TypeEmoji>{selectedType.emoji}</TypeEmoji>
+                            {selectedType.title}
+                        </TypeTitle>
+                        <TraitList>
+                            {selectedType.traits.map((trait, index) => (
+                                <Trait key={index}>{trait}</Trait>
+                            ))}
+                        </TraitList>
+                        <TypeDescription>{selectedType.description}</TypeDescription>
                     </ModalContent>
                 </ModalOverlay>
             )}

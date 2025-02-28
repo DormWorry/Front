@@ -38,3 +38,18 @@ export interface CardData {
 export interface SurveyResultData {
   [key: string]: string
 }
+
+export interface RoommateType {
+  id: number
+  title: string
+  traits: string[]
+  description: string
+  emoji: string
+}
+
+export interface UserInfo {
+  kakaoId: string
+  instagram: string
+  description: string
+  location: '1기숙사' | '2기숙사' | '3기숙사'
+}

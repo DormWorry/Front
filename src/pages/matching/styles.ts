@@ -1,5 +1,6 @@
 import styled from 'styled-components'
 
+// 전체 페이지를 감싸는 컨테이너. 3D 효과를 위한 perspective 설정 포함
 export const Container = styled.div`
   position: relative;
   height: 100vh;
@@ -17,6 +18,7 @@ export const Container = styled.div`
   }
 `
 
+// 3D 회전 효과를 가진 카드 캐러셀을 감싸는 컨테이너
 export const CarouselContainer = styled.div`
   position: relative;
   width: 400px;
@@ -34,6 +36,7 @@ export const CarouselContainer = styled.div`
   }
 `
 
+// 캐러셀 내의 개별 카드 스타일
 export const Card = styled.div`
   position: absolute;
   width: 280px;
@@ -61,6 +64,7 @@ export const Card = styled.div`
   }
 `
 
+// 프로필 이미지를 표시하는 원형 컨테이너
 export const ProfileImage = styled.div`
   position: absolute;
   top: -60px;
@@ -79,18 +83,21 @@ export const ProfileImage = styled.div`
   }
 `
 
+// 카드 내용을 감싸는 컨테이너
 export const CardContent = styled.div`
   width: 100%;
   text-align: center;
   margin-top: 20px;
 `
 
+// 이름 표시 스타일
 export const Name = styled.h2`
   font-size: 1.5rem;
   color: #333;
   margin-bottom: 5px;
 `
 
+// 역할/소속 표시를 위한 태그 스타일
 export const Role = styled.div`
   font-size: 1rem;
   color: #666;
@@ -101,6 +108,7 @@ export const Role = styled.div`
   margin-bottom: 15px;
 `
 
+// 설명 텍스트 스타일
 export const Description = styled.p`
   font-size: 0.9rem;
   color: #666;
@@ -114,6 +122,7 @@ export const Description = styled.p`
   }
 `
 
+// 연락처 정보를 표시하는 컨테이너
 export const ContactInfo = styled.div`
   width: 100%;
   font-size: 0.8rem;
@@ -130,6 +139,7 @@ export const ContactInfo = styled.div`
   }
 `
 
+// 이전/다음 버튼을 감싸는 컨테이너
 export const ButtonContainer = styled.div`
   display: flex;
   gap: 70px;
@@ -140,6 +150,7 @@ export const ButtonContainer = styled.div`
   }
 `
 
+// 이전/다음 버튼 스타일
 export const Button = styled.button<{ left?: boolean; right?: boolean }>`
   width: 40px;
   height: 40px;
@@ -164,107 +175,104 @@ export const Button = styled.button<{ left?: boolean; right?: boolean }>`
   }
 `
 
-// Survey 관련 스타일 컴포넌트 추가
+// 설문조사 폼을 감싸는 컨테이너
 export const FormContainer = styled.div`
-  width: 800px;
-  height: 800px;
+  max-width: 600px;
   margin: 0 auto;
-  padding: 3rem;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow-y: auto;
-
-  @media (max-width: 768px) {
-    width: 100%;
-    height: 100%;
-    padding: 1.5rem;
-    border-radius: 0;
-  }
+  padding: 2rem;
 `
 
-export const SurveyTitle = styled.h1`
-  font-size: 2rem;
-  color: #333;
-  margin-bottom: 0.5rem;
-
-  @media (max-width: 768px) {
-    font-size: 1.5rem;
-  }
-`
-
-export const SurveySubtitle = styled.p`
-  color: #666;
+// 설문조사 제목 스타일
+export const FormTitle = styled.h2`
+  text-align: center;
   margin-bottom: 2rem;
+  color: #333;
+  font-size: 2rem;
 `
 
-export const QuestionContainer = styled.div`
-  flex: 1;
+// 설문조사 그룹 스타일
+export const FormGroup = styled.div`
+  margin-bottom: 1.5rem;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  align-items: center;
 `
 
-export const Question = styled.div`
-  margin-bottom: 1rem;
+// 라벨 스타일
+export const Label = styled.label`
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #666;
+  font-size: 1.1rem;
+  align-self: flex-start;
+  margin-left: 5px;
 `
 
-export const RadioGroup = styled.div`
+// 입력 필드 스타일
+const inputStyles = `
+  width: 300px;
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  &:focus {
+    outline: none;
+    border-color: #00b8b8;
+  }
+`
+
+export const Input = styled.input`
+  ${inputStyles}
+`
+
+export const TextArea = styled.textarea`
+  ${inputStyles}
+  min-height: 100px;
+  resize: vertical;
+`
+
+export const LocationContainer = styled.div`
   display: flex;
   gap: 1rem;
-  margin-top: 0.5rem;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 0.5rem;
-
-    label {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-  }
 `
 
-export const SurveyInput = styled.input`
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  margin-top: 0.5rem;
-`
-
-export const ErrorMessage = styled.p`
-  color: #ff4444;
-  font-size: 0.8rem;
-  margin-top: 0.25rem;
-`
-
-export const ButtonWrapper = styled.div`
-  margin-top: auto;
-  padding-top: 2rem;
-  display: flex;
-  justify-content: center;
-`
-
-export const SurveyButton = styled.button`
-  background: #6c5ce7;
-  color: white;
-  border: none;
-  padding: 1rem 3rem;
-  border-radius: 4px;
+export const LocationButton = styled.button<{ isSelected: boolean }>`
+  padding: 0.8rem 1.4rem;
+  border: 2px solid ${(props) => (props.isSelected ? '#00b8b8' : '#ddd')};
+  border-radius: 8px;
+  background-color: ${(props) => (props.isSelected ? '#e6ffff' : 'white')};
+  color: ${(props) => (props.isSelected ? '#00b8b8' : '#666')};
   cursor: pointer;
+  transition: all 0.2s;
   font-size: 1rem;
-  width: 200px;
 
   &:hover {
-    background: #5f4dd1;
+    border-color: #00b8b8;
+    color: #00b8b8;
   }
 `
 
+export const SubmitButton = styled.button`
+  ${inputStyles}
+  margin-top: 20px;
+  background-color: #00b8b8;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 100%;
+  &:hover {
+    background-color: #009999;
+  }
+
+  &:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+`
+
+// 전체 페이지를 감싸는 컨테이너
 export const IndexContainer = styled.div`
   width: 100%;
   min-height: 100vh;
@@ -278,6 +286,7 @@ export const IndexContainer = styled.div`
   }
 `
 
+// 모달 오버레이 스타일
 export const ModalOverlay = styled.div`
   position: fixed;
   top: 0;
@@ -291,6 +300,7 @@ export const ModalOverlay = styled.div`
   z-index: 1000;
 `
 
+// 모달 내용을 감싸는 컨테이너
 export const ModalContent = styled.div`
   background: white;
   padding: 2rem;
@@ -302,6 +312,7 @@ export const ModalContent = styled.div`
   position: relative;
 `
 
+// 모달 닫기 버튼 스타일
 export const ModalClose = styled.button`
   position: absolute;
   top: 1rem;
@@ -317,6 +328,7 @@ export const ModalClose = styled.button`
   }
 `
 
+// 설문 결과를 표시하는 컨테이너
 export const SurveyResult = styled.div`
   margin-top: 1rem;
 
@@ -337,6 +349,7 @@ export const SurveyResult = styled.div`
   }
 `
 
+// 뒤로 가기 버튼 스타일
 export const BackButton = styled.button`
   position: absolute;
   top: 20px;
@@ -352,6 +365,7 @@ export const BackButton = styled.button`
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
+  z-index: 1;
 
   &:hover {
     background: #f0f0f0;
@@ -365,5 +379,176 @@ export const BackButton = styled.button`
   @media (max-width: 768px) {
     top: 10px;
     left: 10px;
+  }
+`
+
+// 룸메이트 타입 선택 그리드 레이아웃
+export const TypeGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+`
+
+// 룸메이트 타입 카드 스타일
+export const TypeCard = styled.div`
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+`
+
+// 룸메이트 타입 제목 스타일
+export const TypeTitle = styled.h2`
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`
+
+// 룸메이트 타입 이모지 스타일
+export const TypeEmoji = styled.span`
+  font-size: 2rem;
+`
+
+// 룸메이트 특성 목록을 감싸는 컨테이너
+export const TraitList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+`
+
+// 룸메이트 개별 특성 스타일
+export const Trait = styled.li`
+  margin: 0.5rem 0;
+  color: #666;
+`
+
+// 룸메이트 타입 설명 스타일
+export const TypeDescription = styled.p`
+  color: #888;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  line-height: 1.4;
+`
+
+// 타입 선택 단계 제목 스타일
+export const StepTitle = styled.h1`
+  font-size: 2rem;
+  color: #333;
+  text-align: center;
+  margin-bottom: 1rem;
+`
+
+// 타입 선택 단계 설명 스타일
+export const StepDescription = styled.p`
+  font-size: 1.1rem;
+  color: #666;
+  text-align: center;
+  margin-bottom: 2rem;
+`
+
+// 타입 선택 단계를 감싸는 컨테이너
+export const StepContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  overflow: hidden;
+  padding: 2rem;
+`
+
+// 단계 전환 애니메이션을 위한 컨테이너
+export const StepContent = styled.div<{ step: number }>`
+  display: flex;
+  width: 200%;
+  transition: transform 0.5s ease-in-out;
+  transform: translateX(${(props) => (props.step === 1 ? '0' : '-50%')});
+`
+
+export const StepSection = styled.div`
+  width: 50%;
+  padding: 0 1rem;
+`
+
+// 단계 인디케이터 컨테이너
+export const StepIndicator = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2rem;
+  width: 300px;
+`
+
+// 단계 원형 표시
+export const StepCircle = styled.div<{ active: boolean; completed: boolean }>`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  background-color: ${(props) =>
+    props.completed ? '#00b8b8' : props.active ? '#ffffff' : '#e0e0e0'};
+  border: 2px solid
+    ${(props) => (props.completed || props.active ? '#00b8b8' : '#e0e0e0')};
+  color: ${(props) =>
+    props.completed ? '#ffffff' : props.active ? '#00b8b8' : '#999999'};
+`
+
+// 단계 연결선
+export const StepLine = styled.div<{ completed: boolean }>`
+  width: 100px;
+  height: 2px;
+  background-color: ${(props) => (props.completed ? '#00b8b8' : '#e0e0e0')};
+  margin: 0 10px;
+  transition: background-color 0.3s ease;
+`
+
+// 단계 레이블
+export const StepLabel = styled.span<{ active: boolean }>`
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.9rem;
+  color: ${(props) => (props.active ? '#00b8b8' : '#999999')};
+  transition: color 0.3s ease;
+  white-space: nowrap;
+`
+
+// 다음 단계 버튼 스타일
+export const NextButton = styled.button`
+  margin-top: 2rem;
+  padding: 1rem 2rem;
+  background-color: #00b8b8;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: #009999;
+  }
+
+  &:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
   }
 `
