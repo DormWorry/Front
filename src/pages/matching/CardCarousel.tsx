@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useCarousel } from '../../hooks/useCarousel';
 import {
     Container,
     CarouselContainer,
@@ -28,24 +29,14 @@ interface Props {
 }
 
 const CardCarousel = ({ selectedType }: Props) => {
-    const [activeIndex, setActiveIndex] = useState(0);
-    const [selectedCard, setSelectedCard] = useState<number | null>(null);
-
-    const handlePrevClick = () => {
-        setActiveIndex((current) => (current - 1 + cardData.length) % cardData.length);
-    };
-
-    const handleNextClick = () => {
-        setActiveIndex((current) => (current + 1) % cardData.length);
-    };
-
-    const handleCardClick = (cardId: number) => {
-        setSelectedCard(cardId);
-    };
-
-    const handleCloseModal = () => {
-        setSelectedCard(null);
-    };
+    const {
+        activeIndex,
+        selectedCard,
+        handlePrevClick,
+        handleNextClick,
+        handleCardClick,
+        handleCloseModal
+    } = useCarousel(cardData.length);
 
     return (
         <Container>

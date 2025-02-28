@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { RoommateType } from './types';
 import { roommateTypes } from './roommateTypes';
+import { useStep } from '../../hooks/useStep';
 import {
     TypeGrid,
     TypeCard,
@@ -25,25 +26,14 @@ interface Props {
 }
 
 export default function RoommateTypeSelector({ onTypeSelect }: Props) {
-    const [step, setStep] = useState<1 | 2>(1);
-    const [myType, setMyType] = useState<RoommateType | null>(null);
-    const [preferredType, setPreferredType] = useState<RoommateType | null>(null);
-
-    const handleMyTypeSelect = (type: RoommateType) => {
-        setMyType(type);
-    };
-
-    const handlePreferredTypeSelect = (type: RoommateType) => {
-        setPreferredType(type);
-    };
-
-    const handleNextStep = () => {
-        if (step === 1 && myType) {
-            setStep(2);
-        } else if (step === 2 && preferredType) {
-            onTypeSelect(preferredType);
-        }
-    };
+    const {
+        step,
+        myType,
+        preferredType,
+        handleMyTypeSelect,
+        handlePreferredTypeSelect,
+        handleNextStep,
+    } = useStep();
 
     return (
         <StepContainer>
@@ -96,7 +86,7 @@ export default function RoommateTypeSelector({ onTypeSelect }: Props) {
                 ))}
             </TypeGrid>
             <NextButton
-                onClick={handleNextStep}
+                onClick={() => handleNextStep(onTypeSelect)}
                 disabled={step === 1 ? !myType : !preferredType}
             >
                 {step === 1 ? '다음 단계' : '내 정보 입력'}

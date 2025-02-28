@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { UserInfo } from './types';
+import { useUserInfo } from '../../hooks/useUserInfo';
 import {
     FormContainer,
     FormTitle,
@@ -23,36 +24,12 @@ interface Props {
 }
 
 export default function UserInfoForm({ onSubmit }: Props) {
-    const [userInfo, setUserInfo] = useState<UserInfo>({
-        kakaoId: '',
-        instagram: '',
-        description: '',
-        location: '1기숙사',
-    });
+    const { userInfo, isFormValid, handleChange, handleLocationSelect } = useUserInfo();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         onSubmit(userInfo);
     };
-
-    const handleChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => {
-        const { name, value } = e.target;
-        setUserInfo((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-    };
-
-    const handleLocationSelect = (location: '1기숙사' | '2기숙사' | '3기숙사') => {
-        setUserInfo((prev) => ({
-            ...prev,
-            location,
-        }));
-    };
-
-    const isFormValid = userInfo.kakaoId && userInfo.instagram && userInfo.description && userInfo.location;
 
     return (
         <FormContainer>
