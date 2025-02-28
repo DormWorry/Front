@@ -142,6 +142,7 @@ export const ContactInfo = styled.div`
 // 이전/다음 버튼을 감싸는 컨테이너
 export const ButtonContainer = styled.div`
   display: flex;
+  justify-content: center;
   gap: 70px;
   position: relative;
 
@@ -206,7 +207,7 @@ export const Label = styled.label`
   color: #666;
   font-size: 1.1rem;
   align-self: flex-start;
-  margin-left: 5px;
+  margin-left: 80px;
 `
 
 // 입력 필드 스타일
@@ -254,14 +255,15 @@ export const LocationButton = styled.button<{ isSelected: boolean }>`
 `
 
 export const SubmitButton = styled.button`
-  ${inputStyles}
+  width: 330px;
+  height: 40px;
+  border-radius: 10px;
   margin-top: 20px;
   background-color: #00b8b8;
   color: white;
   border: none;
   cursor: pointer;
   transition: background-color 0.2s;
-  width: 100%;
   &:hover {
     background-color: #009999;
   }
@@ -486,37 +488,47 @@ export const StepSection = styled.div`
 // 단계 인디케이터 컨테이너
 export const StepIndicator = styled.div`
   display: flex;
-  align-items: center;
   justify-content: center;
-  margin-bottom: 2rem;
-  width: 300px;
+  align-items: center;
+  gap: 40px;
+  margin-bottom: 32px;
 `
 
-// 단계 원형 표시
-export const StepCircle = styled.div<{ active: boolean; completed: boolean }>`
-  width: 40px;
-  height: 40px;
+export const StepWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+`
+
+export const Step = styled.div<{ isActive: boolean; isCompleted: boolean }>`
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: ${({ isActive, isCompleted }) =>
+    isActive || isCompleted ? '#00b8b8' : '#e0e0e0'};
+  color: white;
   font-weight: bold;
-  transition: all 0.3s ease;
-  background-color: ${(props) =>
-    props.completed ? '#00b8b8' : props.active ? '#ffffff' : '#e0e0e0'};
-  border: 2px solid
-    ${(props) => (props.completed || props.active ? '#00b8b8' : '#e0e0e0')};
+`
+
+export const StepText = styled.span<{
+  isActive: boolean
+  isCompleted: boolean
+}>`
+  font-size: 14px;
   color: ${(props) =>
-    props.completed ? '#ffffff' : props.active ? '#00b8b8' : '#999999'};
+    props.isActive ? '#00b8b8' : props.isCompleted ? '#00b8b8' : '#e0e0e0'};
+  font-weight: ${(props) => (props.isActive ? '600' : '400')};
 `
 
 // 단계 연결선
 export const StepLine = styled.div<{ completed: boolean }>`
-  width: 100px;
+  width: 60px;
   height: 2px;
   background-color: ${(props) => (props.completed ? '#00b8b8' : '#e0e0e0')};
-  margin: 0 10px;
-  transition: background-color 0.3s ease;
 `
 
 // 단계 레이블

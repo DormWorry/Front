@@ -13,6 +13,11 @@ import {
     StepTitle,
     StepDescription,
     NextButton,
+    StepIndicator,
+    Step,
+    StepWrapper,
+    StepText,
+    StepLine,
 } from './styles';
 
 interface Props {
@@ -42,6 +47,22 @@ export default function RoommateTypeSelector({ onTypeSelect }: Props) {
 
     return (
         <StepContainer>
+            <StepIndicator>
+                <StepWrapper>
+                    <Step isActive={step === 1} isCompleted={step > 1}>1</Step>
+                    <StepText isActive={step === 1} isCompleted={step > 1}>나의 유형</StepText>
+                </StepWrapper>
+                <StepLine completed={step > 1} />
+                <StepWrapper>
+                    <Step isActive={step === 2} isCompleted={false}>2</Step>
+                    <StepText isActive={step === 2} isCompleted={false}>룸메이트 유형</StepText>
+                </StepWrapper>
+                <StepLine completed={false} />
+                <StepWrapper>
+                    <Step isActive={false} isCompleted={false}>3</Step>
+                    <StepText isActive={false} isCompleted={false}>프로필 정보</StepText>
+                </StepWrapper>
+            </StepIndicator>
             <StepTitle>
                 {step === 1 ? '나의 유형' : '원하는 룸메이트 유형'}
             </StepTitle>

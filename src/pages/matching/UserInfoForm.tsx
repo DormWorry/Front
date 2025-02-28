@@ -11,6 +11,11 @@ import {
     LocationButton,
     ButtonContainer,
     SubmitButton,
+    StepIndicator,
+    Step,
+    StepWrapper,
+    StepText,
+    StepLine,
 } from './styles';
 
 interface Props {
@@ -51,6 +56,22 @@ export default function UserInfoForm({ onSubmit }: Props) {
 
     return (
         <FormContainer>
+            <StepIndicator>
+                <StepWrapper>
+                    <Step isActive={false} isCompleted={true}>1</Step>
+                    <StepText isActive={false} isCompleted={true}>나의 유형</StepText>
+                </StepWrapper>
+                <StepLine completed={true} />
+                <StepWrapper>
+                    <Step isActive={false} isCompleted={true}>2</Step>
+                    <StepText isActive={false} isCompleted={true}>룸메이트 유형</StepText>
+                </StepWrapper>
+                <StepLine completed={true} />
+                <StepWrapper>
+                    <Step isActive={true} isCompleted={false}>3</Step>
+                    <StepText isActive={true} isCompleted={false}>프로필 정보</StepText>
+                </StepWrapper>
+            </StepIndicator>
             <FormTitle>프로필 정보 입력</FormTitle>
             <form onSubmit={handleSubmit}>
                 <FormGroup>
