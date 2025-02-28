@@ -141,37 +141,57 @@ export const ContactInfo = styled.div`
 export const ButtonContainer = styled.div`
   display: flex;
   justify-content: center;
-  gap: 70px;
+  gap: 20px;
+  margin-top: 20px;
+  width: 100%;
   position: relative;
-  padding-top: 20px;
-
-  @media (max-width: 768px) {
-    gap: 40px;
-  }
+  z-index: 10;
 `
 
 // 이전/다음 버튼 스타일
-export const Button = styled.button<{ left?: boolean; right?: boolean }>`
-  width: 40px;
-  height: 40px;
+export const Button = styled.button`
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background: white;
-  border: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
+  border: 2px solid #e8e8e8;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #333;
-  transition: all 0.3s ease;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
   &:hover {
-    background: #f0f0f0;
-    transform: scale(1.1);
+    border-color: #00b8b8;
+    background: #f8f8f8;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
 
   &:active {
-    transform: scale(0.95);
+    background: #f8f8f8;
+    border-color: #00b8b8;
+  }
+
+  svg {
+    width: 24px;
+    height: 24px;
+    color: #666;
+    transition: color 0.2s ease;
+  }
+
+  &:hover svg {
+    color: #00b8b8;
+  }
+
+  @media (max-width: 768px) {
+    width: 40px;
+    height: 40px;
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
   }
 `
 
