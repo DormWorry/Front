@@ -140,12 +140,9 @@ export const ContactInfo = styled.div`
 // 이전/다음 버튼을 감싸는 컨테이너
 export const ButtonContainer = styled.div`
   display: flex;
-  justify-content: center;
-  gap: 20px;
+  gap: 16px;
   margin-top: 20px;
-  width: 100%;
-  position: relative;
-  z-index: 10;
+  justify-content: center;
 `
 
 // 이전/다음 버튼 스타일
@@ -684,6 +681,26 @@ export const NextButton = styled.button`
   &:disabled {
     background-color: #cccccc;
     cursor: not-allowed;
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+  }
+`
+
+export const PrevButton = styled.button`
+  padding: 0.8rem 1.5rem;
+  background-color: #f0f0f0;
+  color: #666;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: #e0e0e0;
   }
 
   @media (max-width: 768px) {

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { RoommateType } from './types';
 import { roommateTypes } from './roommateTypes';
-import { useStep } from '../../hooks/useStep';
 import {
     TypeGrid,
     TypeCard,
@@ -23,24 +22,38 @@ import {
     MobileButtons,
     ToggleButton,
     MobileContent,
+    ButtonContainer,
 } from './styles';
 
 interface Props {
+    currentStep: 1 | 2;
+    myType: RoommateType | null;
+    preferredType: RoommateType | null;
     onTypeSelect: (type: RoommateType) => void;
+    onStepChange: (step: 1 | 2 | 3) => void;
+    onNextStep: () => void;
 }
 
-export default function RoommateTypeSelector({ onTypeSelect }: Props) {
-    const {
-        step,
-        myType,
-        preferredType,
-        handleMyTypeSelect,
-        handlePreferredTypeSelect,
-        handleNextStep,
-    } = useStep();
-
+export default function RoommateTypeSelector({
+    currentStep,
+    myType,
+    preferredType,
+    onTypeSelect,
+    onStepChange,
+    onNextStep
+}: Props) {
     const [showDescription, setShowDescription] = useState<number | null>(null);
     const [showTraits, setShowTraits] = useState<number | null>(null);
+
+    const handleTypeClick = (type: RoommateType) => {
+        onTypeSelect(type);
+    };
+
+    const handleStepClick = (targetStep: 1 | 2) => {
+        if (targetStep === 1 && currentStep === 2) {
+            onStepChange(1);
+        }
+    };
 
     const toggleDescription = (typeId: number, event: React.MouseEvent) => {
         event.stopPropagation();
@@ -57,14 +70,17 @@ export default function RoommateTypeSelector({ onTypeSelect }: Props) {
     return (
         <StepContainer>
             <StepIndicator>
-                <StepWrapper>
-                    <Step isActive={step === 1} isCompleted={step > 1}>1</Step>
-                    <StepText isActive={step === 1} isCompleted={step > 1}>나의 유형</StepText>
+                <StepWrapper
+                    onClick={() => handleStepClick(1)}
+                    style={{ cursor: currentStep === 2 ? 'pointer' : 'default' }}
+                >
+                    <Step isActive={currentStep === 1} isCompleted={currentStep > 1}>1</Step>
+                    <StepText isActive={currentStep === 1} isCompleted={currentStep > 1}>나의 유형</StepText>
                 </StepWrapper>
-                <StepLine completed={step > 1} />
+                <StepLine completed={currentStep > 1} />
                 <StepWrapper>
-                    <Step isActive={step === 2} isCompleted={false}>2</Step>
-                    <StepText isActive={step === 2} isCompleted={false}>룸메이트 유형</StepText>
+                    <Step isActive={currentStep === 2} isCompleted={false}>2</Step>
+                    <StepText isActive={currentStep === 2} isCompleted={false}>룸메이트 유형</StepText>
                 </StepWrapper>
                 <StepLine completed={false} />
                 <StepWrapper>
@@ -73,10 +89,10 @@ export default function RoommateTypeSelector({ onTypeSelect }: Props) {
                 </StepWrapper>
             </StepIndicator>
             <StepTitle>
-                {step === 1 ? '나의 유형' : '원하는 룸메이트 유형'}
+                {currentStep === 1 ? '나의 유형' : '원하는 룸메이트 유형'}
             </StepTitle>
             <StepDescription>
-                {step === 1
+                {currentStep === 1
                     ? '본인과 가장 잘 맞는 유형을 선택해주세요.'
                     : '함께 지내고 싶은 룸메이트의 유형을 선택해주세요.'}
             </StepDescription>
@@ -84,9 +100,9 @@ export default function RoommateTypeSelector({ onTypeSelect }: Props) {
                 {roommateTypes.map((type) => (
                     <TypeCard
                         key={type.id}
-                        onClick={() => step === 1 ? handleMyTypeSelect(type) : handlePreferredTypeSelect(type)}
+                        onClick={() => handleTypeClick(type)}
                         style={{
-                            border: (step === 1 ? myType?.id === type.id : preferredType?.id === type.id)
+                            border: (currentStep === 1 ? myType?.id === type.id : preferredType?.id === type.id)
                                 ? '2px solid #00b8b8'
                                 : 'none'
                         }}
@@ -111,7 +127,6 @@ export default function RoommateTypeSelector({ onTypeSelect }: Props) {
                                 </ToggleButton>
                             </MobileButtons>
                         </TypeHeader>
-
                         <MobileContent isVisible={showDescription === type.id}>
                             <TypeDescription>{type.description}</TypeDescription>
                         </MobileContent>
@@ -125,12 +140,14 @@ export default function RoommateTypeSelector({ onTypeSelect }: Props) {
                     </TypeCard>
                 ))}
             </TypeGrid>
-            <NextButton
-                onClick={() => handleNextStep(onTypeSelect)}
-                disabled={step === 1 ? !myType : !preferredType}
-            >
-                {step === 1 ? '다음 단계' : '내 정보 입력'}
-            </NextButton>
+            <ButtonContainer>
+                <NextButton
+                    onClick={onNextStep}
+                    disabled={currentStep === 1 ? !myType : !preferredType}
+                >
+                    {currentStep === 1 ? '다음 단계' : '내 정보 입력'}
+                </NextButton>
+            </ButtonContainer>
         </StepContainer>
     );
 } 

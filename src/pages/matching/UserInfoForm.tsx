@@ -21,9 +21,10 @@ import {
 
 interface Props {
     onSubmit: (userInfo: UserInfo) => void;
+    onStepChange: (step: 1 | 2 | 3) => void;
 }
 
-export default function UserInfoForm({ onSubmit }: Props) {
+export default function UserInfoForm({ onSubmit, onStepChange }: Props) {
     const { userInfo, isFormValid, handleChange, handleLocationSelect } = useUserInfo();
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -31,15 +32,27 @@ export default function UserInfoForm({ onSubmit }: Props) {
         onSubmit(userInfo);
     };
 
+    const handleStepClick = (targetStep: 1 | 2) => {
+        if (targetStep <= 2) { // 1단계나 2단계로만 이동 가능
+            onStepChange(targetStep);
+        }
+    };
+
     return (
         <FormContainer>
             <StepIndicator>
-                <StepWrapper>
+                <StepWrapper
+                    onClick={() => handleStepClick(1)}
+                    style={{ cursor: 'pointer' }}
+                >
                     <Step isActive={false} isCompleted={true}>1</Step>
                     <StepText isActive={false} isCompleted={true}>나의 유형</StepText>
                 </StepWrapper>
                 <StepLine completed={true} />
-                <StepWrapper>
+                <StepWrapper
+                    onClick={() => handleStepClick(2)}
+                    style={{ cursor: 'pointer' }}
+                >
                     <Step isActive={false} isCompleted={true}>2</Step>
                     <StepText isActive={false} isCompleted={true}>룸메이트 유형</StepText>
                 </StepWrapper>
