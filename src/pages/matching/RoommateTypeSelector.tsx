@@ -99,7 +99,7 @@ export default function RoommateTypeSelector({ onTypeSelect }: Props) {
                 onClick={handleNextStep}
                 disabled={step === 1 ? !myType : !preferredType}
             >
-                {step === 1 ? '다음 단계' : '매칭 시작하기'}
+                {step === 1 ? '다음 단계' : '내 정보 입력'}
             </NextButton>
         </StepContainer>
     );
