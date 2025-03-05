@@ -3,6 +3,7 @@ import { UserInfo } from './types';
 import { useUserInfo } from '../../hooks/useUserInfo';
 import {
     FormContainer,
+    FormWrapper,
     FormTitle,
     FormGroup,
     Label,
@@ -45,25 +46,25 @@ export default function UserInfoForm({ onSubmit, onStepChange }: Props) {
                     onClick={() => handleStepClick(1)}
                     style={{ cursor: 'pointer' }}
                 >
-                    <Step isActive={false} isCompleted={true}>1</Step>
-                    <StepText isActive={false} isCompleted={true}>나의 유형</StepText>
+                    <Step $isActive={false} $isCompleted={true}>1</Step>
+                    <StepText $isActive={false} $isCompleted={true}>나의 유형</StepText>
                 </StepWrapper>
-                <StepLine completed={true} />
+                <StepLine $completed={true} />
                 <StepWrapper
                     onClick={() => handleStepClick(2)}
                     style={{ cursor: 'pointer' }}
                 >
-                    <Step isActive={false} isCompleted={true}>2</Step>
-                    <StepText isActive={false} isCompleted={true}>룸메이트 유형</StepText>
+                    <Step $isActive={false} $isCompleted={true}>2</Step>
+                    <StepText $isActive={false} $isCompleted={true}>룸메이트 유형</StepText>
                 </StepWrapper>
-                <StepLine completed={true} />
+                <StepLine $completed={true} />
                 <StepWrapper>
-                    <Step isActive={true} isCompleted={false}>3</Step>
-                    <StepText isActive={true} isCompleted={false}>프로필 정보</StepText>
+                    <Step $isActive={true} $isCompleted={false}>3</Step>
+                    <StepText $isActive={true} $isCompleted={false}>프로필 정보</StepText>
                 </StepWrapper>
             </StepIndicator>
             <FormTitle>프로필 정보 입력</FormTitle>
-            <form style={{ display: 'flex', flexDirection: 'column', gap: '40px' }} onSubmit={handleSubmit}>
+            <FormWrapper onSubmit={handleSubmit}>
                 <FormGroup>
                     <Label>카카오톡 ID</Label>
                     <Input
@@ -98,33 +99,33 @@ export default function UserInfoForm({ onSubmit, onStepChange }: Props) {
                     <LocationContainer>
                         <LocationButton
                             type="button"
-                            isSelected={userInfo.location === '1기숙사'}
+                            $isSelected={userInfo.location === '1기숙사'}
                             onClick={() => handleLocationSelect('1기숙사')}
                         >
                             1기숙사
                         </LocationButton>
                         <LocationButton
                             type="button"
-                            isSelected={userInfo.location === '2기숙사'}
+                            $isSelected={userInfo.location === '2기숙사'}
                             onClick={() => handleLocationSelect('2기숙사')}
                         >
                             2기숙사
                         </LocationButton>
                         <LocationButton
                             type="button"
-                            isSelected={userInfo.location === '3기숙사'}
+                            $isSelected={userInfo.location === '3기숙사'}
                             onClick={() => handleLocationSelect('3기숙사')}
                         >
                             3기숙사
                         </LocationButton>
                     </LocationContainer>
                 </FormGroup>
-                <ButtonContainer>
+                <ButtonContainer style={{ width: '100%', paddingTop: '0px' }}>
                     <SubmitButton type="submit" disabled={!isFormValid}>
                         매칭 시작하기
                     </SubmitButton>
                 </ButtonContainer>
-            </form>
+            </FormWrapper>
         </FormContainer>
     );
 }
