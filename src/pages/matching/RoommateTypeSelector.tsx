@@ -104,7 +104,8 @@ export default function RoommateTypeSelector({
                         style={{
                             border: (currentStep === 1 ? myType?.id === type.id : preferredType?.id === type.id)
                                 ? '2px solid #00b8b8'
-                                : 'none'
+                                : '2px solid transparent',
+                            boxSizing: 'border-box'
                         }}
                     >
                         <TypeHeader>

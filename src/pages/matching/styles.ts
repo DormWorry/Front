@@ -11,8 +11,10 @@ export const Container = styled.div`
   perspective: 1000px;
   gap: 50px;
   padding-top: 100px;
+
   @media (max-width: 768px) {
     gap: 30px;
+    padding-top: 0px;
   }
 `
 
@@ -26,11 +28,12 @@ export const CarouselContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 40px;
+  padding-top: 100px;
 
   @media (max-width: 768px) {
+    padding-top: 70px;
     width: 100%;
-    height: 450px;
+    overflow: hidden;
   }
 `
 
@@ -49,16 +52,19 @@ export const Card = styled.div`
   transition: all 0.5s ease;
   backface-visibility: hidden;
   cursor: pointer;
+  transform-style: preserve-3d;
+  will-change: box-shadow;
 
   @media (max-width: 768px) {
     width: 85%;
     max-width: 280px;
     height: auto;
     min-height: 300px;
+    padding-top: 70px;
   }
 
   &:hover {
-    transform: scale(1.05);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
   }
 `
 
@@ -73,6 +79,13 @@ export const ProfileImage = styled.div`
   overflow: hidden;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border: 4px solid white;
+  z-index: 5;
+
+  @media (max-width: 768px) {
+    top: -50px;
+    width: 90px;
+    height: 90px;
+  }
 
   img {
     width: 100%;
@@ -141,10 +154,9 @@ export const ContactInfo = styled.div`
 export const ButtonContainer = styled.div`
   display: flex;
   gap: 16px;
-  margin-top: 20px;
   justify-content: center;
   gap: 100px;
-  padding-top: 100px;
+  padding-top: 70px;
 `
 
 // 이전/다음 버튼 스타일
@@ -199,9 +211,15 @@ export const FormContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
   max-width: 600px;
   margin: 0 auto;
   padding-top: 30px;
+
+  @media (max-width: 768px) {
+    padding-top: 0px;
+    width: 100%;
+  }
 `
 
 // 설문조사 제목 스타일
@@ -216,8 +234,11 @@ export const FormWrapper = styled.form`
   width: 350px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 25px;
+  gap: 40px;
+
+  @media (max-width: 768px) {
+    gap: 20px;
+  }
 `
 
 // 설문조사 그룹 스타일
@@ -225,7 +246,6 @@ export const FormGroup = styled.div`
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: space-between;
 `
 
 // 라벨 스타일
@@ -238,7 +258,6 @@ export const Label = styled.label`
 
 // 입력 필드 스타일
 const inputStyles = `
-  width: 300px;
   padding: 0.8rem;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -256,16 +275,18 @@ export const Input = styled.input`
 export const TextArea = styled.textarea`
   ${inputStyles}
   min-height: 100px;
-  resize: vertical;
 `
 
 export const LocationContainer = styled.div`
   display: flex;
   gap: 1rem;
+  width: 100%;
+  justify-content: center;
 `
 
 export const LocationButton = styled.button<{ isSelected: boolean }>`
   padding: 0.8rem 1.4rem;
+  width: 100%;
   border: 2px solid ${(props) => (props.isSelected ? '#00b8b8' : '#ddd')};
   border-radius: 8px;
   background-color: ${(props) => (props.isSelected ? '#e6ffff' : 'white')};
@@ -281,10 +302,9 @@ export const LocationButton = styled.button<{ isSelected: boolean }>`
 `
 
 export const SubmitButton = styled.button`
-  width: 330px;
+  width: 200px;
   height: 40px;
   border-radius: 10px;
-  margin-top: 20px;
   background-color: #00b8b8;
   color: white;
   border: none;
@@ -336,7 +356,6 @@ export const ModalContent = styled.div`
   width: 90%;
   max-width: 500px;
   max-height: 80vh;
-  overflow-y: auto;
   position: relative;
 `
 
@@ -415,22 +434,14 @@ export const TypeGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1rem;
-  padding: 0.5rem;
+  padding: 8px;
   max-width: 1200px;
-  width: 100%;
-  margin: 0 auto 1rem;
   overflow-y: auto;
-  height: 500px;
+  height: 480px;
   -webkit-overflow-scrolling: touch;
   position: relative;
 
-  mask-image: linear-gradient(
-    to bottom,
-    transparent,
-    black 10%,
-    black 90%,
-    transparent
-  );
+  mask-image: linear-gradient(to bottom, black 0%, black 85%, transparent);
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
@@ -478,7 +489,6 @@ export const TypeCard = styled.div`
 
   @media (max-width: 768px) {
     padding: 0.8rem;
-    gap: 0.6rem;
   }
 `
 
@@ -620,7 +630,7 @@ export const StepIndicator = styled.div`
   margin-bottom: 1rem;
 
   @media (max-width: 768px) {
-    gap: 20px;
+    gap: 15px;
     margin-bottom: 0.8rem;
   }
 `

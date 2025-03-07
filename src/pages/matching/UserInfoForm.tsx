@@ -4,6 +4,7 @@ import { useUserInfo } from '../../hooks/useUserInfo';
 import {
     FormContainer,
     FormTitle,
+    FormWrapper,
     FormGroup,
     Label,
     Input,
@@ -63,7 +64,7 @@ export default function UserInfoForm({ onSubmit, onStepChange }: Props) {
                 </StepWrapper>
             </StepIndicator>
             <FormTitle>프로필 정보 입력</FormTitle>
-            <form style={{ display: 'flex', flexDirection: 'column', gap: '40px' }} onSubmit={handleSubmit}>
+            <FormWrapper onSubmit={handleSubmit}>
                 <FormGroup>
                     <Label>카카오톡 ID</Label>
                     <Input
@@ -93,7 +94,7 @@ export default function UserInfoForm({ onSubmit, onStepChange }: Props) {
                         placeholder="간단한 자기소개를 작성해주세요"
                     />
                 </FormGroup>
-                <FormGroup>
+                <FormGroup >
                     <Label>기숙사 선택</Label>
                     <LocationContainer>
                         <LocationButton
@@ -119,12 +120,12 @@ export default function UserInfoForm({ onSubmit, onStepChange }: Props) {
                         </LocationButton>
                     </LocationContainer>
                 </FormGroup>
-                <ButtonContainer>
+                <ButtonContainer style={{ paddingTop: '15px' }}>
                     <SubmitButton type="submit" disabled={!isFormValid}>
                         매칭 시작하기
                     </SubmitButton>
                 </ButtonContainer>
-            </form>
+            </FormWrapper>
         </FormContainer>
     );
 }

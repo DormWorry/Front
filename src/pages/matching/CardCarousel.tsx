@@ -41,14 +41,29 @@ const CardCarousel = ({ selectedType }: Props) => {
         getCardStyle
     } = useCarousel(cardData.length);
 
+    // 모바일일 때만 화면에 표시될 카드를 필터링하는 함수
+    const getCardsToRender = () => {
+        if (!isMobile) {
+            return cardData;
+        }
+
+        // 모바일인 경우: 현재 카드 및 전후 카드만 표시
+        const visibleRange = 1; // 현재 카드 기준으로 양쪽으로 보여줄 카드 수
+        return cardData.filter((_, index) =>
+            Math.abs(index - activeIndex) <= visibleRange ||
+            (activeIndex === 0 && index === cardData.length - 1) ||
+            (activeIndex === cardData.length - 1 && index === 0)
+        );
+    };
+
     return (
         <Container>
             <CarouselContainer style={isMobile ? { transformStyle: 'flat' } : undefined}>
-                {cardData.map((card, index) => (
+                {getCardsToRender().map((card) => (
                     <Card
                         key={card.id}
                         onClick={() => handleCardClick(card.id)}
-                        style={getCardStyle(index)}
+                        style={getCardStyle(cardData.findIndex(c => c.id === card.id))}
                     >
                         <ProfileImage>
                             <img src={card.image} alt={card.name} />
