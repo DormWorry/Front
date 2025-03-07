@@ -10,7 +10,7 @@ export const Container = styled.div`
   align-items: center;
   perspective: 1000px;
   gap: 50px;
-  padding-top: 200px;
+  padding-top: 100px;
   @media (max-width: 768px) {
     gap: 30px;
   }
@@ -143,6 +143,8 @@ export const ButtonContainer = styled.div`
   gap: 16px;
   margin-top: 20px;
   justify-content: center;
+  gap: 100px;
+  padding-top: 100px;
 `
 
 // 이전/다음 버튼 스타일
@@ -199,7 +201,7 @@ export const FormContainer = styled.div`
   align-items: center;
   max-width: 600px;
   margin: 0 auto;
-  padding-top: 80px;
+  padding-top: 30px;
 `
 
 // 설문조사 제목 스타일
@@ -207,6 +209,15 @@ export const FormTitle = styled.h2`
   text-align: center;
   color: #333;
   font-size: 2rem;
+`
+
+// FormWrapper 컴포넌트를 수정하여 form 태그로 렌더링되도록 합니다
+export const FormWrapper = styled.form`
+  width: 350px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 25px;
 `
 
 // 설문조사 그룹 스타일
@@ -310,6 +321,7 @@ export const ModalOverlay = styled.div`
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(3px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -408,7 +420,7 @@ export const TypeGrid = styled.div`
   width: 100%;
   margin: 0 auto 1rem;
   overflow-y: auto;
-  height: 450px;
+  height: 500px;
   -webkit-overflow-scrolling: touch;
   position: relative;
 
@@ -595,7 +607,7 @@ export const StepContainer = styled.div`
   align-items: center;
   width: 100%;
   height: 100%;
-  padding-top: 80px;
+  padding-top: 10px;
   overflow: hidden;
 `
 
@@ -664,7 +676,7 @@ export const StepLabel = styled.span<{ active: boolean }>`
 
 // 다음 단계 버튼 스타일
 export const NextButton = styled.button`
-  margin-top: 0.5rem;
+  padding-top: 0.3rem;
   padding: 0.8rem 1.5rem;
   background-color: #00b8b8;
   color: white;
@@ -706,5 +718,69 @@ export const PrevButton = styled.button`
   @media (max-width: 768px) {
     padding: 0.6rem 1.2rem;
     font-size: 0.9rem;
+  }
+`
+
+// 블러 처리된 텍스트를 위한 스타일
+export const BlurredText = styled.span`
+  filter: blur(4px);
+  user-select: none;
+  transition: filter 0.3s ease;
+
+  &:hover {
+    filter: blur(0);
+  }
+
+  @media (max-width: 768px) {
+    filter: blur(3px);
+  }
+`
+
+// 헤더 관련 스타일 추가
+export const MainHeader = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  background-color: #f9f9f9;
+  border-radius: 12px;
+  margin-bottom: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+`
+
+export const PageTitle = styled.h1`
+  margin: 0 0 12px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+`
+
+export const HeaderDescription = styled.p`
+  color: #777;
+  text-align: center;
+  margin: 0;
+  font-size: 16px;
+`
+
+// 블러 처리된 그룹을 위한 스타일
+export const BlurredGroup = styled.div`
+  filter: blur(4px);
+  user-select: none;
+  transition: filter 0.3s ease;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+
+  &:hover {
+    filter: blur(0);
+  }
+
+  @media (max-width: 768px) {
+    filter: blur(3px);
   }
 `

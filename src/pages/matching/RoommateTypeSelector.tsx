@@ -140,7 +140,7 @@ export default function RoommateTypeSelector({
                     </TypeCard>
                 ))}
             </TypeGrid>
-            <ButtonContainer>
+            <ButtonContainer style={{ marginTop: '-50px' }}>
                 <NextButton
                     onClick={onNextStep}
                     disabled={currentStep === 1 ? !myType : !preferredType}

@@ -18,7 +18,9 @@ import {
     TypeEmoji,
     TraitList,
     Trait,
-    TypeDescription
+    TypeDescription,
+    BlurredText,
+    BlurredGroup,
 } from './styles';
 import { cardData } from './cardData';
 import { RoommateType } from './types';
@@ -55,11 +57,13 @@ const CardCarousel = ({ selectedType }: Props) => {
                             <Name>{card.name}</Name>
                             <Role>{card.role}</Role>
                             <Description>{card.description}</Description>
-                            <ContactInfo>
-                                <div>💬 {card.contact.kakaoId}</div>
-                                <div>👤 {card.contact.instagram}</div>
-                                <div>📍 {card.contact.location}</div>
-                            </ContactInfo>
+                            <TypeTitle style={{ fontSize: '1rem', paddingTop: '10px', marginBottom: '5px' }}>
+                                <TypeEmoji style={{ fontSize: '1.2rem' }}>{selectedType.emoji}</TypeEmoji>
+                                {selectedType.title}
+                            </TypeTitle>
+                            <TypeDescription style={{ fontSize: '0.7rem', margin: '0', maxHeight: '60px', overflow: 'hidden' }}>
+                                {selectedType.description}
+                            </TypeDescription>
                         </CardContent>
                     </Card>
                 ))}
@@ -91,7 +95,14 @@ const CardCarousel = ({ selectedType }: Props) => {
                                 <Trait key={index}>{trait}</Trait>
                             ))}
                         </TraitList>
-                        <TypeDescription>{selectedType.description}</TypeDescription>
+
+                        <ContactInfo>
+                            <BlurredGroup>
+                                <div>💬 카카오: {cardData.find(card => card.id === selectedCard)?.contact.kakaoId}</div>
+                                <div>👤 인스타: {cardData.find(card => card.id === selectedCard)?.contact.instagram}</div>
+                            </BlurredGroup>
+                            <div>📍 {cardData.find(card => card.id === selectedCard)?.contact.location}</div>
+                        </ContactInfo>
                     </ModalContent>
                 </ModalOverlay>
             )}
