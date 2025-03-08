@@ -123,7 +123,7 @@ const CardCarousel = ({ selectedType }: Props) => {
                                     onClick={() => useCredit(selectedCard)}
                                     disabled={credits <= 0}
                                 >
-                                    크레딧 1개 사용하기
+                                    크레딧 사용하기
                                 </CreditButton>
                             )}
                             <BlurredGroup isBlurred={!isRevealed(selectedCard)}>

@@ -10,7 +10,7 @@ export const Container = styled.div`
   align-items: center;
   perspective: 1000px;
   gap: 50px;
-  padding-top: 100px;
+  padding-top: 85px;
 
   @media (max-width: 768px) {
     gap: 30px;
@@ -28,7 +28,7 @@ export const CarouselContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-top: 100px;
+  padding-top: 70px;
 
   @media (max-width: 768px) {
     padding-top: 70px;
@@ -214,7 +214,6 @@ export const FormContainer = styled.div`
   width: 100%;
   max-width: 600px;
   margin: 0 auto;
-  padding-top: 30px;
 
   @media (max-width: 768px) {
     padding-top: 0px;
@@ -596,7 +595,6 @@ export const StepContainer = styled.div`
   align-items: center;
   width: 100%;
   height: 100%;
-  padding-top: 10px;
   overflow: hidden;
 `
 
@@ -771,7 +769,7 @@ export const BlurredGroup = styled.div<{ isBlurred: boolean }>`
 export const CreditButton = styled.button`
   position: relative;
   top: 50%;
-  left: 80%;
+  left: 88%;
   transform: translate(-50%, -50%);
   background: #00b8b8;
   color: white;
@@ -792,6 +790,12 @@ export const CreditButton = styled.button`
 
   &:disabled {
     cursor: not-allowed;
+  }
+  @media (max-width: 768px) {
+    width: 100px;
+    left: 80%;
+    transform: translate(-50%, -50%);
+    font-size: 0.65rem;
   }
 `
 
