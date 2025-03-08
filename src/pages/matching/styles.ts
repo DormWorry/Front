@@ -139,7 +139,7 @@ export const ContactInfo = styled.div`
   font-size: 0.8rem;
   color: #888;
   text-align: left;
-  padding: 0 10px;
+  margin-top: 15px;
 
   div {
     margin: 5px 0;
@@ -372,27 +372,6 @@ export const ModalClose = styled.button`
 
   &:hover {
     color: #333;
-  }
-`
-
-// 설문 결과를 표시하는 컨테이너
-export const SurveyResult = styled.div`
-  margin-top: 1rem;
-
-  h3 {
-    color: #333;
-    margin-bottom: 1rem;
-  }
-
-  .question {
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid #eee;
-  }
-
-  .answer {
-    color: #666;
-    margin-top: 0.25rem;
   }
 `
 
@@ -777,20 +756,59 @@ export const HeaderDescription = styled.p`
 `
 
 // 블러 처리된 그룹을 위한 스타일
-export const BlurredGroup = styled.div`
-  filter: blur(4px);
-  user-select: none;
+export const BlurredGroup = styled.div<{ isBlurred: boolean }>`
+  filter: ${(props) => (props.isBlurred ? 'blur(4px)' : 'none')};
+  user-select: ${(props) => (props.isBlurred ? 'none' : 'auto')};
   transition: filter 0.3s ease;
   background: rgba(0, 0, 0, 0.05);
   padding: 10px;
   border-radius: 8px;
   margin-bottom: 10px;
+  position: relative;
+`
 
-  &:hover {
-    filter: blur(0);
+// 크레딧 사용 버튼
+export const CreditButton = styled.button`
+  position: relative;
+  top: 50%;
+  left: 80%;
+  transform: translate(-50%, -50%);
+  background: #00b8b8;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  opacity: ${(props) => (props.disabled ? 0.5 : 1)};
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) {
+    background: #009999;
+    transform: translate(-50%, -50%) scale(1.05);
   }
 
-  @media (max-width: 768px) {
-    filter: blur(3px);
+  &:disabled {
+    cursor: not-allowed;
+  }
+`
+
+// 크레딧 정보 표시
+export const CreditInfo = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: #f5f5f5;
+  border-radius: 8px;
+
+  span {
+    font-weight: 500;
+    color: #00b8b8;
   }
 `

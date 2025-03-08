@@ -3,23 +3,6 @@ export interface QuestionData {
   error: string
 }
 
-export interface SurveyFormProps {
-  onComplete: () => void
-}
-
-export interface SurveyQuestion {
-  id: string
-  question: string
-  options: {
-    value: string
-    label: string
-  }[]
-}
-
-export interface SurveyQuestions {
-  [key: number]: SurveyQuestion[]
-}
-
 export interface CardContact {
   kakaoId: string
   instagram: string
@@ -33,10 +16,6 @@ export interface CardData {
   image: string
   description: string
   contact: CardContact
-}
-
-export interface SurveyResultData {
-  [key: string]: string
 }
 
 export interface RoommateType {

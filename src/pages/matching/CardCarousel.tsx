@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react';
 import { useCarousel } from '../../hooks/useCarousel';
+import { useCredits } from '../../hooks/useCredits';
 import {
     Container,
     CarouselContainer,
@@ -19,8 +21,9 @@ import {
     TraitList,
     Trait,
     TypeDescription,
-    BlurredText,
     BlurredGroup,
+    CreditButton,
+    CreditInfo
 } from './styles';
 import { cardData } from './cardData';
 import { RoommateType } from './types';
@@ -40,6 +43,9 @@ const CardCarousel = ({ selectedType }: Props) => {
         handleCloseModal,
         getCardStyle
     } = useCarousel(cardData.length);
+
+    // 크레딧 시스템 훅 사용
+    const { credits, useCredit, isRevealed } = useCredits();
 
     // 모바일일 때만 화면에 표시될 카드를 필터링하는 함수
     const getCardsToRender = () => {
@@ -112,12 +118,26 @@ const CardCarousel = ({ selectedType }: Props) => {
                         </TraitList>
 
                         <ContactInfo>
-                            <BlurredGroup>
+                            {!isRevealed(selectedCard) && (
+                                <CreditButton
+                                    onClick={() => useCredit(selectedCard)}
+                                    disabled={credits <= 0}
+                                >
+                                    크레딧 1개 사용하기
+                                </CreditButton>
+                            )}
+                            <BlurredGroup isBlurred={!isRevealed(selectedCard)}>
                                 <div>💬 카카오: {cardData.find(card => card.id === selectedCard)?.contact.kakaoId}</div>
                                 <div>👤 인스타: {cardData.find(card => card.id === selectedCard)?.contact.instagram}</div>
+                                <div>📍 {cardData.find(card => card.id === selectedCard)?.contact.location}</div>
+
+
                             </BlurredGroup>
-                            <div>📍 {cardData.find(card => card.id === selectedCard)?.contact.location}</div>
                         </ContactInfo>
+
+                        <CreditInfo>
+                            남은 크레딧: <span>{credits}개</span>
+                        </CreditInfo>
                     </ModalContent>
                 </ModalOverlay>
             )}
