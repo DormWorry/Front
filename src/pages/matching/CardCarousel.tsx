@@ -129,9 +129,6 @@ const CardCarousel = ({ selectedType }: Props) => {
                             <BlurredGroup isBlurred={!isRevealed(selectedCard)}>
                                 <div>💬 카카오: {cardData.find(card => card.id === selectedCard)?.contact.kakaoId}</div>
                                 <div>👤 인스타: {cardData.find(card => card.id === selectedCard)?.contact.instagram}</div>
-                                <div>📍 {cardData.find(card => card.id === selectedCard)?.contact.location}</div>
-
-
                             </BlurredGroup>
                         </ContactInfo>
 
