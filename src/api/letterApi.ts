@@ -60,7 +60,7 @@ const letterApi = {
       const response = await axios.post(`${API_BASE_URL}/letters`, payload)
       return response.data
     } catch (error) {
-      console.error('편지 전송 실패:', error)
+      console.error('편지 전송 실패123:', error)
       throw error
     }
   },
