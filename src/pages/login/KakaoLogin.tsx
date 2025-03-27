@@ -14,7 +14,8 @@ const KakaoLogin: React.FC = () => {
 
     // 카카오 로그인에 필요한 상수 정의
     const KAKAO_CLIENT_ID = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID || '카카오_앱_키를_입력하세요'
-    const KAKAO_REDIRECT_URI = process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI || 'http://localhost:3000/auth/kakao/callback'
+    // 백엔드의 /auth/kakao 엔드포인트로 리다이렉트
+    const KAKAO_REDIRECT_URI = process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI || 'http://localhost:8000/auth/kakao'
 
     useEffect(() => {
         // 카카오 SDK 스크립트 로드
