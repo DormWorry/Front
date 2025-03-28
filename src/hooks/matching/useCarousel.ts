@@ -13,17 +13,15 @@ interface UseCarouselReturn {
   isMobile: boolean
   handlePrevClick: () => void
   handleNextClick: () => void
-  handleCardClick: (cardId: number | string) => void
+  handleCardClick: (cardId: number) => void
   handleCloseModal: () => void
   getCardStyle: (index: number) => CardStyle
-  setTotalCards: (count: number) => void
 }
 
-export const useCarousel = (initialTotalCards: number): UseCarouselReturn => {
+export const useCarousel = (totalCards: number): UseCarouselReturn => {
   const [activeIndex, setActiveIndex] = useState(0)
-  const [selectedCard, setSelectedCard] = useState<number | string | null>(null)
+  const [selectedCard, setSelectedCard] = useState<number | null>(null)
   const [isMobile, setIsMobile] = useState(false)
-  const [totalCards, setTotalCards] = useState(initialTotalCards)
 
   useEffect(() => {
     const checkMobile = () => {
@@ -36,24 +34,15 @@ export const useCarousel = (initialTotalCards: number): UseCarouselReturn => {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  // totalCards가 변경되면 activeIndex가 범위를 벗어나지 않도록 조정
-  useEffect(() => {
-    if (totalCards > 0 && activeIndex >= totalCards) {
-      setActiveIndex(totalCards - 1)
-    }
-  }, [totalCards, activeIndex])
-
   const handlePrevClick = () => {
-    if (totalCards <= 0) return
     setActiveIndex((prev) => (prev === 0 ? totalCards - 1 : prev - 1))
   }
 
   const handleNextClick = () => {
-    if (totalCards <= 0) return
     setActiveIndex((prev) => (prev === totalCards - 1 ? 0 : prev + 1))
   }
 
-  const handleCardClick = (cardId: number | string) => {
+  const handleCardClick = (cardId: number) => {
     setSelectedCard(cardId)
   }
 
@@ -86,6 +75,5 @@ export const useCarousel = (initialTotalCards: number): UseCarouselReturn => {
     handleCardClick,
     handleCloseModal,
     getCardStyle,
-    setTotalCards,
   }
 }
