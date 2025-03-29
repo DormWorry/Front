@@ -4,6 +4,8 @@ import Banner from './components/banner'
 import AboutUsComponent from './components/intro/aboutus'
 import Calendar from './components/calendar'
 import FeatureShowcase from './components/feat'
+import DeliveryFeat from './components/deliveryFeat'
+import LetterFeat from './components/letterFeat'
 
 export default function Onboarding() {
   return (
@@ -13,6 +15,8 @@ export default function Onboarding() {
         <Banner />
         <AboutUsComponent />
         <FeatureShowcase />
+        <DeliveryFeat />
+        <LetterFeat />
         <Calendar />
       </Container>
     </>
