@@ -266,28 +266,28 @@ export const TabHeader = styled.div`
   flex-shrink: 0;
 `
 
-export const Tab = styled.button<{ active: boolean }>`
+export const Tab = styled.button<{ $active: boolean }>`
   padding: 0.75rem 1.5rem;
-  background-color: ${(props) => (props.active ? '#f0f0f0' : 'transparent')};
+  background-color: ${(props) => (props.$active ? '#f0f0f0' : 'transparent')};
   border: none;
   border-top-left-radius: 4px;
   border-top-right-radius: 4px;
   font-size: 1rem;
-  font-weight: ${(props) => (props.active ? '600' : '400')};
-  color: ${(props) => (props.active ? '#13CFB8' : '#666')};
+  font-weight: ${(props) => (props.$active ? '600' : '400')};
+  color: ${(props) => (props.$active ? '#13CFB8' : '#666')};
   cursor: pointer;
   transition: all 0.2s;
   border-bottom: 2px solid
-    ${(props) => (props.active ? '#13CFB8' : 'transparent')};
+    ${(props) => (props.$active ? '#13CFB8' : 'transparent')};
 
   &:hover {
-    background-color: ${(props) => (props.active ? '#f0f0f0' : '#f9f9f9')};
+    background-color: ${(props) => (props.$active ? '#f0f0f0' : '#f9f9f9')};
   }
 `
 
-export const LetterList = styled.div<{ needsScroll: boolean }>`
+export const LetterList = styled.div<{ $needsScroll: boolean }>`
   flex-grow: 1;
-  overflow-y: ${(props) => (props.needsScroll ? 'auto' : 'hidden')};
+  overflow-y: ${(props) => (props.$needsScroll ? 'auto' : 'hidden')};
   min-height: 0;
   max-height: none;
   padding-right: 0.5rem;

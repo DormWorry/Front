@@ -47,7 +47,7 @@ const LetterList = forwardRef<HTMLDivElement, Omit<LetterListProps, 'listRef'>>(
       }}
     >
       <S.LetterList
-        needsScroll={needsScroll}
+        $needsScroll={needsScroll}
         ref={ref}
         onScroll={onScroll}
       >

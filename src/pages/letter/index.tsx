@@ -3,6 +3,8 @@ import { useRouter } from 'next/router'
 import LetterDetail from './LetterDetail'
 import * as S from './letter-styles'
 import { useLetterState } from '../../hooks/letter'
+import { useRecoilValue } from 'recoil'
+import { userAtom } from '../../recoil/atoms/userAtom'
 import {
   MailboxLayout,
   ProfileSidebar,
@@ -17,7 +19,8 @@ import {
 export default function LetterFeature() {
   const router = useRouter()
   const [imageError, setImageError] = useState(false)
-
+  const userState = useRecoilValue(userAtom)
+  console.log(userState)
   // 사용자 상태 관리 훅 호출
   const {
     activeTab,
@@ -55,8 +58,8 @@ export default function LetterFeature() {
     <MailboxLayout onGoBack={handleGoBack}>
       {/* 프로필 영역 - 왼쪽 사이드바 */}
       <ProfileSidebar
-        roomNumber="1205호"
-        userName="권도훈"
+        roomNumber={userState.roomNumber || '방 번호 없음'}
+        userName={userState.nickname || '사용자'}
         avatarSrc="/logo.png"
         onComposeClick={handleComposeClick}
         onImageError={handleImageError}
