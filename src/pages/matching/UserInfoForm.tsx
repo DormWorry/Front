@@ -5,6 +5,7 @@ import { useUserInfo } from '../../hooks/matching/useUserInfo';
 import roommateApi from '../../api/roommate';
 import {
     FormContainer,
+    FormWrapper,
     FormTitle,
     FormWrapper,
     FormGroup,
@@ -89,27 +90,25 @@ export default function UserInfoForm({ onSubmit, onStepChange, myTypeId, preferr
                     onClick={() => handleStepClick(1)}
                     style={{ cursor: 'pointer' }}
                 >
-                    <Step isActive={false} isCompleted={true}>1</Step>
-                    <StepText isActive={false} isCompleted={true}>나의 유형</StepText>
+                    <Step $isActive={false} $isCompleted={true}>1</Step>
+                    <StepText $isActive={false} $isCompleted={true}>나의 유형</StepText>
                 </StepWrapper>
-                <StepLine completed={true} />
+                <StepLine $completed={true} />
                 <StepWrapper
                     onClick={() => handleStepClick(2)}
                     style={{ cursor: 'pointer' }}
                 >
-                    <Step isActive={false} isCompleted={true}>2</Step>
-                    <StepText isActive={false} isCompleted={true}>룸메이트 유형</StepText>
+                    <Step $isActive={false} $isCompleted={true}>2</Step>
+                    <StepText $isActive={false} $isCompleted={true}>룸메이트 유형</StepText>
                 </StepWrapper>
-                <StepLine completed={true} />
+                <StepLine $completed={true} />
                 <StepWrapper>
-                    <Step isActive={true} isCompleted={false}>3</Step>
-                    <StepText isActive={true} isCompleted={false}>프로필 정보</StepText>
+                    <Step $isActive={true} $isCompleted={false}>3</Step>
+                    <StepText $isActive={true} $isCompleted={false}>프로필 정보</StepText>
                 </StepWrapper>
             </StepIndicator>
             <FormTitle>프로필 정보 입력</FormTitle>
-
             {error && <ErrorAlert>{error}</ErrorAlert>}
-
             <FormWrapper onSubmit={handleSubmit}>
                 <FormGroup>
                     <Label>카카오톡 ID</Label>
@@ -148,7 +147,7 @@ export default function UserInfoForm({ onSubmit, onStepChange, myTypeId, preferr
                     <LocationContainer>
                         <LocationButton
                             type="button"
-                            isSelected={userInfo.location === '1기숙사'}
+                            $isSelected={userInfo.location === '1기숙사'}
                             onClick={() => handleLocationSelect('1기숙사')}
                             disabled={isLoading}
                         >
@@ -156,7 +155,7 @@ export default function UserInfoForm({ onSubmit, onStepChange, myTypeId, preferr
                         </LocationButton>
                         <LocationButton
                             type="button"
-                            isSelected={userInfo.location === '2기숙사'}
+                            $isSelected={userInfo.location === '2기숙사'}
                             onClick={() => handleLocationSelect('2기숙사')}
                             disabled={isLoading}
                         >
@@ -164,7 +163,7 @@ export default function UserInfoForm({ onSubmit, onStepChange, myTypeId, preferr
                         </LocationButton>
                         <LocationButton
                             type="button"
-                            isSelected={userInfo.location === '3기숙사'}
+                            $isSelected={userInfo.location === '3기숙사'}
                             onClick={() => handleLocationSelect('3기숙사')}
                             disabled={isLoading}
                         >

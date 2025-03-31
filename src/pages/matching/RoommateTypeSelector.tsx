@@ -74,18 +74,18 @@ export default function RoommateTypeSelector({
                     onClick={() => handleStepClick(1)}
                     style={{ cursor: currentStep === 2 ? 'pointer' : 'default' }}
                 >
-                    <Step isActive={currentStep === 1} isCompleted={currentStep > 1}>1</Step>
-                    <StepText isActive={currentStep === 1} isCompleted={currentStep > 1}>나의 유형</StepText>
+                    <Step $isActive={currentStep === 1} $isCompleted={currentStep > 1}>1</Step>
+                    <StepText $isActive={currentStep === 1} $isCompleted={currentStep > 1}>나의 유형</StepText>
                 </StepWrapper>
-                <StepLine completed={currentStep > 1} />
+                <StepLine $completed={currentStep > 1} />
                 <StepWrapper>
-                    <Step isActive={currentStep === 2} isCompleted={false}>2</Step>
-                    <StepText isActive={currentStep === 2} isCompleted={false}>룸메이트 유형</StepText>
+                    <Step $isActive={currentStep === 2} $isCompleted={false}>2</Step>
+                    <StepText $isActive={currentStep === 2} $isCompleted={false}>룸메이트 유형</StepText>
                 </StepWrapper>
-                <StepLine completed={false} />
+                <StepLine $completed={false} />
                 <StepWrapper>
-                    <Step isActive={false} isCompleted={false}>3</Step>
-                    <StepText isActive={false} isCompleted={false}>프로필 정보</StepText>
+                    <Step $isActive={false} $isCompleted={false}>3</Step>
+                    <StepText $isActive={false} $isCompleted={false}>프로필 정보</StepText>
                 </StepWrapper>
             </StepIndicator>
             <StepTitle>
@@ -115,23 +115,23 @@ export default function RoommateTypeSelector({
                             </TypeTitle>
                             <MobileButtons>
                                 <ToggleButton
-                                    isActive={showDescription === type.id}
+                                    $isActive={showDescription === type.id}
                                     onClick={(e) => toggleDescription(type.id, e)}
                                 >
                                     ...
                                 </ToggleButton>
                                 <ToggleButton
-                                    isActive={showTraits === type.id}
+                                    $isActive={showTraits === type.id}
                                     onClick={(e) => toggleTraits(type.id, e)}
                                 >
                                     ?
                                 </ToggleButton>
                             </MobileButtons>
                         </TypeHeader>
-                        <MobileContent isVisible={showDescription === type.id}>
+                        <MobileContent $isVisible={showDescription === type.id}>
                             <TypeDescription>{type.description}</TypeDescription>
                         </MobileContent>
-                        <MobileContent isVisible={showTraits === type.id}>
+                        <MobileContent $isVisible={showTraits === type.id}>
                             <TraitList>
                                 {type.traits.map((trait, index) => (
                                     <Trait key={index}>{trait}</Trait>
