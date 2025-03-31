@@ -2,6 +2,7 @@ import React from 'react'
 import styled from 'styled-components'
 import * as S from './letter-styles'
 import { LetterDetailProps } from './types'
+import { formatDate } from '../../utils/dateUtils'
 
 /**
  * 편지 상세 보기 컴포넌트
@@ -13,6 +14,13 @@ const LetterDetail: React.FC<LetterDetailProps> = ({
   isReceived = false,
 }) => {
   if (!letter) return null
+
+  // 답장 버튼 클릭 핸들러
+  const handleReply = () => {
+    if (isReceived && onReply) {
+      onReply(letter.senderRoomNumber)
+    }
+  }
 
   return (
     <OverlayContainer onClick={onClose}>
@@ -31,9 +39,11 @@ const LetterDetail: React.FC<LetterDetailProps> = ({
             <div className="letter-meta">
               <span className="letter-sender">
                 {isReceived ? '보낸이: ' : '받는이: '}
-                {letter.roomNumber}
+                {isReceived 
+                  ? letter.isAnonymous ? '익명' : `${letter.senderName} (${letter.senderRoomNumber})` 
+                  : `${letter.recipientName} (${letter.recipientRoomNumber})`}
               </span>
-              <span className="letter-date">{letter.date}</span>
+              <span className="letter-date">{formatDate(letter.createdAt)}</span>
             </div>
           </div>
           <div className="letter-body">{letter.content}</div>
@@ -49,13 +59,7 @@ const LetterDetail: React.FC<LetterDetailProps> = ({
           >
             <S.CancelButton onClick={onClose}>닫기</S.CancelButton>
             {isReceived && onReply && (
-              <ReplyButton
-                onClick={() => {
-                  onReply(letter.roomNumber)
-                }}
-              >
-                답장하기
-              </ReplyButton>
+              <S.SubmitButton onClick={handleReply}>답장하기</S.SubmitButton>
             )}
           </div>
         </LetterContent>

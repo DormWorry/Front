@@ -1,13 +1,15 @@
 // 편지 관련 타입 정의
 export interface Letter {
-  id: string
+  id: number
   title: string
   content: string
-  roomNumber: string
-  sender?: string
-  recipient?: string
-  date: string
-  read: boolean
+  senderRoomNumber: string
+  senderName: string
+  recipientRoomNumber: string
+  recipientName: string
+  createdAt: string
+  isAnonymous: boolean
+  read?: boolean
 }
 
 // 편지 작성 폼 데이터 타입
@@ -16,12 +18,13 @@ export interface LetterFormData {
   recipient: string
   title: string
   content: string
+  isAnonymous?: boolean
 }
 
 // 편지 목록 컴포넌트 props
 export interface LetterListProps {
   letters: Letter[]
-  onLetterClick: (letter: Letter) => void
+  onLetterClick: (letterId: number) => void
   needsScroll: boolean
   onScroll: () => void
   isScrolledToBottom: boolean
@@ -48,6 +51,14 @@ export interface ComposeSectionProps {
   onReturn: () => void
   onSubmit: (data: LetterFormData) => void
   initialRecipient: string | null
+}
+
+// API 요청 타입
+export interface LetterApiRequest {
+  title: string
+  content: string
+  to: string
+  isAnonymous?: boolean
 }
 
 // 레이아웃 컴포넌트 props

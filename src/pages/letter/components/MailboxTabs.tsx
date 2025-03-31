@@ -9,13 +9,13 @@ const MailboxTabs: React.FC<MailboxTabsProps> = ({ activeTab, onTabChange }) => 
   return (
     <S.TabHeader>
       <S.Tab
-        active={activeTab === 'received'}
+        $active={activeTab === 'received'}
         onClick={() => onTabChange('received')}
       >
         받은 마음의 편지
       </S.Tab>
       <S.Tab 
-        active={activeTab === 'sent'} 
+        $active={activeTab === 'sent'} 
         onClick={() => onTabChange('sent')}
       >
         보낸 마음의 편지

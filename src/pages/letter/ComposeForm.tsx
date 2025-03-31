@@ -3,6 +3,8 @@ import * as S from './letter-styles'
 import { useForm, Controller } from 'react-hook-form'
 import { containsProfanity } from '../../constants/profanity-filter'
 import { ComposeFormProps, LetterFormData } from './types'
+import { useRecoilValue } from 'recoil'
+import { userAtom } from '../../recoil/atoms/userAtom'
 
 /**
  * 편지 작성 양식 컴포넌트
@@ -13,6 +15,7 @@ const ComposeForm: React.FC<ComposeFormProps> = ({
   initialRecipient = '',
 }) => {
   const [isAnonymous, setIsAnonymous] = useState(false)
+  const userState = useRecoilValue(userAtom)
 
   const {
     control,
@@ -21,10 +24,11 @@ const ComposeForm: React.FC<ComposeFormProps> = ({
     setValue,
   } = useForm<LetterFormData>({
     defaultValues: {
-      sender: '1205호', // 유저 정보(호수)
+      sender: userState.roomNumber || '방 번호 없음',
       recipient: initialRecipient,
       title: '',
       content: '',
+      isAnonymous: false,
     },
     mode: 'onChange', // 입력과 동시에 유효성 검사
   })
@@ -60,6 +64,7 @@ const ComposeForm: React.FC<ComposeFormProps> = ({
     onSubmit({
       ...data,
       sender: isAnonymous ? '익명' : data.sender,
+      isAnonymous: isAnonymous,
     })
   }
 
@@ -124,8 +129,7 @@ const ComposeForm: React.FC<ComposeFormProps> = ({
                   id="sender"
                   {...field}
                   disabled={isAnonymous}
-                  //1205호 -> 실제 사용자 호수
-                  value={isAnonymous ? '익명' : '1205호'}
+                  value={isAnonymous ? '익명' : userState.roomNumber || '방 번호 없음'}
                   placeholder="예: 303호, 404호"
                 />
               )}

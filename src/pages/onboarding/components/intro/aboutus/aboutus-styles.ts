@@ -3,7 +3,6 @@ import styled from 'styled-components'
 export const Container = styled.div`
   width: 100%;
   max-width: 1440px;
-  height: 150vh;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -127,7 +126,7 @@ export const BottomServiceRow = styled.div`
     align-items: center;
     gap: 30px;
   }
-  
+
   @media (max-width: 768px) {
     & > div {
       width: 100%;
