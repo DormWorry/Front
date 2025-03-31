@@ -1,9 +1,12 @@
-import React from 'react';
-import { UserInfo } from './types';
-import { useUserInfo } from '../../hooks/useUserInfo';
+import { useState } from 'react';
+import { useRouter } from 'next/router';
+import { UserInfo, CreateRoommateProfileDto } from './types';
+import { useUserInfo } from '../../hooks/matching/useUserInfo';
+import roommateApi from '../../api/roommate';
 import {
     FormContainer,
     FormTitle,
+    FormWrapper,
     FormGroup,
     Label,
     Input,
@@ -17,19 +20,60 @@ import {
     StepWrapper,
     StepText,
     StepLine,
+    LoadingSpinner,
+    ErrorAlert
 } from './styles';
 
 interface Props {
     onSubmit: (userInfo: UserInfo) => void;
     onStepChange: (step: 1 | 2 | 3) => void;
+    myTypeId: number;
+    preferredTypeId: number;
 }
 
-export default function UserInfoForm({ onSubmit, onStepChange }: Props) {
+export default function UserInfoForm({ onSubmit, onStepChange, myTypeId, preferredTypeId }: Props) {
     const { userInfo, isFormValid, handleChange, handleLocationSelect } = useUserInfo();
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const router = useRouter();
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const getDormitoryId = (location: string): string => {
+        // 실제 백엔드 데이터에 맞게 매핑
+        const dormitoryMapping: { [key: string]: string } = {
+            '1기숙사': '1',
+            '2기숙사': '2',
+            '3기숙사': '3'
+        };
+        return dormitoryMapping[location] || '1';
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit(userInfo);
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            // 프로필 DTO 생성
+            const profileData: CreateRoommateProfileDto = {
+                myPersonalityTypeId: myTypeId,
+                preferredPersonalityTypeId: preferredTypeId,
+                description: userInfo.description,
+                kakaoId: userInfo.kakaoId,
+                instagram: userInfo.instagram,
+                dormitoryId: getDormitoryId(userInfo.location)
+            };
+
+            // 백엔드 API 호출
+            await roommateApi.createProfile(profileData);
+
+            // 성공 시 UI 컴포넌트에 알림
+            onSubmit(userInfo);
+        } catch (err) {
+            console.error('프로필 등록 실패:', err);
+            setError('프로필 등록 중 오류가 발생했습니다. 다시 시도해주세요.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleStepClick = (targetStep: 1 | 2) => {
@@ -63,7 +107,10 @@ export default function UserInfoForm({ onSubmit, onStepChange }: Props) {
                 </StepWrapper>
             </StepIndicator>
             <FormTitle>프로필 정보 입력</FormTitle>
-            <form style={{ display: 'flex', flexDirection: 'column', gap: '40px' }} onSubmit={handleSubmit}>
+
+            {error && <ErrorAlert>{error}</ErrorAlert>}
+
+            <FormWrapper onSubmit={handleSubmit}>
                 <FormGroup>
                     <Label>카카오톡 ID</Label>
                     <Input
@@ -72,6 +119,7 @@ export default function UserInfoForm({ onSubmit, onStepChange }: Props) {
                         value={userInfo.kakaoId}
                         onChange={handleChange}
                         placeholder="카카오톡 ID를 입력해주세요"
+                        disabled={isLoading}
                     />
                 </FormGroup>
                 <FormGroup>
@@ -82,6 +130,7 @@ export default function UserInfoForm({ onSubmit, onStepChange }: Props) {
                         value={userInfo.instagram}
                         onChange={handleChange}
                         placeholder="인스타그램 ID를 입력해주세요"
+                        disabled={isLoading}
                     />
                 </FormGroup>
                 <FormGroup>
@@ -91,15 +140,17 @@ export default function UserInfoForm({ onSubmit, onStepChange }: Props) {
                         value={userInfo.description}
                         onChange={handleChange}
                         placeholder="간단한 자기소개를 작성해주세요"
+                        disabled={isLoading}
                     />
                 </FormGroup>
-                <FormGroup>
+                <FormGroup >
                     <Label>기숙사 선택</Label>
                     <LocationContainer>
                         <LocationButton
                             type="button"
                             isSelected={userInfo.location === '1기숙사'}
                             onClick={() => handleLocationSelect('1기숙사')}
+                            disabled={isLoading}
                         >
                             1기숙사
                         </LocationButton>
@@ -107,6 +158,7 @@ export default function UserInfoForm({ onSubmit, onStepChange }: Props) {
                             type="button"
                             isSelected={userInfo.location === '2기숙사'}
                             onClick={() => handleLocationSelect('2기숙사')}
+                            disabled={isLoading}
                         >
                             2기숙사
                         </LocationButton>
@@ -114,17 +166,22 @@ export default function UserInfoForm({ onSubmit, onStepChange }: Props) {
                             type="button"
                             isSelected={userInfo.location === '3기숙사'}
                             onClick={() => handleLocationSelect('3기숙사')}
+                            disabled={isLoading}
                         >
                             3기숙사
                         </LocationButton>
                     </LocationContainer>
                 </FormGroup>
-                <ButtonContainer>
-                    <SubmitButton type="submit" disabled={!isFormValid}>
-                        매칭 시작하기
+                <ButtonContainer style={{ paddingTop: '15px' }}>
+                    <SubmitButton
+                        type="submit"
+                        disabled={!isFormValid || isLoading}
+                    >
+                        {isLoading ? '처리 중...' : '매칭 시작하기'}
+                        {isLoading && <LoadingSpinner />}
                     </SubmitButton>
                 </ButtonContainer>
-            </form>
+            </FormWrapper>
         </FormContainer>
     );
 }

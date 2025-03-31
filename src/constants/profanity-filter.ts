@@ -1,6 +1,7 @@
 // 비속어 필터링을 위한 단어 목록
-export const profanityList: string[] =
-  process.env.NEXT_PUBLIC_PROFANITY_LIST!.split(',')
+export const profanityList: string[] = (
+  process.env.NEXT_PUBLIC_PROFANITY_LIST || '비속어1,비속어2,비속어3'
+).split(',')
 
 // 비속어 필터링 우회를 위한 대체 문자 매핑
 const characterMapping: Record<string, string> = {
@@ -15,7 +16,7 @@ const characterMapping: Record<string, string> = {
   '8': 'b',
   '9': 'g',
   '@': 'a',
-  '$': 's',
+  $: 's',
   '#': 'h',
   '+': 't',
   '*': 'x',
@@ -23,9 +24,9 @@ const characterMapping: Record<string, string> = {
   '|': 'i',
   '.': '',
   ',': '',
-  '_': '',
+  _: '',
   '-': '',
-  ' ': '',  // 띄어쓰기 제거
+  ' ': '', // 띄어쓰기 제거
   '\t': '', // 탭 제거
   '\n': '', // 줄바꿈 제거
   '\r': '', // 캐리지 리턴 제거
@@ -38,18 +39,19 @@ const characterMapping: Record<string, string> = {
  */
 const normalizeText = (text: string): string => {
   if (!text) return ''
-  
+
   // 소문자로 변환
   let normalized = text.toLowerCase()
-  
+
   // 모든 문자에 대해 매핑 적용
   for (let i = 0; i < normalized.length; i++) {
     const char = normalized[i]
-    normalized = normalized.substring(0, i) + 
-                (characterMapping[char] !== undefined ? characterMapping[char] : char) +
-                normalized.substring(i + 1)
+    normalized =
+      normalized.substring(0, i) +
+      (characterMapping[char] !== undefined ? characterMapping[char] : char) +
+      normalized.substring(i + 1)
   }
-  
+
   return normalized
 }
 
@@ -63,7 +65,7 @@ export const containsProfanity = (text: string): boolean => {
 
   // 텍스트 정규화 (특수문자, 숫자, 공백 등 제거하고 대체)
   const normalizedText = normalizeText(text)
-  
+
   // 정규화된 텍스트에서 비속어 검사
   return profanityList.some((word) => {
     // 비속어 자체도 정규화
@@ -79,15 +81,15 @@ export const containsProfanity = (text: string): boolean => {
  */
 export const maskProfanity = (text: string): string => {
   if (!text) return ''
-  
+
   let maskedText = text
-  
-  profanityList.forEach(word => {
+
+  profanityList.forEach((word) => {
     // 대소문자 구분없이 전역 매칭을 위한 정규식
     const regex = new RegExp(word, 'gi')
     maskedText = maskedText.replace(regex, '*'.repeat(word.length))
   })
-  
+
   return maskedText
 }
 
@@ -99,16 +101,16 @@ export const maskProfanity = (text: string): string => {
  */
 export const findFirstProfanity = (text: string): string => {
   if (!text) return ''
-  
+
   // 텍스트 정규화
   const normalizedText = normalizeText(text)
-  
+
   for (const word of profanityList) {
     const normalizedWord = normalizeText(word)
     if (normalizedText.includes(normalizedWord)) {
       return word
     }
   }
-  
+
   return ''
 }
