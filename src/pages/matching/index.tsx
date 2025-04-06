@@ -2,15 +2,20 @@ import { useState } from 'react';
 import CardCarousel from './CardCarousel';
 import RoommateTypeSelector from './RoommateTypeSelector';
 import UserInfoForm from './UserInfoForm';
-import BackButton from '@/components/common/BackButton';
-import { IndexContainer } from './styles';
+import { useRouter } from 'next/router';
 import { RoommateType, UserInfo } from './types';
+import * as S from '../order/order-styles';
 
 export default function MatchingFeature() {
+  const router = useRouter();
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [myType, setMyType] = useState<RoommateType | null>(null);
   const [preferredType, setPreferredType] = useState<RoommateType | null>(null);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+
+  const goToMainPage = () => {
+    router.push('/main');
+  };
 
   const handleTypeSelect = (type: RoommateType) => {
     if (step === 1) {
@@ -53,6 +58,8 @@ export default function MatchingFeature() {
         return <UserInfoForm
           onSubmit={handleUserInfoSubmit}
           onStepChange={handleStepChange}
+          myTypeId={myType?.id || 0}
+          preferredTypeId={preferredType?.id || 0}
         />;
       case 4:
         return <CardCarousel selectedType={preferredType!} />;
@@ -62,9 +69,15 @@ export default function MatchingFeature() {
   };
 
   return (
-    <IndexContainer>
-      <BackButton />
+    <S.Container style={{ padding: '20px 0px 20px 0px' }}>
+      <S.MainHeader>
+        <S.BackButton onClick={goToMainPage}>←</S.BackButton>
+        <S.PageTitle>룸메이트 찾기</S.PageTitle>
+        <S.HeaderDescription>
+          나와 잘 맞는 기숙사 친구를 찾아보세요!
+        </S.HeaderDescription>
+      </S.MainHeader>
       {renderStep()}
-    </IndexContainer>
+    </S.Container>
   );
 }

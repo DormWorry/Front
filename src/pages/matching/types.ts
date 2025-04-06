@@ -3,23 +3,6 @@ export interface QuestionData {
   error: string
 }
 
-export interface SurveyFormProps {
-  onComplete: () => void
-}
-
-export interface SurveyQuestion {
-  id: string
-  question: string
-  options: {
-    value: string
-    label: string
-  }[]
-}
-
-export interface SurveyQuestions {
-  [key: number]: SurveyQuestion[]
-}
-
 export interface CardContact {
   kakaoId: string
   instagram: string
@@ -35,10 +18,6 @@ export interface CardData {
   contact: CardContact
 }
 
-export interface SurveyResultData {
-  [key: string]: string
-}
-
 export interface RoommateType {
   id: number
   title: string
@@ -52,4 +31,41 @@ export interface UserInfo {
   instagram: string
   description: string
   location: '1기숙사' | '2기숙사' | '3기숙사'
+}
+
+// 백엔드 API와 통신을 위한 타입 정의
+export interface User {
+  id: string
+  nickname: string
+  email: string
+}
+
+export interface RoommateProfile {
+  id: string
+  userId: string
+  user?: User
+  myPersonalityTypeId: number
+  myPersonalityType?: RoommateType
+  preferredPersonalityTypeId: number
+  preferredPersonalityType?: RoommateType
+  description: string
+  kakaoId: string
+  instagram: string
+  dormitoryId: string
+  dormitory?: {
+    id: string
+    name: string
+  }
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateRoommateProfileDto {
+  myPersonalityTypeId: number
+  preferredPersonalityTypeId: number
+  description: string
+  kakaoId: string
+  instagram: string
+  dormitoryId: string
 }
