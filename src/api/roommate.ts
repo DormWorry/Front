@@ -5,7 +5,7 @@ import {
   CreateRoommateProfileDto,
 } from '../pages/matching/types'
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
 
 // 룸메이트 프로필 API 서비스
 const roommateApi = {
