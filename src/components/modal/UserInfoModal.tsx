@@ -66,7 +66,7 @@ const UserInfoModal: React.FC<UserInfoModalProps> = ({
         ...formData,
         kakaoId: kakaoId || undefined,
       }
-      
+
       await authApi.updateUserProfile(profileData)
 
       const updatedUser = {
