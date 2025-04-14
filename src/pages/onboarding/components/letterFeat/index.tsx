@@ -1,113 +1,131 @@
 import React, { useRef, useEffect } from 'react'
 import styled from 'styled-components'
 import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
-// GSAP 플러그인 등록
-if (typeof window !== 'undefined') {
-    gsap.registerPlugin(ScrollTrigger)
-}
+// 타입 정의
+let ScrollTrigger: any
 
 const FEATURES = [
-    {
-        id: 21,
-        title: '편지 열람하기',
-        description: '받은 편지함에서 나에게 도착한 편지를 확인하고 메시지를 읽어보세요.',
-        image: '/letter1.gif',
-        bgColor: '#fff0f5',
+  {
+    id: 21,
+    title: '편지 열람하기',
+    description: '받은 편지함에서 나에게 도착한 편지를 확인하고 메시지를 읽어보세요.',
+    image: '/letter1.gif',
+    bgColor: '#fff0f5',
 
-    },
-    {
-        id: 2,
-        title: '익명으로 편지, 답장 작성하기',
-        description: '익명으로 마음을 담은 편지를 작성해 보세요. 솔직한 감정과 생각을 전달할 수 있습니다.',
-        image: '/letter2.gif',
-        bgColor: '#f5f0ff',
-    }
+  },
+  {
+    id: 2,
+    title: '익명으로 편지, 답장 작성하기',
+    description: '익명으로 마음을 담은 편지를 작성해 보세요. 솔직한 감정과 생각을 전달할 수 있습니다.',
+    image: '/letter2.gif',
+    bgColor: '#f5f0ff',
+  }
 
 ]
 
 const LetterFeatureShowcase: React.FC = () => {
-    const sectionRef = useRef<HTMLDivElement>(null)
-    const featureRefs = FEATURES.map(() => useRef<HTMLDivElement>(null))
+  const sectionRef = useRef<HTMLDivElement>(null)
+  const featureRefs = FEATURES.map(() => useRef<HTMLDivElement>(null))
 
-    useEffect(() => {
-        if (typeof window === 'undefined') return
+  useEffect(() => {
+    // 클라이언트 사이드에서만 실행
+    if (typeof window === 'undefined') return
 
-        // 각 피쳐 아이템에 애니메이션 적용
-        featureRefs.forEach((ref, index) => {
-            if (!ref.current) return
+    // GSAP ScrollTrigger 동적 로드
+    const loadScrollTrigger = async () => {
+      try {
+        ScrollTrigger = (await import('gsap/ScrollTrigger')).ScrollTrigger
+        gsap.registerPlugin(ScrollTrigger)
 
-            gsap.fromTo(
-                ref.current,
-                {
-                    y: 50,
-                    opacity: 0
-                },
-                {
-                    y: 0,
-                    opacity: 1,
-                    duration: 0.8,
-                    ease: 'power2.out',
-                    scrollTrigger: {
-                        trigger: ref.current,
-                        start: 'top 80%',
-                        toggleActions: 'play none none none',
-                    },
-                }
-            )
-        })
+        initAnimations()
+      } catch (error) {
+        console.error('ScrollTrigger 로드 실패:', error)
+      }
+    }
 
-        // 헤더 애니메이션
+    // 애니메이션 초기화 함수
+    const initAnimations = () => {
+      // 각 피쳐 아이템에 애니메이션 적용
+      featureRefs.forEach((ref, index) => {
+        if (!ref.current) return
+
         gsap.fromTo(
-            '.letter-feature-header',
-            { y: -30, opacity: 0 },
-            {
-                y: 0,
-                opacity: 1,
-                duration: 0.8,
-                ease: 'power2.out',
-                scrollTrigger: {
-                    trigger: sectionRef.current,
-                    start: 'top 70%',
-                    toggleActions: 'play none none none',
-                },
-            }
+          ref.current,
+          {
+            y: 50,
+            opacity: 0
+          },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.8,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: ref.current,
+              start: 'top 80%',
+              toggleActions: 'play none none none',
+            },
+          }
         )
+      })
 
-        return () => {
-            ScrollTrigger.getAll().forEach(trigger => trigger.kill())
+      // 헤더 애니메이션
+      gsap.fromTo(
+        '.letter-feature-header',
+        { y: -30, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.8,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: 'top 70%',
+            toggleActions: 'play none none none',
+          },
         }
-    }, [])
+      )
+    }
 
-    return (
-        <Section ref={sectionRef}>
-            <Header className="letter-feature-header">
-                <Title>익명 편지로 마음을 전달해요</Title>
-                <Subtitle>
-                    Dormworry의 편지 기능으로 기숙사 친구들에게 솔직한 마음을 전해보세요
-                </Subtitle>
-            </Header>
+    loadScrollTrigger()
 
-            <FeaturesGrid>
-                {FEATURES.map((feature, index) => (
-                    <FeatureCard
-                        key={feature.id}
-                        ref={featureRefs[index]}
-                        bgColor={feature.bgColor}
-                    >
-                        <ImageContainer>
-                            <FeatureImage src={feature.image} alt={feature.title} />
-                        </ImageContainer>
-                        <CardContent>
-                            <FeatureTitle>{feature.title}</FeatureTitle>
-                            <FeatureDescription>{feature.description}</FeatureDescription>
-                        </CardContent>
-                    </FeatureCard>
-                ))}
-            </FeaturesGrid>
-        </Section>
-    )
+    return () => {
+      // 컴포넌트 언마운트 시 ScrollTrigger 정리
+      if (ScrollTrigger) {
+        ScrollTrigger.getAll().forEach((trigger: any) => trigger.kill())
+      }
+    }
+  }, [])
+
+  return (
+    <Section ref={sectionRef}>
+      <Header className="letter-feature-header">
+        <Title>익명 편지로 마음을 전달해요</Title>
+        <Subtitle>
+          Dormworry의 편지 기능으로 기숙사 친구들에게 솔직한 마음을 전해보세요
+        </Subtitle>
+      </Header>
+
+      <FeaturesGrid>
+        {FEATURES.map((feature, index) => (
+          <FeatureCard
+            key={feature.id}
+            ref={featureRefs[index]}
+            bgColor={feature.bgColor}
+          >
+            <ImageContainer>
+              <FeatureImage src={feature.image} alt={feature.title} />
+            </ImageContainer>
+            <CardContent>
+              <FeatureTitle>{feature.title}</FeatureTitle>
+              <FeatureDescription>{feature.description}</FeatureDescription>
+            </CardContent>
+          </FeatureCard>
+        ))}
+      </FeaturesGrid>
+    </Section>
+  )
 }
 
 // 스타일드 컴포넌트

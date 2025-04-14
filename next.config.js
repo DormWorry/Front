@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  transpilePackages: ['gsap'],
   async rewrites() {
     return [
       {
@@ -11,8 +12,8 @@ const nextConfig = {
         source: '/auth/:path*',
         destination: 'https://www.dormworry.p-e.kr/auth/:path*',
       },
-    ];
+    ]
   },
-};
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig

@@ -1,118 +1,136 @@
 import React, { useRef, useEffect } from 'react'
 import styled from 'styled-components'
 import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
-// GSAP 플러그인 등록
-if (typeof window !== 'undefined') {
-    gsap.registerPlugin(ScrollTrigger)
-}
+// 타입 정의
+let ScrollTrigger: any
 
 const FEATURES = [
-    {
-        id: 1,
-        title: '배달 주문하기',
-        description: '기숙사 친구들과 함께 배달 음식을 모아서 주문해보세요. 배달비를 절약할 수 있습니다.',
-        image: '/order1.gif',
-        bgColor: '#f0f8ff',
-    },
-    {
-        id: 2,
-        title: '배달 참여하기',
-        description: '다른 사람이 열어둔 배달 파티에 참여하여 배달비를 나눠 부담해보세요.',
-        image: '/order2.gif',
-        bgColor: '#fff5f0',
-    },
-    {
-        id: 3,
-        title: '채팅으로 소통하기',
-        description: '실시간 채팅으로 메뉴와 금액을 조율하고 편리하게 소통해보세요.',
-        image: '/order3.gif',
-        bgColor: '#f0fff5',
-    },
+  {
+    id: 1,
+    title: '배달 주문하기',
+    description: '기숙사 친구들과 함께 배달 음식을 모아서 주문해보세요. 배달비를 절약할 수 있습니다.',
+    image: '/order1.gif',
+    bgColor: '#f0f8ff',
+  },
+  {
+    id: 2,
+    title: '배달 참여하기',
+    description: '다른 사람이 열어둔 배달 파티에 참여하여 배달비를 나눠 부담해보세요.',
+    image: '/order2.gif',
+    bgColor: '#fff5f0',
+  },
+  {
+    id: 3,
+    title: '채팅으로 소통하기',
+    description: '실시간 채팅으로 메뉴와 금액을 조율하고 편리하게 소통해보세요.',
+    image: '/order3.gif',
+    bgColor: '#f0fff5',
+  },
 ]
 
 const DeliveryFeatureShowcase: React.FC = () => {
-    const sectionRef = useRef<HTMLDivElement>(null)
-    const featureRefs = FEATURES.map(() => useRef<HTMLDivElement>(null))
+  const sectionRef = useRef<HTMLDivElement>(null)
+  const featureRefs = FEATURES.map(() => useRef<HTMLDivElement>(null))
 
-    useEffect(() => {
-        if (typeof window === 'undefined') return
+  useEffect(() => {
+    // 클라이언트 사이드에서만 실행
+    if (typeof window === 'undefined') return
 
-        // 각 피쳐 아이템에 애니메이션 적용
-        featureRefs.forEach((ref, index) => {
-            if (!ref.current) return
+    // GSAP ScrollTrigger 동적 로드
+    const loadScrollTrigger = async () => {
+      try {
+        ScrollTrigger = (await import('gsap/ScrollTrigger')).ScrollTrigger
+        gsap.registerPlugin(ScrollTrigger)
 
-            gsap.fromTo(
-                ref.current,
-                {
-                    y: 50,
-                    opacity: 0
-                },
-                {
-                    y: 0,
-                    opacity: 1,
-                    duration: 0.8,
-                    ease: 'power2.out',
-                    scrollTrigger: {
-                        trigger: ref.current,
-                        start: 'top 80%',
-                        toggleActions: 'play none none none',
-                    },
-                }
-            )
-        })
+        initAnimations()
+      } catch (error) {
+        console.error('ScrollTrigger 로드 실패:', error)
+      }
+    }
 
-        // 헤더 애니메이션
+    // 애니메이션 초기화 함수
+    const initAnimations = () => {
+      // 각 피쳐 아이템에 애니메이션 적용
+      featureRefs.forEach((ref, index) => {
+        if (!ref.current) return
+
         gsap.fromTo(
-            '.delivery-feature-header',
-            { y: -30, opacity: 0 },
-            {
-                y: 0,
-                opacity: 1,
-                duration: 0.8,
-                ease: 'power2.out',
-                scrollTrigger: {
-                    trigger: sectionRef.current,
-                    start: 'top 70%',
-                    toggleActions: 'play none none none',
-                },
-            }
+          ref.current,
+          {
+            y: 50,
+            opacity: 0
+          },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.8,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: ref.current,
+              start: 'top 80%',
+              toggleActions: 'play none none none',
+            },
+          }
         )
+      })
 
-        return () => {
-            ScrollTrigger.getAll().forEach(trigger => trigger.kill())
+      // 헤더 애니메이션
+      gsap.fromTo(
+        '.delivery-feature-header',
+        { y: -30, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.8,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: 'top 70%',
+            toggleActions: 'play none none none',
+          },
         }
-    }, [])
+      )
+    }
 
-    return (
-        <Section ref={sectionRef}>
-            <Header className="delivery-feature-header">
-                <Title>함께하는 배달, 더 저렴하게</Title>
-                <Subtitle>
-                    Dormworry의 배달 기능으로 기숙사 친구들과 함께 배달비를 절약하세요
-                </Subtitle>
-            </Header>
+    loadScrollTrigger()
 
-            <FeaturesGrid>
-                {FEATURES.map((feature, index) => (
-                    <FeatureCard
-                        key={feature.id}
-                        ref={featureRefs[index]}
-                        bgColor={feature.bgColor}
-                    >
-                        <ImageContainer>
-                            <FeatureImage src={feature.image} alt={feature.title} />
-                        </ImageContainer>
-                        <CardContent>
-                            <FeatureTitle>{feature.title}</FeatureTitle>
-                            <FeatureDescription>{feature.description}</FeatureDescription>
-                        </CardContent>
-                    </FeatureCard>
-                ))}
-            </FeaturesGrid>
-        </Section>
-    )
+    return () => {
+      // 컴포넌트 언마운트 시 ScrollTrigger 정리
+      if (ScrollTrigger) {
+        ScrollTrigger.getAll().forEach((trigger: any) => trigger.kill())
+      }
+    }
+  }, [])
+
+  return (
+    <Section ref={sectionRef}>
+      <Header className="delivery-feature-header">
+        <Title>함께하는 배달, 더 저렴하게</Title>
+        <Subtitle>
+          Dormworry의 배달 기능으로 기숙사 친구들과 함께 배달비를 절약하세요
+        </Subtitle>
+      </Header>
+
+      <FeaturesGrid>
+        {FEATURES.map((feature, index) => (
+          <FeatureCard
+            key={feature.id}
+            ref={featureRefs[index]}
+            bgColor={feature.bgColor}
+          >
+            <ImageContainer>
+              <FeatureImage src={feature.image} alt={feature.title} />
+            </ImageContainer>
+            <CardContent>
+              <FeatureTitle>{feature.title}</FeatureTitle>
+              <FeatureDescription>{feature.description}</FeatureDescription>
+            </CardContent>
+          </FeatureCard>
+        ))}
+      </FeaturesGrid>
+    </Section>
+  )
 }
 
 // 스타일드 컴포넌트

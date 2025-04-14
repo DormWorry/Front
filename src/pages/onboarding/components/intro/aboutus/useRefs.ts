@@ -8,10 +8,10 @@ export const useAboutUsRefs = () => {
   const descriptionRef = useRef<HTMLDivElement | null>(null)
   const topRowRef = useRef<HTMLDivElement | null>(null)
   const bottomRowRef = useRef<HTMLDivElement | null>(null)
-  
+
   const bottomCardRef1 = useRef<HTMLDivElement | null>(null)
   const bottomCardRef2 = useRef<HTMLDivElement | null>(null)
-  
+
   const bottomCardRefs: DivRef[] = [bottomCardRef1, bottomCardRef2]
 
   return {

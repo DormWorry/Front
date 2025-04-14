@@ -1,5 +1,5 @@
 import { useEffect, RefObject } from 'react'
-import gsap from 'gsap'
+import { gsap } from 'gsap'
 
 interface AnimationRefs {
   sloganRef: RefObject<HTMLDivElement | null>
@@ -28,6 +28,9 @@ const useGsapAnimation = (
   } = refs
 
   useEffect(() => {
+    // 클라이언트 사이드에서만 실행
+    if (typeof window === 'undefined') return
+
     if (isTypingComplete) {
       const tl = gsap.timeline({ defaults: { duration: 1.0 } })
       tl.to(sloganRef.current, {

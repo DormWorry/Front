@@ -1,12 +1,9 @@
 import React, { useRef, useEffect } from 'react'
 import styled from 'styled-components'
 import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
-// GSAP 플러그인 등록
-if (typeof window !== 'undefined') {
-  gsap.registerPlugin(ScrollTrigger)
-}
+// 타입 정의
+let ScrollTrigger: any
 
 const FEATURES = [
   {
@@ -37,51 +34,72 @@ const FeatureShowcase: React.FC = () => {
   const featureRefs = FEATURES.map(() => useRef<HTMLDivElement>(null))
 
   useEffect(() => {
+    // 클라이언트 사이드에서만 실행
     if (typeof window === 'undefined') return
 
-    // 각 피쳐 아이템에 애니메이션 적용
-    featureRefs.forEach((ref, index) => {
-      if (!ref.current) return
+    // GSAP ScrollTrigger 동적 로드
+    const loadScrollTrigger = async () => {
+      try {
+        ScrollTrigger = (await import('gsap/ScrollTrigger')).ScrollTrigger
+        gsap.registerPlugin(ScrollTrigger)
 
+        initAnimations()
+      } catch (error) {
+        console.error('ScrollTrigger 로드 실패:', error)
+      }
+    }
+
+    // 애니메이션 초기화 함수
+    const initAnimations = () => {
+      // 각 피쳐 아이템에 애니메이션 적용
+      featureRefs.forEach((ref) => {
+        if (!ref.current) return
+
+        gsap.fromTo(
+          ref.current,
+          {
+            y: 50,
+            opacity: 0
+          },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.8,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: ref.current,
+              start: 'top 80%',
+              toggleActions: 'play none none none',
+            },
+          }
+        )
+      })
+
+      // 헤더 애니메이션
       gsap.fromTo(
-        ref.current,
-        {
-          y: 50,
-          opacity: 0
-        },
+        '.feature-header',
+        { y: -30, opacity: 0 },
         {
           y: 0,
           opacity: 1,
           duration: 0.8,
           ease: 'power2.out',
           scrollTrigger: {
-            trigger: ref.current,
-            start: 'top 80%',
+            trigger: sectionRef.current,
+            start: 'top 70%',
             toggleActions: 'play none none none',
           },
         }
       )
-    })
+    }
 
-    // 헤더 애니메이션
-    gsap.fromTo(
-      '.feature-header',
-      { y: -30, opacity: 0 },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 0.8,
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: 'top 70%',
-          toggleActions: 'play none none none',
-        },
-      }
-    )
+    loadScrollTrigger()
 
     return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill())
+      // 컴포넌트 언마운트 시 ScrollTrigger 정리
+      if (ScrollTrigger) {
+        ScrollTrigger.getAll().forEach((trigger: any) => trigger.kill())
+      }
     }
   }, [])
 
