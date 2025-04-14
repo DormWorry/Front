@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react'
-import { convertToGrid, getFormattedDate, weatherIcons, getWeatherDescriptionByCode } from '@/utils/weather'
+import {
+  convertToGrid,
+  getFormattedDate,
+  weatherIcons,
+  getWeatherDescriptionByCode,
+} from '@/utils/weather'
 
 export interface Coordinates {
   lat: number
@@ -16,7 +21,10 @@ export interface WeatherData {
   error: string | null
 }
 
-export function useWeather(defaultCoords: Coordinates, apiKey: string | undefined): WeatherData {
+export function useWeather(
+  defaultCoords: Coordinates,
+  apiKey: string | undefined,
+): WeatherData {
   const [weather, setWeather] = useState<WeatherData>({
     temp: 0,
     description: '',
@@ -38,7 +46,7 @@ export function useWeather(defaultCoords: Coordinates, apiKey: string | undefine
 
         // 날짜 및 시간 정보 가져오기
         const { baseDate, baseTime } = getFormattedDate()
-        
+
         // 기상청 단기예보 API 호출
         const url = `http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst?serviceKey=${apiKey}&numOfRows=10&pageNo=1&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${grid.nx}&ny=${grid.ny}`
 
