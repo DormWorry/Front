@@ -27,6 +27,7 @@ import {
 } from './styles';
 import { cardData } from './cardData';
 import { RoommateType } from './types';
+import { roommateTypes } from './roommateTypes';
 
 interface Props {
     selectedType: RoommateType;
@@ -62,6 +63,11 @@ const CardCarousel = ({ selectedType }: Props) => {
         );
     };
 
+    // 카드의 타입 정보 가져오기
+    const getCardType = (personalityTypeId: number) => {
+        return roommateTypes.find(type => type.id === personalityTypeId) || selectedType;
+    };
+
     return (
         <Container>
             <CarouselContainer style={isMobile ? { transformStyle: 'flat' } : undefined}>
@@ -72,18 +78,18 @@ const CardCarousel = ({ selectedType }: Props) => {
                         style={getCardStyle(cardData.findIndex(c => c.id === card.id))}
                     >
                         <ProfileImage>
-                            <img src={card.image} alt={card.name} />
+                            <img src='/user.png' alt={card.name} />
                         </ProfileImage>
                         <CardContent>
                             <Name>{card.name}</Name>
                             <Role>{card.role}</Role>
                             <Description>{card.description}</Description>
                             <TypeTitle style={{ fontSize: '1rem', paddingTop: '10px', marginBottom: '5px' }}>
-                                <TypeEmoji style={{ fontSize: '1.2rem' }}>{selectedType.emoji}</TypeEmoji>
-                                {selectedType.title}
+                                <TypeEmoji style={{ fontSize: '1.2rem' }}>{getCardType(card.personalityTypeId).emoji}</TypeEmoji>
+                                {getCardType(card.personalityTypeId).title}
                             </TypeTitle>
                             <TypeDescription style={{ fontSize: '0.7rem', margin: '0', maxHeight: '60px', overflow: 'hidden' }}>
-                                {selectedType.description}
+                                {getCardType(card.personalityTypeId).description}
                             </TypeDescription>
                         </CardContent>
                     </Card>
@@ -108,33 +114,21 @@ const CardCarousel = ({ selectedType }: Props) => {
                         <ModalClose onClick={handleCloseModal}>&times;</ModalClose>
                         <h2>{cardData.find(card => card.id === selectedCard)?.name}님의 성격 유형</h2>
                         <TypeTitle>
-                            <TypeEmoji>{selectedType.emoji}</TypeEmoji>
-                            {selectedType.title}
+                            <TypeEmoji>
+                                {getCardType(cardData.find(card => card.id === selectedCard)?.personalityTypeId || 1).emoji}
+                            </TypeEmoji>
+                            {getCardType(cardData.find(card => card.id === selectedCard)?.personalityTypeId || 1).title}
                         </TypeTitle>
                         <TraitList>
-                            {selectedType.traits.map((trait, index) => (
+                            {getCardType(cardData.find(card => card.id === selectedCard)?.personalityTypeId || 1).traits.map((trait, index) => (
                                 <Trait key={index}>{trait}</Trait>
                             ))}
                         </TraitList>
 
                         <ContactInfo>
-                            {!isRevealed(selectedCard) && (
-                                <CreditButton
-                                    onClick={() => useCredit(selectedCard)}
-                                    disabled={credits <= 0}
-                                >
-                                    크레딧 사용하기
-                                </CreditButton>
-                            )}
-                            <BlurredGroup isBlurred={!isRevealed(selectedCard)}>
-                                <div>💬 카카오: {cardData.find(card => card.id === selectedCard)?.contact.kakaoId}</div>
-                                <div>👤 인스타: {cardData.find(card => card.id === selectedCard)?.contact.instagram}</div>
-                            </BlurredGroup>
+                            <div>💬 카카오: {cardData.find(card => card.id === selectedCard)?.contact.kakaoId}</div>
+                            <div>👤 인스타: {cardData.find(card => card.id === selectedCard)?.contact.instagram}</div>
                         </ContactInfo>
-
-                        <CreditInfo>
-                            남은 크레딧: <span>{credits}개</span>
-                        </CreditInfo>
                     </ModalContent>
                 </ModalOverlay>
             )}

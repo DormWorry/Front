@@ -16,6 +16,7 @@ export interface CardData {
   image: string
   description: string
   contact: CardContact
+  personalityTypeId: number
 }
 
 export interface RoommateType {

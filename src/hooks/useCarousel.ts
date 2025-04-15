@@ -56,13 +56,14 @@ export const useCarousel = (totalCards: number): UseCarouselReturn => {
       return {
         transform: `translateX(${diff * 100}%) scale(${diff === 0 ? 1 : 0.8})`,
         opacity: diff === 0 ? 1 : 0.5,
-        zIndex: diff === 0 ? 1 : 0,
+        zIndex: diff === 0 ? 10 : 5 - Math.abs(diff),
         transition: 'all 0.5s ease',
       }
     }
     return {
       transform: `rotateY(${(index - activeIndex) * 60}deg) translateZ(300px)`,
       opacity: index === activeIndex ? 1 : 0.5,
+      zIndex: 10 - Math.abs(index - activeIndex),
     }
   }
 
