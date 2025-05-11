@@ -1,6 +1,11 @@
 import axios from 'axios'
 // 백엔드 API URL 설정
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'http://15.164.169.65:8080'
+
+// 프론트엔드 URL 설정
+const FRONTEND_URL =
+  process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000'
 
 // 사용자 프로필 타입 정의
 export type UserProfile = {
@@ -11,16 +16,12 @@ export type UserProfile = {
   roomNumber: string
   gender: string
   isNewUser?: boolean
-  kakaoId?: number
-}
 const authApi = {
   // 카카오 로그인 URL 가져오기
   getKakaoLoginUrl: () => {
     const KAKAO_CLIENT_ID = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID
     // 프론트엔드 콜백 URL 사용
-    const REDIRECT_URI = encodeURIComponent(
-      `http://localhost:3000/auth/kakao/callback`,
-    )
+    const REDIRECT_URI = `${FRONTEND_URL}/auth/callback`
     return `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`
   },
 
@@ -29,7 +30,6 @@ const authApi = {
     try {
       console.log('Sending code to backend:', code) // 디버깅용
       console.log('API URL:', `${API_BASE_URL}/auth/kakao/token`) // API URL 디버깅
-
       const response = await axios.post(
         `http://localhost:3001/auth/kakao/token`,
         { code },
@@ -38,8 +38,11 @@ const authApi = {
             'Content-Type': 'application/json',
             Accept: 'application/json',
           },
+          withCredentials: true, // 인증 정보 포함
         },
       )
+
+      console.log('Backend response:', response.data) // 디버깅용
 
       // 백엔드 응답 형식에 맞게 수정
       if (
