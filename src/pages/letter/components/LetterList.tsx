@@ -49,7 +49,7 @@ const LetterList = forwardRef<HTMLDivElement, Omit<LetterListProps, 'listRef'>>(
         }}
       >
         <S.LetterList $needsScroll={needsScroll} ref={ref} onScroll={onScroll}>
-          {letters.length > 0
+          {letters && letters.length > 0
             ? letters.map((letter) => (
                 <S.LetterItem
                   key={letter.id}
