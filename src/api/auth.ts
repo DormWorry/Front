@@ -16,6 +16,7 @@ export type UserProfile = {
   roomNumber: string
   gender: string
   isNewUser?: boolean
+  kakaoId?: number
 };
 
 const authApi = {
