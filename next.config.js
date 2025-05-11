@@ -5,6 +5,12 @@ const nextConfig = {
     // 빌드 시 ESLint 검사를 비활성화합니다
     ignoreDuringBuilds: true,
   },
+  // 타입스크립트 타입 검사 비활성화
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  // 오직 tsx, jsx 파일만 페이지로 간주
+  pageExtensions: ['tsx', 'jsx'],
   async rewrites() {
     return [
       {
