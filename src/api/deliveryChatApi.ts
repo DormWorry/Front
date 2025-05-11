@@ -1,4 +1,4 @@
-import { io, Socket } from 'socket.io-client'
+import io, { Socket as SocketType } from 'socket.io-client'
 import { ChatMessage } from '../types/delivery'
 
 // 웹소켓 기본 URL 설정
@@ -6,7 +6,7 @@ const SOCKET_BASE_URL =
   process.env.REACT_APP_SOCKET_URL || 'http://localhost:3001'
 
 class DeliveryChatService {
-  private socket: Socket | null = null
+  private socket: SocketType | null = null
   private token: string | null = null
 
   // 웹소켓 연결
