@@ -9,7 +9,7 @@ interface CardStyle {
 
 interface UseCarouselReturn {
   activeIndex: number
-  selectedCard: number | null
+  selectedCard: number | string | null
   isMobile: boolean
   handlePrevClick: () => void
   handleNextClick: () => void
