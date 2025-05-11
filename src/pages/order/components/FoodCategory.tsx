@@ -20,7 +20,7 @@ const FoodCategory: React.FC<FoodCategoryProps> = ({
 }) => {
   return (
     <CategoryContainer>
-      {categories.map((category) => {
+      {categories && categories.length > 0 && categories.map((category) => {
         const isSelected = category.id === selectedCategory
         return (
           <CategoryItem
