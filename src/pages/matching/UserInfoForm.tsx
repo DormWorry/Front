@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useRouter } from 'next/router';
 import { UserInfo, CreateRoommateProfileDto } from './types';
 import { useUserInfo } from '../../hooks/matching/useUserInfo';
 import roommateApi from '../../api/roommate';
@@ -35,7 +34,6 @@ export default function UserInfoForm({ onSubmit, onStepChange, myTypeId, preferr
     const { userInfo, isFormValid, handleChange, handleLocationSelect } = useUserInfo();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const router = useRouter();
 
     const getDormitoryId = (location: string): string => {
         // 실제 백엔드 데이터에 맞게 매핑

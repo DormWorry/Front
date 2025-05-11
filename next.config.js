@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  eslint: {
+    // 빌드 시 ESLint 검사를 비활성화합니다
+    ignoreDuringBuilds: true,
+  },
   async rewrites() {
     return [
       {

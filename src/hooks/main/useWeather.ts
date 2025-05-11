@@ -74,7 +74,7 @@ export function useWeather(defaultCoords: Coordinates, apiKey: string | undefine
         let temperature = 0
         let ptyCode = '0' // 강수형태 코드
 
-        items.forEach((item: any) => {
+        items.forEach((item: { category: string; obsrValue: string }) => {
           if (item.category === 'T1H') {
             // 기온
             temperature = parseFloat(item.obsrValue)

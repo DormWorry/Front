@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import deliveryRoomApi, { DeliveryRoom } from '../../api/deliveryRoomApi'
+import { DeliveryRoomStatus } from '../../types/delivery'
 import deliveryParticipantApi, {
   CreateDeliveryParticipantDto,
 } from '../../api/deliveryParticipantApi'
@@ -85,7 +86,7 @@ export const useDeliveryRoomDetail = ({
   const updateRoomStatus = useCallback(
     async (status: string) => {
       try {
-        await deliveryRoomApi.updateRoomStatus(roomId, status as any)
+        await deliveryRoomApi.updateRoomStatus(roomId, status as DeliveryRoomStatus)
         await fetchRoom()
       } catch (err) {
         setError(

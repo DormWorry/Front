@@ -68,7 +68,7 @@ class DeliveryChatService {
   // 방 참여자 목록 요청
   getRoomUsers(
     roomId: string,
-    callback: (data: { roomId: string; users: any[] }) => void,
+    callback: (data: { roomId: string; users: { userId: string; nickname: string }[] }) => void,
   ) {
     if (this.socket) {
       this.socket.emit('getRoomUsers', { roomId })

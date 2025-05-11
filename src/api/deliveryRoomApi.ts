@@ -1,5 +1,4 @@
 import axiosInstance from './axios'
-import { FoodCategory } from '../constants/category'
 import { DeliveryRoomStatus } from '../types/delivery'
 
 // DeliveryRoom 타입 정의
@@ -15,8 +14,8 @@ export interface DeliveryRoom {
   orderedAt?: Date
   createdAt: Date
   updatedAt: Date
-  creator?: any
-  participants?: any[]
+  creator?: { id: string; nickname: string }
+  participants?: { id: string; nickname: string }[]
 }
 
 // DeliveryRoom 생성 데이터 타입
