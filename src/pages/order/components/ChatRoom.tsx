@@ -28,7 +28,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({
   }
 
   const getCurrentUser = () => {
-    return participants.find((p) => p.id === currentUserId)
+    return participants && participants.length > 0 ? participants.find((p) => p.id === currentUserId) : undefined
   }
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -59,18 +59,18 @@ const ChatRoom: React.FC<ChatRoomProps> = ({
   }
 
   const getSenderName = (senderId: string) => {
-    const sender = participants.find((p) => p.id === senderId)
+    const sender = participants && participants.length > 0 ? participants.find((p) => p.id === senderId) : undefined
     return sender ? sender.name : '알 수 없음'
   }
 
   return (
     <ChatContainer>
       <ChatHeader>
-        <ParticipantCount>참여자 {participants.length}명</ParticipantCount>
+        <ParticipantCount>참여자 {participants && participants.length || 0}명</ParticipantCount>
         <CloseButton onClick={onClose}>X</CloseButton>
       </ChatHeader>
       <MessagesContainer>
-        {messages.map((message) => {
+        {messages && messages.length > 0 && messages.map((message) => {
           const isCurrentUser = message.senderId === currentUserId
           return (
             <MessageItem key={message.id} isCurrentUser={isCurrentUser}>

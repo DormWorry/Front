@@ -36,9 +36,9 @@ interface Props {
 
 const CardCarousel = ({ selectedType }: Props) => {
     // 백엔드에서 프로필 데이터 가져오기
-    const { profiles, loading, error } = useRoommateData({
+    const { profiles = [], loading, error } = useRoommateData({
         preferredType: selectedType?.id // 사용자가 선택한 유형으로 정렬
-    });
+    }) || { profiles: [], loading: false, error: null };
 
     const {
         activeIndex,
@@ -50,7 +50,7 @@ const CardCarousel = ({ selectedType }: Props) => {
         handleCloseModal,
         getCardStyle,
         setTotalCards
-    } = useCarousel(profiles.length || 0);
+    } = useCarousel((profiles && profiles.length) || 0);
 
     // 총 카드 수 업데이트
     useEffect(() => {
@@ -71,10 +71,10 @@ const CardCarousel = ({ selectedType }: Props) => {
 
     // 모바일일 때만 화면에 표시될 카드를 필터링하는 함수
     const getCardsToRender = () => {
-        if (!profiles.length) return [];
+        if (!profiles || !profiles.length) return [];
 
         if (!isMobile) {
-            return profiles;
+            return [...profiles];
         }
 
         // 모바일인 경우: 현재 카드 및 전후 카드만 표시
