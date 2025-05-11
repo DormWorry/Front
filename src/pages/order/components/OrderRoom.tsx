@@ -9,19 +9,24 @@ interface OrderRoomProps {
 }
 
 const OrderRoom: React.FC<OrderRoomProps> = ({ room, onJoinRoom }) => {
+  // room이 undefined일 경우 대비
+  if (!room) {
+    return <RoomContainer>룸 정보를 불러올 수 없습니다.</RoomContainer>
+  }
+  
   const deliveryFeePerPerson =
-    room.deliveryFee / (room.participants.length || 1)
+    (room?.deliveryFee || 0) / ((room?.participants?.length) || 1)
   const maxDisplayParticipants = 3
 
   const renderCategoryTag = () => {
-    return <CategoryTag>{getCategoryEmoji(room.categoryId)}</CategoryTag>
+    return <CategoryTag>{getCategoryEmoji(room?.categoryId || '')}</CategoryTag>
   }
 
   const renderRoomHeader = () => {
     return (
       <RoomHeader>
         {renderCategoryTag()}
-        <RestaurantName>{room.restaurantName}</RestaurantName>
+        <RestaurantName>{room?.restaurantName || '식당명 없음'}</RestaurantName>
       </RoomHeader>
     )
   }
@@ -31,7 +36,7 @@ const OrderRoom: React.FC<OrderRoomProps> = ({ room, onJoinRoom }) => {
       <RoomInfo>
         <InfoItem>
           <InfoLabel>최소 주문 금액</InfoLabel>
-          <InfoValue>{room.minOrderAmount.toLocaleString()}원</InfoValue>
+          <InfoValue>{(room?.minOrderAmount || 0).toLocaleString()}원</InfoValue>
         </InfoItem>
         <InfoItem>
           <InfoLabel>인당 배달비</InfoLabel>
@@ -44,6 +49,10 @@ const OrderRoom: React.FC<OrderRoomProps> = ({ room, onJoinRoom }) => {
   }
 
   const renderParticipants = () => {
+    if (!room?.participants || !Array.isArray(room.participants)) {
+      return <ParticipantsList>참여자 정보를 불러올 수 없습니다.</ParticipantsList>
+    }
+    
     const displayedParticipants = room.participants.slice(
       0,
       maxDisplayParticipants
@@ -70,7 +79,7 @@ const OrderRoom: React.FC<OrderRoomProps> = ({ room, onJoinRoom }) => {
   const renderDescription = () => {
     return (
       <DescriptionContainer>
-        {room.description ? (
+        {room?.description ? (
           <Description>{room.description}</Description>
         ) : (
           <EmptyDescription>추가 설명 없음</EmptyDescription>
@@ -84,9 +93,9 @@ const OrderRoom: React.FC<OrderRoomProps> = ({ room, onJoinRoom }) => {
       <RoomFooter>
         <TimeInfo>
           <TimeIcon>⏱️</TimeIcon>
-          <TimeText>{formatTime(room.createdAt)}</TimeText>
+          <TimeText>{formatTime(room?.createdAt || new Date().toISOString())}</TimeText>
         </TimeInfo>
-        <JoinButton onClick={() => onJoinRoom(room.id)}>
+        <JoinButton onClick={() => onJoinRoom(room?.id || '')}>
           참여하기
         </JoinButton>
       </RoomFooter>
@@ -94,7 +103,7 @@ const OrderRoom: React.FC<OrderRoomProps> = ({ room, onJoinRoom }) => {
   }
 
   return (
-    <RoomContainer onClick={() => onJoinRoom(room.id)}>
+    <RoomContainer onClick={() => onJoinRoom(room?.id || '')}>
       {renderRoomHeader()}
       {renderRoomInfo()}
       {renderParticipants()}
