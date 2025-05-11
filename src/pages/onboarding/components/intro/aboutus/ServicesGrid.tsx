@@ -18,7 +18,7 @@ const ServicesGrid: React.FC<ServicesGridProps> = ({
   return (
     <S.ServicesGrid>
       <S.TopServiceRow ref={topRowRef}>
-        {topRowServices.map((service) => (
+        {topRowServices && topRowServices.map((service) => (
           <BoxModel
             key={service.id}
             imgSrc={service.imgSrc}
@@ -29,10 +29,10 @@ const ServicesGrid: React.FC<ServicesGridProps> = ({
       </S.TopServiceRow>
 
       <S.BottomServiceRow ref={bottomRowRef}>
-        {bottomRowServices.map((service, index) => (
+        {bottomRowServices && bottomRowServices.map((service, index) => (
           <div
             key={service.id}
-            ref={bottomCardRefs[index]}
+            ref={bottomCardRefs && bottomCardRefs.length > index ? bottomCardRefs[index] : null}
             style={{ width: '100%', maxWidth: '450px' }}
           >
             <BoxModel
