@@ -30,6 +30,18 @@ export function useWeather(defaultCoords: Coordinates, apiKey: string | undefine
   useEffect(() => {
     // 날씨 정보 가져오기
     const fetchWeatherData = async (lat: number, lon: number) => {
+      // API 키가 없으면 일찍 종료하고 오류 표시
+      if (!apiKey) {
+        console.error('날씨 API 키가 설정되지 않았습니다.')
+        setWeather(prev => ({
+          ...prev,
+          loading: false,
+          error: 'API 키가 설정되지 않았습니다.',
+          description: '날씨 정보를 불러올 수 없습니다',
+          icon: '⚠️',
+        }))
+        return
+      }
       try {
         setWeather((prev) => ({ ...prev, loading: true, error: null }))
 

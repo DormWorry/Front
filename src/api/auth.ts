@@ -16,6 +16,8 @@ export type UserProfile = {
   roomNumber: string
   gender: string
   isNewUser?: boolean
+};
+
 const authApi = {
   // 카카오 로그인 URL 가져오기
   getKakaoLoginUrl: () => {
