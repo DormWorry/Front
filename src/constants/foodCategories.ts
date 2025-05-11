@@ -1,4 +1,4 @@
-import { FoodCategoryType } from '../components/order/FoodCategory';
+import { FoodCategoryType } from '../pages/order/components/FoodCategory';
 
 export const FOOD_CATEGORIES: FoodCategoryType[] = [
   {
