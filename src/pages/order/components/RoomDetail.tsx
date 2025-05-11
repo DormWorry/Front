@@ -21,12 +21,26 @@ const RoomDetail: React.FC<RoomDetailProps> = ({
   const [menuItems, setMenuItems] = useState<string>('')
   const [showLeaveModal, setShowLeaveModal] = useState<boolean>(false)
 
+  // room객체가 undefined일 경우 대비
+  if (!room || !room.participants) {
+    return (
+      <Container>
+        <HeaderContainer>
+          <BackButton onClick={onBack}>
+            <span>←</span> 뒤로
+          </BackButton>
+          <HeaderTitle>방 정보를 불러올 수 없습니다</HeaderTitle>
+        </HeaderContainer>
+      </Container>
+    )
+  }
+
   const currentUserParticipant = room.participants.find(
     (p) => p.id === currentUserId,
   )
   const isUserInRoom = !!currentUserParticipant
   const deliveryFeePerPerson =
-    room.deliveryFee / (room.participants.length || 1)
+    (room.deliveryFee || 0) / (room.participants.length || 1)
 
   const handleLeaveRoom = () => {
     if (showLeaveModal) {
@@ -43,7 +57,7 @@ const RoomDetail: React.FC<RoomDetailProps> = ({
         <BackButton onClick={onBack}>
           <span>←</span> 뒤로
         </BackButton>
-        <HeaderTitle>{room.restaurantName}</HeaderTitle>
+        <HeaderTitle>{room?.restaurantName || '식당명 없음'}</HeaderTitle>
         <HeaderActions>
           {isUserInRoom && (
             <LeaveButton onClick={() => setShowLeaveModal(true)}>
@@ -57,7 +71,7 @@ const RoomDetail: React.FC<RoomDetailProps> = ({
 
   const renderRoomInfo = () => {
     const categoryName =
-      FOOD_CATEGORIES.find((c) => c.id === room.categoryId)?.name || '기타'
+      FOOD_CATEGORIES.find((c) => c.id === room?.categoryId)?.name || '기타'
 
     return (
       <InfoSection>
@@ -68,16 +82,16 @@ const RoomDetail: React.FC<RoomDetailProps> = ({
         </InfoRow>
         <InfoRow>
           <InfoLabel>최소 주문 금액</InfoLabel>
-          <InfoValue>{room.minOrderAmount.toLocaleString()}원</InfoValue>
+          <InfoValue>{(room?.minOrderAmount || 0).toLocaleString()}원</InfoValue>
         </InfoRow>
         <InfoRow>
           <InfoLabel>배달비</InfoLabel>
           <InfoValue>
-            {room.deliveryFee.toLocaleString()}원 (1인당 약{' '}
+            {(room?.deliveryFee || 0).toLocaleString()}원 (1인당 약{' '}
             {Math.ceil(deliveryFeePerPerson).toLocaleString()}원)
           </InfoValue>
         </InfoRow>
-        {room.description && (
+        {room?.description && (
           <InfoRow>
             <InfoLabel>설명</InfoLabel>
             <InfoValue>{room.description}</InfoValue>
@@ -88,18 +102,26 @@ const RoomDetail: React.FC<RoomDetailProps> = ({
   }
 
   const renderParticipants = () => {
+    if (!room?.participants || !Array.isArray(room.participants)) {
+      return (
+        <ParticipantsSection>
+          <SectionTitle>참여자 정보를 불러올 수 없습니다</SectionTitle>
+        </ParticipantsSection>
+      )
+    }
+
     return (
       <ParticipantsSection>
         <SectionTitle>참여자 ({room.participants.length}명)</SectionTitle>
         <ParticipantsList>
           {room.participants.map((participant) => (
-            <ParticipantItem key={participant.id}>
+            <ParticipantItem key={participant?.id || ''}>
               <UserAvatar>
-                {participant.name.charAt(0).toUpperCase()}
+                {participant?.name ? participant.name.charAt(0).toUpperCase() : '?'}
               </UserAvatar>
               <ParticipantName>
-                {participant.name}
-                {participant.id === room.createdBy && (
+                {participant?.name || '익명'}
+                {participant?.id === room?.createdBy && (
                   <HostBadge>방장</HostBadge>
                 )}
               </ParticipantName>
@@ -173,8 +195,8 @@ const RoomDetail: React.FC<RoomDetailProps> = ({
       <ChatSection>
         <SectionTitle>채팅</SectionTitle>
         <ChatRoom
-          roomId={room.id}
-          participants={room.participants}
+          roomId={room?.id || ''}
+          participants={room?.participants || []}
           currentUserId={currentUserId}
           onClose={() => {}}
         />
