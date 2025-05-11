@@ -1,5 +1,4 @@
 import axios from 'axios'
-
 // 백엔드 API URL 설정
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://15.164.169.65:8080'
@@ -17,8 +16,6 @@ export type UserProfile = {
   roomNumber: string
   gender: string
   isNewUser?: boolean
-}
-
 const authApi = {
   // 카카오 로그인 URL 가져오기
   getKakaoLoginUrl: () => {
@@ -34,7 +31,7 @@ const authApi = {
       console.log('Sending code to backend:', code) // 디버깅용
       console.log('API URL:', `${API_BASE_URL}/auth/kakao/token`) // API URL 디버깅
       const response = await axios.post(
-        `http://localhost:3001/kakao/token`,
+        `http://localhost:3001/auth/kakao/token`,
         { code },
         {
           headers: {
@@ -101,7 +98,7 @@ const authApi = {
 
     try {
       const response = await axios.post(
-        `${API_BASE_URL}/auth/profile`,
+        `${API_BASE_URL}/auth/profile/create`,
         profileData,
         {
           headers: {
@@ -129,7 +126,17 @@ const authApi = {
           Authorization: `Bearer ${token}`,
         },
       })
-      return response.data
+
+      if (
+        response.data &&
+        response.data.success &&
+        response.data.data &&
+        response.data.data.user
+      ) {
+        return response.data.data.user
+      }
+
+      return null
     } catch (error) {
       console.error('사용자 정보 조회 오류:', error)
       localStorage.removeItem('token')

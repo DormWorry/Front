@@ -1,3 +1,4 @@
+import { exportTraceState } from 'next/dist/trace'
 import styled from 'styled-components'
 
 // 전체 페이지를 감싸는 컨테이너. 3D 효과를 위한 perspective 설정 포함
@@ -261,6 +262,11 @@ const inputStyles = `
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 1rem;
+  background-color: white;
+    color: #333;
+
+  
+
   &:focus {
     outline: none;
     border-color: #00b8b8;
@@ -283,13 +289,14 @@ export const LocationContainer = styled.div`
   justify-content: center;
 `
 
-export const LocationButton = styled.button<{ isSelected: boolean }>`
+export const LocationButton = styled.button<{ $isSelected: boolean }>`
   padding: 0.8rem 1.4rem;
   width: 100%;
   border: 2px solid ${(props) => (props.isSelected ? '#00b8b8' : '#ddd')};
+
   border-radius: 8px;
-  background-color: ${(props) => (props.isSelected ? '#e6ffff' : 'white')};
-  color: ${(props) => (props.isSelected ? '#00b8b8' : '#666')};
+  background-color: ${(props) => (props.$isSelected ? '#e6ffff' : 'white')};
+  color: ${(props) => (props.$isSelected ? '#00b8b8' : '#666')};
   cursor: pointer;
   transition: all 0.2s;
   font-size: 1rem;
@@ -316,6 +323,9 @@ export const SubmitButton = styled.button`
   &:disabled {
     background-color: #cccccc;
     cursor: not-allowed;
+  }
+  @media (max-width: 768px) {
+    width: 88%;
   }
 `
 
@@ -420,11 +430,10 @@ export const TypeGrid = styled.div`
   position: relative;
 
   mask-image: linear-gradient(to bottom, black 0%, black 85%, transparent);
-
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
     gap: 0.8rem;
-    height: 280px;
+    height: 400px;
     margin-bottom: 0.8rem;
     mask-image: none;
   }
@@ -490,9 +499,9 @@ export const MobileButtons = styled.div`
   }
 `
 
-export const ToggleButton = styled.button<{ isActive?: boolean }>`
-  background: ${(props) => (props.isActive ? '#00b8b8' : '#f0f0f0')};
-  color: ${(props) => (props.isActive ? 'white' : '#666')};
+export const ToggleButton = styled.button<{ $isActive?: boolean }>`
+  background: ${(props) => (props.$isActive ? '#00b8b8' : '#f0f0f0')};
+  color: ${(props) => (props.$isActive ? 'white' : '#666')};
   border: none;
   border-radius: 50%;
   width: 32px;
@@ -505,17 +514,17 @@ export const ToggleButton = styled.button<{ isActive?: boolean }>`
   transition: all 0.2s;
 
   &:hover {
-    background: ${(props) => (props.isActive ? '#009999' : '#e0e0e0')};
+    background: ${(props) => (props.$isActive ? '#009999' : '#e0e0e0')};
   }
 `
 
-export const MobileContent = styled.div<{ isVisible: boolean }>`
+export const MobileContent = styled.div<{ $isVisible: boolean }>`
   @media (max-width: 768px) {
-    display: ${(props) => (props.isVisible ? 'block' : 'none')};
+    display: ${(props) => (props.$isVisible ? 'block' : 'none')};
     width: 100%;
-    margin-top: ${(props) => (props.isVisible ? '1rem' : '0')};
-    padding-top: ${(props) => (props.isVisible ? '1rem' : '0')};
-    border-top: ${(props) => (props.isVisible ? '1px solid #eee' : 'none')};
+    margin-top: ${(props) => (props.$isVisible ? '1rem' : '0')};
+    padding-top: ${(props) => (props.$isVisible ? '1rem' : '0')};
+    border-top: ${(props) => (props.$isVisible ? '1px solid #eee' : 'none')};
   }
 `
 
@@ -619,34 +628,34 @@ export const StepWrapper = styled.div`
   gap: 8px;
 `
 
-export const Step = styled.div<{ isActive: boolean; isCompleted: boolean }>`
+export const Step = styled.div<{ $isActive: boolean; $isCompleted: boolean }>`
   width: 32px;
   height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: ${({ isActive, isCompleted }) =>
-    isActive || isCompleted ? '#00b8b8' : '#e0e0e0'};
+  background-color: ${({ $isActive, $isCompleted }) =>
+    $isActive || $isCompleted ? '#00b8b8' : '#e0e0e0'};
   color: white;
   font-weight: bold;
 `
 
 export const StepText = styled.span<{
-  isActive: boolean
-  isCompleted: boolean
+  $isActive: boolean
+  $isCompleted: boolean
 }>`
   font-size: 14px;
   color: ${(props) =>
-    props.isActive ? '#00b8b8' : props.isCompleted ? '#00b8b8' : '#e0e0e0'};
-  font-weight: ${(props) => (props.isActive ? '600' : '400')};
+    props.$isActive ? '#00b8b8' : props.$isCompleted ? '#00b8b8' : '#e0e0e0'};
+  font-weight: ${(props) => (props.$isActive ? '600' : '400')};
 `
 
 // 단계 연결선
-export const StepLine = styled.div<{ completed: boolean }>`
+export const StepLine = styled.div<{ $completed: boolean }>`
   width: 60px;
   height: 2px;
-  background-color: ${(props) => (props.completed ? '#00b8b8' : '#e0e0e0')};
+  background-color: ${(props) => (props.$completed ? '#00b8b8' : '#e0e0e0')};
 `
 
 // 단계 레이블
