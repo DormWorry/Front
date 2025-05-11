@@ -76,7 +76,7 @@ const KakaoCallbackPage = () => {
   const [showUserInfoModal, setShowUserInfoModal] = useState<boolean>(false)
   const [kakaoId, setKaKaoId] = useState<number | null>(null)
   const router = useRouter()
-  const [userState, setUserState] = useRecoilState(userAtom)
+  const [, setUserState] = useRecoilState(userAtom)
 
   const handleKakaoCallback = useCallback(
     async (code: string) => {

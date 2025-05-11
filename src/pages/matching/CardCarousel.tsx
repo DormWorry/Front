@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useCarousel } from '../../hooks/useCarousel';
 import { useCredits } from '../../hooks/matching/useCredits';
 import { useRoommateData } from '../../hooks/matching/useRoommateData';
@@ -61,6 +61,13 @@ const CardCarousel = ({ selectedType }: Props) => {
 
     // 크레딧 시스템 훅 사용
     const { credits, useCredit, isRevealed } = useCredits();
+    
+    // 크레딧 사용 핸들러
+    const handleUseCredit = (profileId: number | string | null) => {
+        if (profileId) {
+            useCredit(profileId);
+        }
+    };
 
     // 모바일일 때만 화면에 표시될 카드를 필터링하는 함수
     const getCardsToRender = () => {
@@ -182,7 +189,7 @@ const CardCarousel = ({ selectedType }: Props) => {
                         <ContactInfo>
                             {!isRevealed(selectedCard) && (
                                 <CreditButton
-                                    onClick={() => useCredit(selectedCard)}
+                                    onClick={() => handleUseCredit(selectedCard)}
                                     disabled={credits <= 0}
                                 >
                                     크레딧 사용하기

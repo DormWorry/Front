@@ -1,4 +1,3 @@
-import { exportTraceState } from 'next/dist/trace'
 import styled from 'styled-components'
 
 // 전체 페이지를 감싸는 컨테이너. 3D 효과를 위한 perspective 설정 포함
@@ -292,7 +291,7 @@ export const LocationContainer = styled.div`
 export const LocationButton = styled.button<{ $isSelected: boolean }>`
   padding: 0.8rem 1.4rem;
   width: 100%;
-  border: 2px solid ${(props) => (props.isSelected ? '#00b8b8' : '#ddd')};
+  border: 2px solid ${(props) => (props.$isSelected ? '#00b8b8' : '#ddd')};
 
   border-radius: 8px;
   background-color: ${(props) => (props.$isSelected ? '#e6ffff' : 'white')};

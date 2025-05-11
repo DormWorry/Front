@@ -10,7 +10,7 @@ interface ChatRoomProps {
 }
 
 const ChatRoom: React.FC<ChatRoomProps> = ({
-  roomId,
+  // roomId는 현재 사용되지 않지만 인터페이스 정의 때문에 포함되어 있음
   participants,
   currentUserId,
   onClose,

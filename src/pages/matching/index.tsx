@@ -11,7 +11,7 @@ export default function MatchingFeature() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [myType, setMyType] = useState<RoommateType | null>(null);
   const [preferredType, setPreferredType] = useState<RoommateType | null>(null);
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [, setUserInfo] = useState<UserInfo | null>(null);
 
   const goToMainPage = () => {
     router.push('/main');

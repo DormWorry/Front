@@ -29,13 +29,14 @@ const FEATURES = [
 
 const LetterFeatureShowcase: React.FC = () => {
     const sectionRef = useRef<HTMLDivElement>(null)
-    const featureRefs = FEATURES.map(() => useRef<HTMLDivElement>(null))
+    // 각 기능에 대한 참조 배열 미리 생성
+    const featureRefs = FEATURES.map(() => React.createRef<HTMLDivElement>())
 
     useEffect(() => {
         if (typeof window === 'undefined') return
 
         // 각 피쳐 아이템에 애니메이션 적용
-        featureRefs.forEach((ref, index) => {
+        featureRefs.forEach((ref) => {
             if (!ref.current) return
 
             gsap.fromTo(

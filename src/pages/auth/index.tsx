@@ -1,10 +1,9 @@
 import React, { useEffect } from 'react';
-import { useRouter } from 'next/router';
 import styled from '@emotion/styled';
 import authApi from '../../api/auth';
 
 const AuthPage = () => {
-  const router = useRouter();
+
 
   useEffect(() => {
     // 카카오 로그인 페이지로 리다이렉트

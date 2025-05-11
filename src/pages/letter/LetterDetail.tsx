@@ -194,10 +194,4 @@ const LetterContent = styled.div`
   }
 `
 
-const ReplyButton = styled(S.SubmitButton)`
-  background-color: #13cfb8;
 
-  &:hover {
-    background-color: #10b8a3;
-  }
-`

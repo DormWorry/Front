@@ -39,8 +39,8 @@ export default function LetterFeature() {
   const [isSentScrolledToBottom, setIsSentScrolledToBottom] = useState(true)
   
   // 로딩 및 에러 상태
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [, setIsLoading] = useState(false)
+  const [, setError] = useState<string | null>(null)
   
   // 편지 목록 참조
   const receivedLetterListRef = React.useRef<HTMLDivElement>(null)
