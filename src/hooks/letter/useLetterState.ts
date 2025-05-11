@@ -125,8 +125,8 @@ export const useLetterState = () => {
 
   const handleLetterClick = async (letter: Letter) => {
     try {
-      // 편지 상세 정보 가져오기
-      const detailLetter = await letterApi.getLetter(letter.id, userRoomNumber)
+      // 편지 상세 정보 가져오기 (id를 문자열로 변환)
+      const detailLetter = await letterApi.getLetter(String(letter.id), userRoomNumber)
       setSelectedLetter(detailLetter)
     } catch (error) {
       console.error('편지 상세 조회 실패:', error)
