@@ -79,7 +79,7 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
               required
             >
               <option value="">카테고리 선택</option>
-              {categories.map((category) => (
+              {categories && categories.length > 0 && categories.map((category) => (
                 <option key={category.id} value={category.id}>
                   {category.name}
                 </option>
