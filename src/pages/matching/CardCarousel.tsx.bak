@@ -262,12 +262,12 @@ const CardCarousel = ({ selectedType }: Props) => {
                         </h2>
                         <TypeTitle>
                             <TypeEmoji>
-                                {findSelectedProfile(profiles, selectedCard)?.myPersonalityType?.emoji || selectedType?.emoji || '😊'}
+                                {findSelectedProfile(profiles, selectedCard)?.myPersonalityType?.emoji || selectedType.emoji}
                             </TypeEmoji>
-                            {findSelectedProfile(profiles, selectedCard)?.myPersonalityType?.title || selectedType?.title || '성격 유형'}
+                            {findSelectedProfile(profiles, selectedCard)?.myPersonalityType?.title || selectedType.title}
                         </TypeTitle>
                         <TraitList>
-                            {(findSelectedProfile(profiles, selectedCard)?.myPersonalityType?.traits || selectedType?.traits || []).map((trait, index) => (
+                            {(findSelectedProfile(profiles, selectedCard)?.myPersonalityType?.traits || selectedType.traits).map((trait, index) => (
                                 <Trait key={index}>{trait}</Trait>
                             ))}
                         </TraitList>

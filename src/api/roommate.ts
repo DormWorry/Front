@@ -5,14 +5,15 @@ import {
   CreateRoommateProfileDto,
 } from '../pages/matching/types'
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://port-0-capstoneserver-m6xxoqjg3249c6c2.sel4.cloudtype.app'
+// 임시 해결책: roommate API만 로컬 서버로 리다이렉트
+const API_URL = 'http://localhost:3001'
 
 // 룸메이트 프로필 API 서비스
 const roommateApi = {
   // 내 프로필 조회
   getMyProfile: async (): Promise<RoommateProfile> => {
     try {
-      const token = localStorage.getItem('accessToken')
+      const token = localStorage.getItem('token')
       const response = await axios.get(`${API_URL}/roommate-profiles/user/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -30,7 +31,7 @@ const roommateApi = {
     profileData: CreateRoommateProfileDto,
   ): Promise<RoommateProfile> => {
     try {
-      const token = localStorage.getItem('accessToken')
+      const token = localStorage.getItem('token')
       const response = await axios.post(
         `${API_URL}/roommate-profiles`,
         profileData,
@@ -54,7 +55,7 @@ const roommateApi = {
     profileData: Partial<CreateRoommateProfileDto>,
   ): Promise<RoommateProfile> => {
     try {
-      const token = localStorage.getItem('accessToken')
+      const token = localStorage.getItem('token')
       const response = await axios.patch(
         `${API_URL}/roommate-profiles/${id}`,
         profileData,
@@ -114,7 +115,7 @@ const roommateApi = {
   // 프로필 삭제 (비활성화)
   deleteProfile: async (id: string): Promise<void> => {
     try {
-      const token = localStorage.getItem('accessToken')
+      const token = localStorage.getItem('token')
       await axios.delete(`${API_URL}/roommate-profiles/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,

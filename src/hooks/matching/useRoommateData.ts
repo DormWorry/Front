@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { RoommateProfile, RoommateType } from '../../pages/matching/types'
 import roommateApi from '../../api/roommate'
+import { useRecoilValue } from 'recoil'
+import { userAtom } from '../../atoms/userAtom'
 
 interface UseRoommateDataProps {
   preferredType?: number
@@ -12,6 +14,7 @@ export const useRoommateData = ({
   const [profiles, setProfiles] = useState<RoommateProfile[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
+  const currentUser = useRecoilValue(userAtom)
 
   // 프로필 데이터 로드
   useEffect(() => {
@@ -19,7 +22,17 @@ export const useRoommateData = ({
       try {
         setLoading(true)
         const data = await roommateApi.getProfiles({ preferredType })
-        setProfiles(data)
+        
+        // 자신의 프로필은 매칭 결과에서 제외
+        let filteredProfiles = data
+        if (currentUser.id) {
+          filteredProfiles = data.filter(profile => 
+            String(profile.userId) !== String(currentUser.id)
+          )
+          console.log('자신의 프로필을 제외한 매칭 결과:', filteredProfiles.length, '개')
+        }
+        
+        setProfiles(filteredProfiles)
         setError(null)
       } catch (err) {
         console.error('룸메이트 프로필 로드 실패:', err)
@@ -30,7 +43,7 @@ export const useRoommateData = ({
     }
 
     fetchProfiles()
-  }, [preferredType])
+  }, [preferredType, currentUser.id])
 
   // 프로필 생성 함수
   const createProfile = async (profileData: {

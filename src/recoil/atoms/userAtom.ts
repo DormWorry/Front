@@ -1,26 +1,6 @@
-import { atom } from 'recoil';
+// 이 파일은 다른 경로에서 사용할 수 있도록 리디렉션을 제공합니다.
+// 두 개의 atom 파일을 하나로 통합하여 Recoil 중복 키 오류를 해결합니다.
 
-// 사용자 정보 타입 정의
-export interface UserState {
-  id?: number;
-  kakaoId?: number;
-  nickname?: string;
-  studentId?: string;
-  department?: string;
-  dormitoryId?: string;
-  roomNumber?: string;
-  gender?: string;
-  isNewUser?: boolean;
-  isLoggedIn: boolean;
-}
+// atoms/userAtom.ts에서 모든 필요한 타입과 값을 가져옵니다.
+export * from '../../atoms/userAtom';
 
-// 초기 사용자 상태
-const initialUserState: UserState = {
-  isLoggedIn: false,
-};
-
-// 사용자 정보를 저장할 atom 생성
-export const userAtom = atom<UserState>({
-  key: 'userState', // 고유한 키 값
-  default: initialUserState,
-});

@@ -51,22 +51,36 @@ export function useWeather(defaultCoords: Coordinates, apiKey: string | undefine
         // 날짜 및 시간 정보 가져오기
         const { baseDate, baseTime } = getFormattedDate()
         
-        // 기상청 단기예보 API 호출
-        const url = `http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst?serviceKey=${apiKey}&numOfRows=10&pageNo=1&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${grid.nx}&ny=${grid.ny}`
+        // 기상청 단기예보 API 호출 (HTTPS 사용)
+        const encodedKey = apiKey.includes('%') ? apiKey : encodeURIComponent(apiKey);
+        const url = `https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst?serviceKey=${encodedKey}&numOfRows=10&pageNo=1&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${grid.nx}&ny=${grid.ny}`
 
-        const response = await fetch(url)
-
+        console.log('날씨 API 요청 시도:', baseDate, baseTime);
+        
+        const response = await fetch(url);
+        
+        // 응답 형식 확인
+        const contentType = response.headers.get('content-type');
+        
         if (!response.ok) {
-          throw new Error('날씨 정보를 가져오는데 실패했습니다.')
+          console.error(`날씨 API 오류 (${response.status}): ${response.statusText}`);
+          throw new Error('날씨 정보를 가져오는데 실패했습니다.');
         }
-
-        const data = await response.json()
+        
+        // 응답이 JSON인지 확인
+        if (contentType && !contentType.includes('application/json')) {
+          const errorText = await response.text();
+          console.error('응답이 JSON 형식이 아님:', errorText);
+          throw new Error('받은 응답이 JSON 형식이 아닙니다');
+        }
+        
+        const data = await response.json();
 
         if (data.response.header.resultCode !== '00') {
           throw new Error(
             data.response.header.resultMsg ||
-              '날씨 정보를 가져오는데 실패했습니다.',
-          )
+              '날씨 정보를 가져오는데 실패했습니다.'
+          );
         }
 
         // 기상청 API 응답에서 필요한 데이터 추출

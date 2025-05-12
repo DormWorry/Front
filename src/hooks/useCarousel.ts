@@ -62,18 +62,24 @@ export const useCarousel = (initialTotalCards: number): UseCarouselReturn => {
   }
 
   const getCardStyle = (index: number): CardStyle => {
+    // 현재 활성화된 카드인지 확인
+    const isActive = index === activeIndex;
+    
     if (isMobile) {
-      const diff = index - activeIndex
+      // 모바일에서는 기본적으로 모든 카드를 보이게 처리
       return {
-        transform: `translateX(${diff * 100}%) scale(${diff === 0 ? 1 : 0.8})`,
-        opacity: diff === 0 ? 1 : 0.5,
-        zIndex: diff === 0 ? 1 : 0,
-        transition: 'all 0.5s ease',
-      }
+        transform: `scale(${isActive ? 1 : 0.95})`,
+        opacity: 1,
+        zIndex: isActive ? 2 : 1,
+        transition: 'all 0.3s ease',
+      };
     }
+    
+    // 데스크톱에서는 3D 회전 효과 유지
     return {
       transform: `rotateY(${(index - activeIndex) * 60}deg) translateZ(300px)`,
-      opacity: index === activeIndex ? 1 : 0.5,
+      opacity: isActive ? 1 : 0.6,
+      zIndex: isActive ? 2 : 1,
     }
   }
 

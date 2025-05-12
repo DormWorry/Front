@@ -1,135 +1,245 @@
 import styled from 'styled-components'
 
-// 전체 페이지를 감싸는 컨테이너. 3D 효과를 위한 perspective 설정 포함
+// 전체 페이지를 감싸는 컨테이너 - 현대적인 디자인으로 업데이트
 export const Container = styled.div`
   position: relative;
   width: 100%;
+  height: 100vh;
+  max-height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   perspective: 1000px;
-  gap: 50px;
-  padding-top: 85px;
+  gap: 40px;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
+  overflow-y: auto;
+  overflow-x: hidden;
 
   @media (max-width: 768px) {
-    gap: 30px;
-    padding-top: 0px;
+    gap: 25px;
+    padding: 1rem;
+    height: 100%;
   }
 `
 
-// 3D 회전 효과를 가진 카드 캐러셀을 감싸는 컨테이너
+// 카드 캐러셀 컨테이너 - 화면 너비 활용 및 모던한 디자인
 export const CarouselContainer = styled.div`
   position: relative;
-  width: 400px;
-  height: 400px;
+  width: 90%;
+  max-width: 1200px;
+  height: auto;
   transform-style: preserve-3d;
-  transition: transform 0.5s ease;
-  display: flex;
-  align-items: center;
+  transition: all 0.5s ease;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  align-items: stretch;
   justify-content: center;
-  padding-top: 70px;
+  padding: 2rem;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  overflow-y: auto;
+  max-height: calc(100vh - 180px);
 
   @media (max-width: 768px) {
-    padding-top: 70px;
+    grid-template-columns: 1fr;
     width: 100%;
-    overflow: hidden;
+    padding: 1.5rem;
+    max-height: calc(100vh - 160px);
   }
 `
 
-// 캐러셀 내의 개별 카드 스타일
+// 캐러셀 내의 개별 카드 스타일 - 더 현대적이고 세련된 디자인
 export const Card = styled.div`
-  position: absolute;
-  width: 280px;
-  height: 90%;
+  position: relative;
+  width: 100%;
+  height: auto;
+  min-height: 450px;
+  max-width: 350px;
+  margin: 0 auto;
   background: white;
-  border-radius: 20px;
+  border-radius: 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 80px 20px 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.5s ease;
-  backface-visibility: hidden;
+  padding: 0;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
   cursor: pointer;
   transform-style: preserve-3d;
-  will-change: box-shadow;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 130px;
+    background: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%);
+    z-index: 1;
+  }
+
+  .detail-hint {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    z-index: 10;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+  }
+
+  .detail-hint span {
+    background: rgba(97, 97, 255, 0.9);
+    color: white;
+    font-size: 0.8rem;
+    padding: 5px 15px;
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  &:hover .detail-hint {
+    opacity: 1;
+    transform: translateY(0);
+  }
 
   @media (max-width: 768px) {
-    width: 85%;
-    max-width: 280px;
     height: auto;
-    min-height: 300px;
-    padding-top: 70px;
+    min-height: 400px;
+    max-width: 100%;
   }
 
   &:hover {
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+  }
+  
+  &:active {
+    transform: scale(0.98);
+    transition: transform 0.1s;
   }
 `
 
 // 프로필 이미지를 표시하는 원형 컨테이너
 export const ProfileImage = styled.div`
-  position: absolute;
-  top: -60px;
-  width: 100px;
-  height: 100px;
+  position: relative;
+  margin-bottom: 20px;
+  width: 110px;
+  height: 110px;
   background: #f0f0f0;
-  border-radius: 15px;
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  border: 4px solid white;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  border: 5px solid white;
   z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   @media (max-width: 768px) {
-    top: -50px;
-    width: 90px;
-    height: 90px;
+    width: 100px;
+    height: 100px;
+    margin-bottom: 15px;
   }
 
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+
+  &:hover img {
+    transform: scale(1.05);
   }
 `
 
 // 카드 내용을 감싸는 컨테이너
 export const CardContent = styled.div`
+  position: relative;
   width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-  padding-top: 8px;
+  padding: 100px 20px 30px;
+  z-index: 2;
+  cursor: pointer;
+  
+  /* 클릭 효과 강화 */
+  &:active {
+    opacity: 0.8;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 90px 20px 25px;
+  }
 `
 
-// 이름 표시 스타일
+// 이름 표시 스타일 - 더 모던한 타이포그래피
 export const Name = styled.h2`
   font-size: 1.5rem;
+  font-weight: 600;
   color: #333;
-  margin-bottom: 5px;
+  margin: 10px 0 5px;
+  letter-spacing: -0.01em;
+  width: 100%;
+  text-align: center;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 0 5px;
 `
 
-// 역할/소속 표시를 위한 태그 스타일
+// 역할/소속 표시를 위한 태그 스타일 - 강조된 디자인
 export const Role = styled.div`
-  font-size: 1rem;
-  color: #666;
-  background: #e8f0fe;
-  padding: 5px 15px;
-  border-radius: 20px;
+  font-size: 0.95rem;
+  color: #6161FF;
+  font-weight: 500;
+  background: #f0f0ff;
+  padding: 3px 15px;
+  border-radius: 30px;
   display: inline-block;
-  margin-bottom: 15px;
+  margin-bottom: 18px;
 `
 
-// 설명 텍스트 스타일
+// 설명 텍스트 스타일 - 가독성 개선
 export const Description = styled.p`
-  font-size: 0.9rem;
-  color: #666;
-  line-height: 1.5;
-  margin-bottom: 15px;
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.6;
+  margin: 5px 0 24px;
   text-align: left;
-  padding: 0 10px;
+  padding: 0 5px;
+  flex-grow: 1;
+  max-height: 120px;
+  overflow-y: auto;
+  width: 100%;
+  word-break: break-word;
+  min-height: 80px;
+  
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+  }
 
   @media (max-width: 768px) {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
+    max-height: 100px;
   }
 `
 
@@ -142,16 +252,23 @@ export const ErrorText = styled.p`
   text-align: left;
 `
 
-// 연락처 정보를 표시하는 컨테이너
+// 연락처 정보를 표시하는 컨테이너 - 세련된 디자인
 export const ContactInfo = styled.div`
   width: 100%;
-  font-size: 0.8rem;
-  color: #888;
+  font-size: 0.9rem;
+  color: #555;
   text-align: left;
-  margin-top: 15px;
+  margin-top: auto;
+  background: rgba(246, 248, 252, 0.8);
+  padding: 12px 15px;
+  border-radius: 12px;
+  border: 1px solid #f0f0f0;
 
   div {
-    margin: 5px 0;
+    margin: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
   @media (max-width: 768px) {
@@ -170,26 +287,28 @@ export const ButtonContainer = styled.div`
 
 // 이전/다음 버튼 스타일
 export const Button = styled.button`
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   background: white;
-  border: 2px solid #e8e8e8;
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  color: #4F4F4F;
+  font-size: 1.2rem;
 
   &:hover {
-    border-color: #00b8b8;
-    background: #f8f8f8;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
+    background: #f8f9fa;
   }
 
   &:active {
-    background: #f8f8f8;
+    transform: translateY(0);
     border-color: #00b8b8;
   }
 
@@ -369,11 +488,28 @@ export const ModalOverlay = styled.div`
 export const ModalContent = styled.div`
   background: white;
   padding: 2rem;
-  border-radius: 15px;
+  border-radius: 20px;
   width: 90%;
   max-width: 500px;
   max-height: 80vh;
   position: relative;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  
+  h2 {
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+    width: 95%;
+    gap: 1rem;
+  }
 `
 
 // 모달 닫기 버튼 스타일
@@ -559,6 +695,8 @@ export const TypeEmoji = styled.span`
   }
 `
 
+// 타입 이모지 스타일
+
 // 룸메이트 특성 목록을 감싸는 컨테이너
 export const TraitList = styled.ul`
   list-style: none;
@@ -725,14 +863,42 @@ export const PrevButton = styled.button`
   }
 `
 
-// 블러 처리된 텍스트를 위한 스타일
+// 블러 처리된 텍스트를 위한 스타일 - 더 세련된 디자인
 export const BlurredText = styled.span`
+  position: relative;
   filter: blur(4px);
   user-select: none;
-  transition: filter 0.3s ease;
-
+  transition: all 0.3s ease;
+  display: inline-block;
+  padding: 2px 4px;
+  background: rgba(97, 97, 255, 0.1);
+  border-radius: 4px;
+  border: 1px dashed rgba(97, 97, 255, 0.3);
+  
+  &::after {
+    content: '크레딧 사용';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.9);
+    color: #6161FF;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  
   &:hover {
-    filter: blur(0);
+    filter: blur(3px);
+    background: rgba(97, 97, 255, 0.15);
+    
+    &::after {
+      opacity: 1;
+    }
   }
 
   @media (max-width: 768px) {
@@ -740,17 +906,17 @@ export const BlurredText = styled.span`
   }
 `
 
-// 헤더 관련 스타일 추가
+// 헤더 관련 스타일 추가 - 더 모던한 디자인
 export const MainHeader = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 32px 24px;
-  background-color: #f9f9f9;
-  border-radius: 12px;
+  background: linear-gradient(135deg, #f0f4ff 0%, #f9f9f9 100%);
+  border-radius: 20px;
   margin-bottom: 32px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
   position: relative;
   width: 100%;
   max-width: 1200px;
@@ -758,55 +924,92 @@ export const MainHeader = styled.div`
 
 export const PageTitle = styled.h1`
   margin: 0 0 12px 0;
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 700;
   color: #333;
+  letter-spacing: -0.02em;
 `
 
 export const HeaderDescription = styled.p`
-  color: #777;
+  color: #666;
   text-align: center;
   margin: 0;
   font-size: 16px;
+  line-height: 1.5;
 `
 
-// 블러 처리된 그룹을 위한 스타일
+// 블러 처리된 그룹을 위한 스타일 - 사용자 피드백 강화
 export const BlurredGroup = styled.div<{ isBlurred: boolean }>`
   filter: ${(props) => (props.isBlurred ? 'blur(4px)' : 'none')};
   user-select: ${(props) => (props.isBlurred ? 'none' : 'auto')};
-  transition: filter 0.3s ease;
-  background: rgba(0, 0, 0, 0.05);
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 10px;
+  transition: all 0.3s ease;
+  background: ${(props) => (props.isBlurred ? 'rgba(97, 97, 255, 0.08)' : 'rgba(250, 250, 250, 0.8)')};
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 12px;
   position: relative;
+  border: 1px solid ${(props) => (props.isBlurred ? 'rgba(97, 97, 255, 0.2)' : 'rgba(0, 0, 0, 0.05)')};
+  
+  ${(props) => props.isBlurred && `
+    &::after {
+      content: '크레딧 사용하여 연락처 보기';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255, 255, 255, 0.9);
+      color: #6161FF;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      white-space: nowrap;
+      z-index: 2;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      pointer-events: none;
+    }
+  `}
 `
 
-// 크레딧 사용 버튼
+// 크레딧 사용 버튼 - 현대적인 디자인
 export const CreditButton = styled.button`
   position: relative;
-  top: 50%;
-  left: 88%;
-  transform: translate(-50%, -50%);
-  background: #00b8b8;
+  top: auto;
+  left: auto;
+  transform: none;
+  width: 100%;
+  margin: 0.5rem 0 1rem;
+  background: linear-gradient(135deg, #6161FF 0%, #5050FF 100%);
   color: white;
   border: none;
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-size: 0.9rem;
+  border-radius: 25px;
+  padding: 12px 18px;
+  font-size: 0.95rem;
+  font-weight: 500;
   cursor: pointer;
   z-index: 10;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(97, 97, 255, 0.25);
   opacity: ${(props) => (props.disabled ? 0.5 : 1)};
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 
   &:hover:not(:disabled) {
-    background: #009999;
-    transform: translate(-50%, -50%) scale(1.05);
+    background: linear-gradient(135deg, #5050FF 0%, #4040FF 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(97, 97, 255, 0.3);
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(97, 97, 255, 0.2);
   }
 
   &:disabled {
+    background: linear-gradient(135deg, #a0a0a0 0%, #c0c0c0 100%);
     cursor: not-allowed;
+    box-shadow: none;
   }
   @media (max-width: 768px) {
     width: 100px;
