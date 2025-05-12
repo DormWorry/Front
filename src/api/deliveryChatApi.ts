@@ -3,7 +3,7 @@ import { ChatMessage } from '../types/delivery'
 
 // 웹소켓 기본 URL 설정
 const SOCKET_BASE_URL =
-  process.env.REACT_APP_SOCKET_URL || 'http://localhost:3001'
+  process.env.REACT_APP_SOCKET_URL || 'https://port-0-capstoneserver-m6xxoqjg3249c6c2.sel4.cloudtype.app'
 
 class DeliveryChatService {
   private socket: Socket | null = null

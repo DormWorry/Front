@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // 백엔드 API URL 설정
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://port-0-capstoneserver-m6xxoqjg3249c6c2.sel4.cloudtype.app'
 
 // 편지 데이터 타입 정의
 export interface Letter {
