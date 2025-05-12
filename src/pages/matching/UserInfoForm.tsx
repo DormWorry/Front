@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { UserInfo, CreateRoommateProfileDto } from './types';
 import { useUserInfo } from '../../hooks/matching/useUserInfo';
 import roommateApi from '../../api/roommate';
+import { useRecoilValue } from 'recoil';
+import { userAtom } from '../../recoil/atoms/userAtom';
 import {
     FormContainer,
     FormWrapper,
@@ -20,7 +22,8 @@ import {
     StepText,
     StepLine,
     LoadingSpinner,
-    ErrorAlert
+    ErrorAlert,
+    ErrorText
 } from './styles';
 
 interface Props {
@@ -31,9 +34,10 @@ interface Props {
 }
 
 export default function UserInfoForm({ onSubmit, onStepChange, myTypeId, preferredTypeId }: Props) {
-    const { userInfo, isFormValid, handleChange, handleLocationSelect } = useUserInfo();
+    const { userInfo, errors, isFormValid, handleChange, handleLocationSelect } = useUserInfo();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const userRecoil = useRecoilValue(userAtom);
 
     const getDormitoryId = (location: string): string => {
         // 실제 백엔드 데이터에 맞게 매핑
@@ -51,18 +55,26 @@ export default function UserInfoForm({ onSubmit, onStepChange, myTypeId, preferr
         setError(null);
 
         try {
+            if (!userRecoil?.id) {
+                setError('로그인이 필요합니다. 로그인 후 다시 시도해주세요.');
+                return;
+            }
+
             // 프로필 DTO 생성
             const profileData: CreateRoommateProfileDto = {
                 myPersonalityTypeId: myTypeId,
                 preferredPersonalityTypeId: preferredTypeId,
-                description: userInfo.description,
-                kakaoId: userInfo.kakaoId,
-                instagram: userInfo.instagram,
+                introduction: userInfo.description,
+                kakaoTalkId: userInfo.kakaoId,
+                instagramId: userInfo.instagram || '',
                 dormitoryId: getDormitoryId(userInfo.location)
             };
 
+            console.log('전송할 프로필 데이터:', profileData);
+
             // 백엔드 API 호출
-            await roommateApi.createProfile(profileData);
+            const result = await roommateApi.createProfile(profileData);
+            console.log('프로필 생성 결과:', result);
 
             // 성공 시 UI 컴포넌트에 알림
             onSubmit(userInfo);
@@ -117,6 +129,7 @@ export default function UserInfoForm({ onSubmit, onStepChange, myTypeId, preferr
                         placeholder="카카오톡 ID를 입력해주세요"
                         disabled={isLoading}
                     />
+                    {errors.kakaoId && <ErrorText>{errors.kakaoId}</ErrorText>}
                 </FormGroup>
                 <FormGroup>
                     <Label>인스타그램 ID</Label>
@@ -135,9 +148,10 @@ export default function UserInfoForm({ onSubmit, onStepChange, myTypeId, preferr
                         name="description"
                         value={userInfo.description}
                         onChange={handleChange}
-                        placeholder="간단한 자기소개를 작성해주세요"
+                        placeholder="간단한 자기소개를 작성해주세요 (최소 10자 이상)"
                         disabled={isLoading}
                     />
+                    {errors.description && <ErrorText>{errors.description}</ErrorText>}
                 </FormGroup>
                 <FormGroup >
                     <Label>기숙사 선택</Label>

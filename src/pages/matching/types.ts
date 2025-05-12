@@ -48,9 +48,9 @@ export interface RoommateProfile {
   myPersonalityType?: RoommateType
   preferredPersonalityTypeId: number
   preferredPersonalityType?: RoommateType
-  description: string
-  kakaoId: string
-  instagram: string
+  introduction: string
+  kakaoTalkId: string
+  instagramId: string
   dormitoryId: string
   dormitory?: {
     id: string
@@ -64,8 +64,8 @@ export interface RoommateProfile {
 export interface CreateRoommateProfileDto {
   myPersonalityTypeId: number
   preferredPersonalityTypeId: number
-  description: string
-  kakaoId: string
-  instagram: string
+  introduction: string
+  kakaoTalkId: string
+  instagramId: string
   dormitoryId: string
 }

@@ -133,6 +133,15 @@ export const Description = styled.p`
   }
 `
 
+// 유효성 검사 오류 메시지 스타일
+export const ErrorText = styled.p`
+  font-size: 0.8rem;
+  color: #ff3b30;
+  margin-top: 5px;
+  margin-bottom: 0;
+  text-align: left;
+`
+
 // 연락처 정보를 표시하는 컨테이너
 export const ContactInfo = styled.div`
   width: 100%;
@@ -830,15 +839,18 @@ export const LoadingContainer = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 300px;
+  padding: 50px;
   text-align: center;
-  padding: 2rem;
-
+  height: 300px;
+  max-width: 500px;
+  margin: 0 auto;
+  
   h3 {
-    font-size: 1.3rem;
-    margin-bottom: 1rem;
+    margin-bottom: 15px;
     color: #333;
+    font-weight: 600;
   }
+  
 
   p {
     color: #666;
@@ -906,4 +918,93 @@ export const ErrorAlert = styled.div`
   margin-bottom: 20px;
   font-size: 0.9rem;
   border-left: 4px solid #ef5350;
+`
+
+export const SpinnerContainer = styled.div`
+  margin: 30px 0;
+  position: relative;
+  width: 60px;
+  height: 60px;
+`
+
+export const WaitingSpinner = styled.div`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 4px solid rgba(0, 184, 184, 0.1);
+  border-top-color: #00b8b8;
+  border-radius: 50%;
+  animation: waitingSpinner 1.5s linear infinite;
+
+  @keyframes waitingSpinner {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`
+
+export const ActionButton = styled.button`
+  background-color: #00b8b8;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  margin: 10px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    background-color: #019999;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  &:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+`
+
+export const SecondaryButton = styled(ActionButton)`
+  background-color: #f0f0f0;
+  color: #666;
+
+  &:hover {
+    background-color: #e0e0e0;
+  }
+`
+
+export const ButtonGroup = styled.div`
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+`
+
+export const WaitingContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px;
+  text-align: center;
+  height: 350px;
+  max-width: 500px;
+  margin: 0 auto;
+  
+  h3 {
+    margin-bottom: 15px;
+    color: #333;
+    font-weight: 600;
+  }
+  
+  p {
+    color: #666;
+    margin-bottom: 30px;
+  }
+`
+
+export const NoMatchContainer = styled(WaitingContainer)`
+  h3 {
+    color: #e67e22;
+  }
 `

@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useCarousel } from '../../hooks/useCarousel';
 import { useCredits } from '../../hooks/matching/useCredits';
 import { useRoommateData } from '../../hooks/matching/useRoommateData';
+import roommateApi from '../../api/roommate';
 import {
     Container,
     CarouselContainer,
@@ -26,7 +27,14 @@ import {
     CreditButton,
     CreditInfo,
     LoadingContainer,
-    ErrorMessage
+    ErrorMessage,
+    SpinnerContainer,
+    WaitingSpinner,
+    ActionButton,
+    SecondaryButton,
+    ButtonGroup,
+    WaitingContainer,
+    NoMatchContainer
 } from './styles';
 import { RoommateProfile, RoommateType } from './types';
 
@@ -113,7 +121,85 @@ const CardCarousel = ({ selectedType }: Props) => {
         );
     }
 
-    // 프로필이 없는 경우
+    // 매칭 대기 상태 관리
+    const [isWaiting, setIsWaiting] = useState<boolean>(true);
+    const [noMatchFound, setNoMatchFound] = useState<boolean>(false);
+    
+    // 프로필이 없을 때 10초 대기 후 매칭 실패 메시지 표시
+    useEffect(() => {
+        if (!loading && profiles.length === 0) {
+            setIsWaiting(true);
+            const timer = setTimeout(() => {
+                setIsWaiting(false);
+                setNoMatchFound(true);
+            }, 10000); // 10초 대기
+            
+            return () => clearTimeout(timer);
+        } else {
+            setIsWaiting(false);
+            setNoMatchFound(false);
+        }
+    }, [loading, profiles.length]);
+    
+    // 홈으로 돌아가기
+    const handleGoHome = () => {
+        window.location.href = '/';
+    };
+    
+    // 다시 검색하기 - API 다시 호출
+    const handleRetry = () => {
+        setIsWaiting(true);
+        setNoMatchFound(false);
+        
+        // 프로필 새로 불러오기 - API 재호출
+        roommateApi.getProfiles({ preferredType: selectedType?.id })
+            .then(newProfiles => {
+                if (newProfiles && newProfiles.length > 0) {
+                    // 매칭된 프로필이 있으면 표시
+                    setIsWaiting(false);
+                } else {
+                    // 매칭된 프로필이 없으면 대기 후 실패 메시지 표시
+                    setTimeout(() => {
+                        setIsWaiting(false);
+                        setNoMatchFound(true);
+                    }, 10000);
+                }
+            })
+            .catch(err => {
+                console.error('API 호출 오류:', err);
+                setIsWaiting(false);
+                setNoMatchFound(true);
+            });
+    };
+    
+    // 대기 중인 경우
+    if (isWaiting && profiles.length === 0) {
+        return (
+            <WaitingContainer>
+                <h3>룸메이트 매칭을 기다리고 있어요</h3>
+                <p>매칭되는 룸메이트를 찾고 있습니다...</p>
+                <SpinnerContainer>
+                    <WaitingSpinner />
+                </SpinnerContainer>
+            </WaitingContainer>
+        );
+    }
+    
+    // 매칭을 찾지 못한 경우
+    if (noMatchFound && profiles.length === 0) {
+        return (
+            <NoMatchContainer>
+                <h3>적합한 룸메이트를 찾지 못했어요</h3>
+                <p>아직 현재 유형에 매칭되는 룸메이트가 없습니다. 다시 시도해보세요.</p>
+                <ButtonGroup>
+                    <ActionButton onClick={handleRetry}>다시 검색하기</ActionButton>
+                    <SecondaryButton onClick={handleGoHome}>홈으로 돌아가기</SecondaryButton>
+                </ButtonGroup>
+            </NoMatchContainer>
+        );
+    }
+    
+    // 프로필이 없는 경우 (대기 상태가 아닐 때)
     if (profiles.length === 0) {
         return (
             <Container>
@@ -140,7 +226,7 @@ const CardCarousel = ({ selectedType }: Props) => {
                             <Role>
                                 {profile.dormitory?.name || profile.dormitoryId}
                             </Role>
-                            <Description>{profile.description}</Description>
+                            <Description>{profile.introduction}</Description>
                             <TypeTitle style={{ fontSize: '1rem', paddingTop: '10px', marginBottom: '5px' }}>
                                 <TypeEmoji style={{ fontSize: '1.2rem' }}>
                                     {profile.myPersonalityType?.emoji || selectedType.emoji}
@@ -196,8 +282,8 @@ const CardCarousel = ({ selectedType }: Props) => {
                                 </CreditButton>
                             )}
                             <BlurredGroup isBlurred={!isRevealed(selectedCard)}>
-                                <div>💬 카카오: {findSelectedProfile(profiles, selectedCard)?.kakaoId}</div>
-                                <div>👤 인스타: {findSelectedProfile(profiles, selectedCard)?.instagram}</div>
+                                <div>💬 카카오: {findSelectedProfile(profiles, selectedCard)?.kakaoTalkId}</div>
+                                <div>👤 인스타: {findSelectedProfile(profiles, selectedCard)?.instagramId}</div>
                             </BlurredGroup>
                         </ContactInfo>
 
