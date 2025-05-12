@@ -1,7 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import authApi from '../../api/auth' // Import the authApi module
+import { useSetRecoilState } from 'recoil'
+import { userAtom } from '@/atoms/userAtom'
+import authApi from '@/api/auth' // Import the authApi module
+import SignupModal from '@/components/auth/SignupModal'
 
 const Container = styled.div`
   display: flex;
@@ -70,6 +73,9 @@ const Button = styled.button`
 const KakaoCallbackPage = () => {
   const [error, setError] = useState<string | null>(null)
   const [processing, setProcessing] = useState<boolean>(true)
+  const [showSignupModal, setShowSignupModal] = useState<boolean>(false)
+  const [kakaoId, setKakaoId] = useState<string>('')
+  const setUser = useSetRecoilState(userAtom)
   const router = useRouter()
 
   const handleKakaoCallback = useCallback(
@@ -86,10 +92,18 @@ const KakaoCallbackPage = () => {
           const user = await authApi.getCurrentUser()
 
           if (user) {
+            // Recoil 상태 업데이트
+            setUser({
+              ...user,
+              isLoggedIn: true
+            })
+
             // 신규 사용자 여부 확인
             if (user.isNewUser) {
-              // 신규 사용자인 경우 추가 정보 입력 페이지로 리다이렉트
-              router.push('/onboarding/user-info')
+              // 신규 사용자인 경우 회원가입 모달 표시
+              setKakaoId(user.kakaoId || '')
+              setShowSignupModal(true)
+              setProcessing(false)
             } else {
               // 기존 사용자는 메인 페이지로 리다이렉트
               router.push('/main')
@@ -112,7 +126,7 @@ const KakaoCallbackPage = () => {
         setProcessing(false)
       }
     },
-    [router],
+    [router, setUser],
   )
 
   useEffect(() => {
@@ -129,29 +143,46 @@ const KakaoCallbackPage = () => {
     }
   }, [router.isReady, router.query, handleKakaoCallback])
 
+  // 회원가입 모달 닫기 처리
+  const handleCloseSignupModal = () => {
+    setShowSignupModal(false)
+    // 모달을 닫으면 홈페이지로 리디렉션 (취소한 경우)
+    router.push('/')
+  }
+  
   return (
     <Container>
-      <LoadingBox>
-        {error ? (
-          <>
-            <LoadingTitle>로그인 오류</LoadingTitle>
-            <ErrorMessage>{error}</ErrorMessage>
-            <Button onClick={() => router.push('/')}>홈으로 돌아가기</Button>
-          </>
-        ) : (
-          <>
-            <LoadingTitle>
-              {processing ? '로그인 처리 중...' : '로그인 완료!'}
-            </LoadingTitle>
-            {processing && <LoadingAnimation />}
-            <p>
-              {processing
-                ? '잠시만 기다려 주세요.'
-                : '메인 페이지로 이동합니다.'}
-            </p>
-          </>
-        )}
-      </LoadingBox>
+      {/* 회원가입 모달 */}
+      <SignupModal 
+        isOpen={showSignupModal} 
+        onClose={handleCloseSignupModal} 
+        kakaoId={kakaoId} 
+      />
+      
+      {/* 로딩 또는 에러 표시 */}
+      {!showSignupModal && (
+        <LoadingBox>
+          {error ? (
+            <>
+              <LoadingTitle>로그인 오류</LoadingTitle>
+              <ErrorMessage>{error}</ErrorMessage>
+              <Button onClick={() => router.push('/')}>홈으로 돌아가기</Button>
+            </>
+          ) : (
+            <>
+              <LoadingTitle>
+                {processing ? '로그인 처리 중...' : '로그인 완료!'}
+              </LoadingTitle>
+              {processing && <LoadingAnimation />}
+              <p>
+                {processing
+                  ? '잠시만 기다려 주세요.'
+                  : '메인 페이지로 이동합니다.'}
+              </p>
+            </>
+          )}
+        </LoadingBox>
+      )}
     </Container>
   )
 }

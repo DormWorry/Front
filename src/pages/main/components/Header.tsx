@@ -1,16 +1,12 @@
 import React from 'react'
 import * as M from '../main-styles'
 import { WeatherData } from '@/hooks/main/useWeather'
+import { UserState } from '../../../atoms/userAtom'
 
-interface User {
-  name: string
-  profileImage: string
-  dormitory: string
-  room: string
-}
+// 사용자 타입 (UserState를 확장해서 사용)
 
 interface HeaderProps {
-  user: User
+  user: UserState
   weather: WeatherData
   currentTime: string
   currentDate: string
@@ -27,14 +23,14 @@ const Header: React.FC<HeaderProps> = ({
       <M.WelcomeSection>
         <M.ProfileAndGreeting>
           <M.ProfileImageWrapper>
-            <M.ProfileImage src={user?.profileImage || '/default-profile.png'} alt="프로필 이미지" />
+            <M.ProfileImage src={'/default-profile.png'} alt="프로필 이미지" />
           </M.ProfileImageWrapper>
           <M.Greeting>
             <M.WelcomeText>
-              안녕하세요, <M.UserName>{user?.name || '회원'}</M.UserName>님!
+              안녕하세요, <M.UserName>{user?.nickname || '회원'}</M.UserName>님!
             </M.WelcomeText>
             <M.UserLocation>
-              {user?.dormitory || '-'} {user?.room || '-'}
+              기숙사 {user?.dormitoryId || '-'}호 {user?.roomNumber || '-'}번 방
             </M.UserLocation>
           </M.Greeting>
         </M.ProfileAndGreeting>

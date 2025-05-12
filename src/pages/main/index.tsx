@@ -1,6 +1,8 @@
-import React, { useState } from 'react'
+import React, { useEffect } from 'react'
+import { useRouter } from 'next/router'
 import Head from 'next/head'
-import { mockUser } from '@/api/mockUser'
+import { useRecoilValue } from 'recoil'
+import { userAtom } from '../../atoms/userAtom'
 import * as M from './main-styles'
 import { useWeather } from '@/hooks/main/useWeather'
 import { useDateTime } from '@/hooks/main/useDateTime'
@@ -12,14 +14,23 @@ const WEATHER_API_KEY = process.env.NEXT_PUBLIC_WEATHER_API_KEY
 const DEFAULT_COORDS = { lat: 37.5665, lon: 126.978 } // 서울 좌표 (기본값)
 
 export default function Main() {
-  // 사용자 정보(임시)
-  const [user] = useState(mockUser)
+  const router = useRouter()
+  // Recoil에서 사용자 정보 가져오기
+  const user = useRecoilValue(userAtom)
 
   // 날짜/시간 정보 가져오기 (useDateTime 훅 사용)
   const { currentTime, currentDate } = useDateTime()
 
   // 날씨 정보 가져오기 (useWeather 훅 사용)
   const weather = useWeather(DEFAULT_COORDS, WEATHER_API_KEY)
+  
+  // 로그인 상태 확인
+  useEffect(() => {
+    // 로그인되어 있지 않으면 로그인 페이지로 리디렉션
+    if (!user.isLoggedIn) {
+      router.push('/auth')
+    }
+  }, [user, router])
 
   return (
     <>

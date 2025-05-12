@@ -1,22 +1,23 @@
 import axios from 'axios'
 // 백엔드 API URL 설정
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://15.164.169.65:8080'
+  process.env.NEXT_PUBLIC_API_URL || 'https://port-0-capstoneserver-m6xxoqjg3249c6c2.sel4.cloudtype.app'
 
 // 프론트엔드 URL 설정
 const FRONTEND_URL =
-  process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000'
+  process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://capstone-front-nu.vercel.app'
 
 // 사용자 프로필 타입 정의
 export type UserProfile = {
   nickname: string
   studentId: string
   department: string
-  dormitoryId: string
+  dormitoryId: number
   roomNumber: string
   gender: string
   isNewUser?: boolean
-  kakaoId?: number
+  kakaoId?: string
+  email?: string
 };
 
 const authApi = {
@@ -34,14 +35,14 @@ const authApi = {
       console.log('Sending code to backend:', code) // 디버깅용
       console.log('API URL:', `${API_BASE_URL}/auth/kakao/token`) // API URL 디버깅
       const response = await axios.post(
-        `http://localhost:3001/auth/kakao/token`,
+        `${API_BASE_URL}/auth/kakao/token`,
         { code },
         {
           headers: {
             'Content-Type': 'application/json',
             Accept: 'application/json',
           },
-          withCredentials: true, // 인증 정보 포함
+          // withCredentials 사용 시 CORS 오류 발생하여 제거
         },
       )
 

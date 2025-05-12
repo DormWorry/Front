@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // API 기본 URL 설정
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://port-0-capstoneserver-m6xxoqjg3249c6c2.sel4.cloudtype.app'
 
 // Axios 인스턴스 생성
 const axiosInstance = axios.create({
