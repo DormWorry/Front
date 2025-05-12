@@ -1,7 +1,8 @@
 import axios from 'axios'
 // 백엔드 API URL 설정
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'https://port-0-capstoneserver-m6xxoqjg3249c6c2.sel4.cloudtype.app'
+  process.env.NEXT_PUBLIC_API_URL ||
+  'https://port-0-capstoneserver-m6xxoqjg3249c6c2.sel4.cloudtype.app'
 
 // 백엔드 서버가 정상 작동하는지 확인
 console.log('Backend API URL:', API_BASE_URL)
@@ -21,7 +22,7 @@ export type UserProfile = {
   isNewUser?: boolean
   kakaoId?: string
   email?: string
-};
+}
 
 const authApi = {
   // 카카오 로그인 URL 가져오기
@@ -38,13 +39,13 @@ const authApi = {
       console.log('Sending code to backend:', code.substring(0, 10) + '...') // 일부만 표시
       console.log('API URL:', `${API_BASE_URL}/auth/kakao/token`)
       console.log('Origin:', window.location.origin)
-      
+
       // CORS 오류 방지를 위한 설정
       const response = await axios.post(
         `${API_BASE_URL}/auth/kakao/token`,
         { code, redirectUri: `${window.location.origin}/auth/callback` },
         {
-          withCredentials: true, // 쿠키 포함 전송
+          withCredentials: false, // 쿠키 포함 전송
           headers: {
             'Content-Type': 'application/json',
             Accept: 'application/json',
