@@ -3,6 +3,9 @@ import axios from 'axios'
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'https://port-0-capstoneserver-m6xxoqjg3249c6c2.sel4.cloudtype.app'
 
+// 백엔드 서버가 정상 작동하는지 확인
+console.log('Backend API URL:', API_BASE_URL)
+
 // 프론트엔드 URL 설정
 const FRONTEND_URL =
   process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://capstone-front-nu.vercel.app'
@@ -32,12 +35,16 @@ const authApi = {
   // 인증 코드를 토큰으로 교환
   exchangeCodeForToken: async (code: string) => {
     try {
-      console.log('Sending code to backend:', code) // 디버깅용
-      console.log('API URL:', `${API_BASE_URL}/auth/kakao/token`) // API URL 디버깅
+      console.log('Sending code to backend:', code.substring(0, 10) + '...') // 일부만 표시
+      console.log('API URL:', `${API_BASE_URL}/auth/kakao/token`)
+      console.log('Origin:', window.location.origin)
+      
+      // CORS 오류 방지를 위한 설정
       const response = await axios.post(
         `${API_BASE_URL}/auth/kakao/token`,
-        { code },
+        { code, redirectUri: `${window.location.origin}/auth/callback` },
         {
+          withCredentials: true, // 쿠키 포함 전송
           headers: {
             'Content-Type': 'application/json',
             Accept: 'application/json',
