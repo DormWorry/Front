@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { OrderRoomType } from '../order-types'
 import ChatRoom from './ChatRoom'
 import { FOOD_CATEGORIES } from '../../../constants/foodCategories'
+import deliveryRoomApi from '../../../api/deliveryRoom'
 
 interface RoomDetailProps {
   room: OrderRoomType
@@ -137,19 +138,36 @@ const RoomDetail: React.FC<RoomDetailProps> = ({
     )
   }
 
+  // 방 세부 정보 화면에 진입하면 자동으로 방에 참여
+  useEffect(() => {
+    const autoJoinRoom = async () => {
+      if (!isUserInRoom && room && room.id) {
+        console.log('방 자동 참여 시도:', room.id);
+        try {
+          // API를 통해 방 참여 요청
+          const joined = await deliveryRoomApi.joinRoom(room.id);
+          if (joined) {
+            console.log('방 참여 성공! 새로고침 시도');
+            // 방 정보 새로고침
+            const updatedRoom = await deliveryRoomApi.getRoom(room.id);
+            if (updatedRoom) {
+              // 현재 방 정보 갱신 요청
+              onBack(); // 뒤로가기
+              setTimeout(() => {
+                window.location.reload(); // 새로고침
+              }, 500);
+            }
+          }
+        } catch (error) {
+          console.error('자동 참여 오류:', error);
+        }
+      }
+    };
+    
+    autoJoinRoom();
+  }, [room, isUserInRoom]);
+
   const renderOrderSection = () => {
-    if (!isUserInRoom) {
-      return (
-        <JoinSection>
-          <JoinMessage>
-            이 주문에 참여하시려면 아래 버튼을 클릭하세요.
-          </JoinMessage>
-          <JoinButton onClick={() => setShowLeaveModal(false)}>
-            주문 참여하기
-          </JoinButton>
-        </JoinSection>
-      )
-    }
 
     return (
       <OrderSection>
