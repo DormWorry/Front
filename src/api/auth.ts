@@ -17,6 +17,8 @@ export type UserProfile = {
   isNewUser?: boolean
   kakaoId?: string
   email?: string
+  profileImage?: string  // 카카오톡 프로필 이미지 URL
+  thumbnailImage?: string  // 카카오톡 프로필 썸네일 이미지 URL
 }
 
 const authApi = {
