@@ -51,8 +51,8 @@ export const useOrderState = () => {
       }
     };
 
-    // 소켓 연결
-    const socket = socketService.connect();
+    // 소켓 연결 (사용자 정보 전달)
+    const socket = socketService.connect(userRecoil);
     
     // 방 목록 업데이트 이벤트 리스너
     socketService.on('roomsUpdated', (updatedRooms) => {

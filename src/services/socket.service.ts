@@ -1,18 +1,15 @@
 import { io, Socket } from 'socket.io-client';
 import { userAtom } from '../atoms/userAtom';
 import { API_BASE_URL, SOCKET_URL } from '../config/api';
-import { getRecoil } from 'recoil-nexus';
 
 class SocketService {
   private socket: Socket | null = null;
   private isConnected = false;
 
-  connect() {
+  connect(user: any) {
     if (this.isConnected) return;
 
     try {
-      const user = getRecoil(userAtom);
-      
       if (!user || !user.token) {
         console.error('[Socket] 사용자 정보가 없어 소켓 연결을 할 수 없습니다.');
         return;
