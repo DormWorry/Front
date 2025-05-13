@@ -21,11 +21,8 @@ const nextConfig = {
         source: '/auth/:path*',
         destination: 'https://port-0-capstoneserver-m6xxoqjg3249c6c2.sel4.cloudtype.app/auth/:path*',
       },
-      // 카카오 토큰 교환용 경로 추가
-      {
-        source: '/proxy/auth/kakao/token',
-        destination: 'https://port-0-capstoneserver-m6xxoqjg3249c6c2.sel4.cloudtype.app/auth/kakao/token',
-      },
+      // 카카오 토큰은 이제 API Routes를 사용하므로 여기서는 제거
+      // 다른 필요한 프록시 경로를 여기에 추가할 수 있습니다
     ];
   },
 };

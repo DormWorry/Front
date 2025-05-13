@@ -35,10 +35,10 @@ const authApi = {
   exchangeCodeForToken: async (code: string) => {
     try {
       console.log('Sending code to backend:', code.substring(0, 10) + '...') // 일부만 표시
-      
-      // 프록시 사용: 로컬호스트를 통해 요청
-      const proxyUrl = '/proxy/auth/kakao/token'
-      console.log('Using proxy URL:', proxyUrl)
+
+      // API 라우트를 통한 프록시 사용
+      const proxyUrl = '/api/proxy/kakao/token'
+      console.log('Using API route:', proxyUrl)
       console.log('Origin:', window.location.origin)
 
       try {
@@ -119,16 +119,12 @@ const authApi = {
     }
 
     try {
-      const response = await axios.post(
-        `/auth/profile/create`,
-        profileData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
+      const response = await axios.post(`/auth/profile/create`, profileData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
-      )
+      })
       return response.data
     } catch (error) {
       console.error('프로필 업데이트 오류:', error)
