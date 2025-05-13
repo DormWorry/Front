@@ -16,7 +16,7 @@ const roommateApi = {
     try {
       const token = localStorage.getItem('token')
       const response = await axios.get(`${API_URL}/roommate-profiles/user/me`, {
-        // withCredentials 제거 - CORS 오류 해결
+        // withCredentials: true를 제거하여 CORS 오류 해결
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -38,7 +38,7 @@ const roommateApi = {
         `${API_URL}/roommate-profiles`,
         profileData,
         {
-          // withCredentials 제거 - CORS 오류 해결
+          withCredentials: true,
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -63,7 +63,7 @@ const roommateApi = {
         `${API_URL}/roommate-profiles/${id}`,
         profileData,
         {
-          // withCredentials 제거 - CORS 오류 해결
+          withCredentials: true,
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -96,8 +96,8 @@ const roommateApi = {
       }
 
       const response = await axios.get(
-        `${API_URL}/roommate-profiles?${queryParams.toString()}`
-        // withCredentials 제거 - CORS 오류 해결
+        `${API_URL}/roommate-profiles?${queryParams.toString()}`,
+        { /* withCredentials 제거 */ }
       )
       return response.data
     } catch (error) {
@@ -109,8 +109,7 @@ const roommateApi = {
   // 프로필 상세 조회
   getProfileById: async (id: string): Promise<RoommateProfile> => {
     try {
-      // withCredentials 제거 - CORS 오류 해결
-      const response = await axios.get(`${API_URL}/roommate-profiles/${id}`)
+      const response = await axios.get(`${API_URL}/roommate-profiles/${id}`, { /* withCredentials 제거 */ })
       return response.data
     } catch (error) {
       console.error('프로필 상세 조회 실패:', error)
