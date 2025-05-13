@@ -17,6 +17,10 @@ export default function Main() {
   const router = useRouter()
   // Recoil에서 사용자 정보 가져오기
   const user = useRecoilValue(userAtom)
+  
+  // 카카오 프로필 이미지 로그 출력
+  console.log('사용자 정보 확인:', user)
+  console.log('프로필 이미지 URL:', user?.profileImage)
 
   // 날짜/시간 정보 가져오기 (useDateTime 훅 사용)
   const { currentTime, currentDate } = useDateTime()

@@ -24,11 +24,11 @@ const Header: React.FC<HeaderProps> = ({
         <M.ProfileAndGreeting>
           <M.ProfileImageWrapper>
             <M.ProfileImage 
-              src={user?.profileImage || '/default-profile.png'} 
+              src={user?.profileImage || '/user.png'} 
               alt="프로필 이미지" 
               onError={(e) => {
                 // 이미지 로드 오류 시 기본 이미지로 대체
-                e.currentTarget.src = '/default-profile.png';
+                e.currentTarget.src = '/user.png';
               }}
             />
           </M.ProfileImageWrapper>
