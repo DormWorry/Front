@@ -15,16 +15,18 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'https://port-0-capstoneserver-m6xxoqjg3249c6c2.sel4.cloudtype.app/:path*',
+        destination:
+          'https://port-0-capstoneserver-m6xxoqjg3249c6c2.sel4.cloudtype.app/:path*',
       },
       {
         source: '/auth/:path*',
-        destination: 'https://port-0-capstoneserver-m6xxoqjg3249c6c2.sel4.cloudtype.app/auth/:path*',
+        destination:
+          'https://port-0-capstoneserver-m6xxoqjg3249c6c2.sel4.cloudtype.app/auth/:path*',
       },
       // 카카오 토큰은 이제 API Routes를 사용하므로 여기서는 제거
       // 다른 필요한 프록시 경로를 여기에 추가할 수 있습니다
-    ];
+    ]
   },
-};
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig

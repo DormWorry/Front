@@ -1,9 +1,10 @@
 import axios from 'axios'
-// 백엔드 API URL 설정 - 로컬 호스트(프록시 사용)
-const API_BASE_URL = ''
+// 백엔드 API URL 설정 - 직접 연결
+const API_BASE_URL =
+  'https://port-0-capstoneserver-m6xxoqjg3249c6c2.sel4.cloudtype.app'
 
-// 프록시를 통해 백엔드 접속 확인
-console.log('Using proxy to connect to backend API')
+// 백엔드 접속 확인
+console.log('백엔드 API URL (직접 연결):', API_BASE_URL)
 
 // 프론트엔드 URL 설정
 const FRONTEND_URL =
@@ -34,30 +35,26 @@ const authApi = {
   // 인증 코드를 토큰으로 교환
   exchangeCodeForToken: async (code: string) => {
     try {
-      console.log('Sending code to backend:', code.substring(0, 10) + '...') // 일부만 표시
-
-      // API 라우트를 통한 프록시 사용
-      const proxyUrl = '/api/proxy/kakao/token'
-      console.log('Using API route:', proxyUrl)
-      console.log('Origin:', window.location.origin)
+      console.log('Exchanging code for token:', code.substring(0, 10) + '...') // 일부만 표시
 
       try {
-        // 프록시를 통한 요청으로 CORS 문제 해결
+        console.log('백엔드 직접 연결 시도...')
+
+        // 백엔드 API에 직접 요청 (CORS 문제 해결을 위해)
         const response = await axios.post(
-          proxyUrl,
+          `${API_BASE_URL}/auth/kakao/token`,
           { code, redirectUri: `${window.location.origin}/auth/callback` },
           {
             headers: {
               'Content-Type': 'application/json',
               Accept: 'application/json',
             },
-            timeout: 10000, // 10초 타임아웃 설정
+            timeout: 10000,
           },
         )
 
-        console.log('Backend response:', response.data) // 디버깅용
+        console.log('Backend response:', response.data)
 
-        // 백엔드 응답 형식에 맞게 수정
         if (
           response.data &&
           response.data.data &&
@@ -66,10 +63,18 @@ const authApi = {
           return response.data.data.accessToken
         }
       } catch (connectionError) {
-        console.error('백엔드 연결 실패, 임시 토큰 사용:', connectionError)
-        // 연결 실패 시 임시 토큰 반환 (개발 목적으로만 사용)
-        console.log('임시 테스트 토큰을 사용합니다')
-        return 'test_token_for_development_only_12345'
+        console.error('백엔드 직접 연결 실패:', connectionError)
+        if (axios.isAxiosError(connectionError)) {
+          console.error('에러 상태 코드:', connectionError.response?.status)
+          console.error('에러 데이터:', connectionError.response?.data)
+        }
+
+        // 개발 환경에서만 테스트 토큰 사용
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('개발 환경에서만 테스트 토큰 사용')
+          return 'test_token_for_development_only_12345'
+        }
+        throw connectionError
       }
 
       // 백엔드 응답이 유효하지 않은 경우
@@ -94,7 +99,9 @@ const authApi = {
     }
 
     try {
-      const response = await axios.get(`/auth/kakao/status`, {
+      // 직접 API 호출
+      console.log('직접 API 호출 - 로그인 상태 확인:', `${API_BASE_URL}/auth/kakao/status`)
+      const response = await axios.get(`${API_BASE_URL}/auth/kakao/status`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -119,12 +126,18 @@ const authApi = {
     }
 
     try {
-      const response = await axios.post(`/auth/profile/create`, profileData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
+      // 직접 API 호출
+      console.log('직접 API 호출 - 프로필 업데이트:', `${API_BASE_URL}/auth/profile/create`)
+      const response = await axios.post(
+        `${API_BASE_URL}/auth/profile/create`,
+        profileData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
         },
-      })
+      )
       return response.data
     } catch (error) {
       console.error('프로필 업데이트 오류:', error)
@@ -149,12 +162,13 @@ const authApi = {
         kakaoId: 'test_kakao_id',
         isNewUser: true, // 신규 회원가입 플로우 테스트를 위해 true로 설정
         profileImage: 'https://via.placeholder.com/150',
-        // 추가 필요한 필드가 있다면 여기에 추가
       }
     }
 
     try {
-      const response = await axios.get(`/auth/me`, {
+      // 직접 API 호출
+      console.log('직접 API 호출 - 사용자 정보 조회:', `${API_BASE_URL}/auth/me`)
+      const response = await axios.get(`${API_BASE_URL}/auth/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
