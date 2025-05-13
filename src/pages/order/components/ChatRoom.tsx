@@ -25,29 +25,39 @@ const ChatRoom: React.FC<ChatRoomProps> = ({
   // 소켓 연결 상태 확인
   const [socketConnected, setSocketConnected] = useState<boolean>(false);
   
-  // 소켓 연결 초기화 (한 번만 실행)
+  // 소켓 연결 초기화 및 채팅방 입장
   useEffect(() => {
-    // 이미 연결되어 있으면 중복 처리 하지 않음
-    if (socketConnected) return;
+    // 채팅 기능을 위한 소켓 초기화 - 연결 여부와 관계없이 항상 실행
+    console.log('채팅용 소켓 연결 및 방 입장 시도 | 방 ID:', roomId);
     
-    // 소켓 연결 확인
+    // 1. 소켓 연결 확인/시도
     const socket = socketService.connect();
     setSocketConnected(!!socket);
     
+    // 2. 방 입장 - 각별 소켓에 이 거드워를 통해 메시지를 전달
     if (socket) {
-      console.log('채팅용 소켓 연결 확인 완료');
+      console.log('채팅방 입장 시도 - 소켓 이벤트 발생: joinRoom ->', roomId);
+      socketService.emit('joinRoom', { deliveryRoomId: roomId });
+      
+      // 방 입장 확인 메시지 발송 - 서버에서 모든 사용자에게 알림
+      socketService.emit('sendMessage', {
+        roomId: roomId,
+        message: '💬 채팅방에 입장했습니다.'
+      });
     }
     
     // 컴포넌트 언마운트 시 정리
     return () => {
-      if (socketConnected) {
-        console.log('채팅용 소켓 연결 정리');
-      }
+      console.log('채팅방 나가기 처리');
+      socketService.off('joinRoom');
     };
-  }, []);  // 빈 의존성 배열: 초기화 한 번만 하기 위해
+  }, [roomId]);  // roomId가 변경될 때마다 다시 연결
   
+  // 소켓 이벤트 리스너 및 메시지 로드
   useEffect(() => {
-    // 기존 메시지 로드
+    console.log('채팅 메시지 리스너 설정 및 기존 메시지 로드');
+    
+    // 1. 기존 메시지 로드
     const loadMessages = async () => {
       try {
         setLoading(true);
@@ -61,19 +71,48 @@ const ChatRoom: React.FC<ChatRoomProps> = ({
       }
     };
 
-    // 소켓 이벤트 리스너 설정
-    socketService.on('newMessage', (message: MessageType) => {
-      console.log('새 메시지 수신:', message);
-      if (message.senderId && message.content) {
-        setMessages((prevMessages) => [...prevMessages, message]);
+    // 2. 소켓 이벤트 리스너 설정
+    const handleNewMessage = (message: MessageType) => {
+      console.log('🔔 실시간 새 메시지 수신:', message);
+      if (message && message.content) {
+        // 시간이 없는 경우, 현재 시간 추가
+        if (!message.timestamp) {
+          message.timestamp = new Date().toISOString();
+        }
+        // 메시지 ID가 없는 경우, 임의 ID 부여
+        if (!message.id) {
+          message.id = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        }
+        
+        // 메시지 상태 업데이트 - 중복 없이 추가
+        setMessages(prev => {
+          // 이미 동일한 ID의 메시지가 있는지 확인
+          if (message.id && prev.some(m => m.id === message.id)) {
+            return prev;
+          }
+          return [...prev, message];
+        });
       }
-    });
+    };
 
+    // 이벤트 리스너 등록
+    socketService.on('newMessage', handleNewMessage);
+    
+    // 오류 시에도 연결 유지를 위한 메시지 처리
+    socketService.on('error', (error: any) => {
+      console.error('소켓 오류 발생:', error);
+      // 오류에도 불구하고 방 재입장 시도
+      socketService.emit('joinRoom', { deliveryRoomId: roomId });
+    });
+    
+    // 초기 메시지 로드
     loadMessages();
 
     // 컴포넌트 언마운트 시 이벤트 리스너 제거
     return () => {
+      console.log('채팅 이벤트 리스너 제거');
       socketService.off('newMessage');
+      socketService.off('error');
     };
   }, [roomId]);
 
