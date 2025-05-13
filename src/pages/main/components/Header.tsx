@@ -23,7 +23,14 @@ const Header: React.FC<HeaderProps> = ({
       <M.WelcomeSection>
         <M.ProfileAndGreeting>
           <M.ProfileImageWrapper>
-            <M.ProfileImage src={'/default-profile.png'} alt="프로필 이미지" />
+            <M.ProfileImage 
+              src={user?.profileImage || '/default-profile.png'} 
+              alt="프로필 이미지" 
+              onError={(e) => {
+                // 이미지 로드 오류 시 기본 이미지로 대체
+                e.currentTarget.src = '/default-profile.png';
+              }}
+            />
           </M.ProfileImageWrapper>
           <M.Greeting>
             <M.WelcomeText>

@@ -179,7 +179,7 @@ export default function LetterFeature() {
       <ProfileSidebar
         roomNumber={userState.roomNumber || '방 번호 없음'}
         userName={userState.nickname || '사용자'}
-        avatarSrc="/logo.png"
+        avatarSrc={userState.profileImage || '/logo.png'}
         onComposeClick={handleComposeClick}
         onImageError={handleImageError}
         imageError={imageError}
