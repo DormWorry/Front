@@ -71,90 +71,14 @@ export const useOrderState = () => {
     };
   }, [])
 
-  // 방 참여 처리를 위한 effect
+  // 이전 방식은 사용하지 않음 (deprecated)
+  // joinedRoomId 변경 시 방 참여 처리 - 새로운 방식으로 교체
   useEffect(() => {
-    if (joinedRoomId) {
-      handleJoinRoomEffect()
-    }
+    // 이전 방식 기능 비활성화
+    // if (joinedRoomId) {
+    //   handleJoinRoomEffect()
+    // }
   }, [joinedRoomId])
-
-  const handleJoinRoomEffect = async () => {
-    if (!joinedRoomId) return;
-    
-    try {
-      console.log('방 참여 시도:', joinedRoomId);
-      
-      // 장애물 1: 방 세부정보 먼저 가져오기
-      const roomDetails = await deliveryRoomApi.getRoom(joinedRoomId);
-      if (!roomDetails) {
-        console.error('방 정보를 가져올 수 없습니다.');
-        setJoinedRoomId(null);
-        return;
-      }
-      
-      // 장애물 2: 이미 방에 참여한 사용자인지 확인
-      const isAlreadyParticipant = roomDetails.participants.some(p => 
-        p.id === currentUser.id
-      );
-      
-      if (isAlreadyParticipant) {
-        console.log('이미 참여한 방입니다. 소켓 연결만 시도합니다.');
-        // 이미 참여했으니 소켓만 연결
-        socketService.emit('joinRoom', { deliveryRoomId: joinedRoomId });
-        setSelectedRoom(roomDetails);
-        setJoinedRoomId(null);
-        return;
-      }
-
-      // API를 통해 방 참여 요청
-      const joined = await deliveryRoomApi.joinRoom(joinedRoomId);
-      
-      if (joined) {
-        console.log('방 참여 성공');
-        // 참여 후 새로 상세 정보 가져오기
-        const updatedRoom = await deliveryRoomApi.getRoom(joinedRoomId);
-        
-        if (updatedRoom) {
-          console.log('방 정보 로드 성공:', updatedRoom.participants.length, '명 참여 중');
-          
-          // 소켓 룸에 조인
-          console.log('소켓 룸 조인 시도:', joinedRoomId);
-          socketService.emit('joinRoom', { deliveryRoomId: joinedRoomId });
-          
-          // 이전 이벤트 리스너 제거 (중복 방지)
-          socketService.off('participantsUpdated');
-          socketService.off('newMessage');
-          
-          // 참여자 업데이트 이벤트 수신 설정
-          socketService.on('participantsUpdated', (participants: ParticipantType[]) => {
-            console.log('참여자 업데이트 이벤트 받음:', participants?.length);
-            if (selectedRoom && selectedRoom.id === joinedRoomId) {
-              setSelectedRoom({
-                ...selectedRoom,
-                participants,
-              });
-            }
-          });
-          
-          // 메시지 수신 설정
-          socketService.on('newMessage', (message: MessageType) => {
-            console.log('새 메시지 이벤트 받음:', message);
-          });
-          
-          setSelectedRoom(updatedRoom);
-        } else {
-          console.error('방 정보를 가져올 수 없습니다.');
-        }
-      } else {
-        console.error('방 참여에 실패했습니다.');
-      }
-      
-      setJoinedRoomId(null);
-    } catch (error) {
-      console.error('방 참여 중 오류 발생:', error);
-      setJoinedRoomId(null);
-    }
-  }
 
   // 카테고리 선택 핸들러
   const handleSelectCategory = (categoryId: string) => {
@@ -208,9 +132,54 @@ export const useOrderState = () => {
   }
 
   // 방 참여 핸들러
-  const handleJoinRoom = (roomId: string) => {
-    // 참여할 방 ID 설정하면 effect에서 처리
-    setJoinedRoomId(roomId);
+  const handleJoinRoom = async (roomId: string) => {
+    try {
+      // 방 정보 가져오기
+      const roomDetails = await deliveryRoomApi.getRoom(roomId);
+      if (!roomDetails) {
+        console.error('방 정보를 가져올 수 없습니다.');
+        return;
+      }
+      
+      // 이미 참여한 사용자인지 확인
+      const isParticipant = roomDetails.participants.some(p => p.id === currentUser.id);
+      
+      // 참여 요청 (API)
+      if (!isParticipant) {
+        const joined = await deliveryRoomApi.joinRoom(roomId);
+        if (!joined) {
+          console.error('방 참여에 실패했습니다.');
+          return;
+        }
+      }
+      
+      // 소켓 연결
+      socketService.emit('joinRoom', { deliveryRoomId: roomId });
+      
+      // 이밤트 리스너 클린업
+      socketService.off('participantsUpdated');
+      socketService.off('newMessage');
+      
+      // 새 이벤트 리스너 추가
+      socketService.on('participantsUpdated', (participants: ParticipantType[]) => {
+        if (selectedRoom && selectedRoom.id === roomId) {
+          setSelectedRoom({
+            ...selectedRoom,
+            participants,
+          });
+        }
+      });
+      
+      // 메시지 이벤트 리스너
+      socketService.on('newMessage', (message: MessageType) => {
+        console.log('새 메시지 받음:', message);
+      });
+      
+      // 방 정보 세팅
+      setSelectedRoom(roomDetails);
+    } catch (error) {
+      console.error('방 참여 중 오류 발생:', error);
+    }
   }
 
   // 방 상세화면에서 뒤로가기 핸들러
