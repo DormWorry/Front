@@ -22,6 +22,31 @@ const RoomDetail: React.FC<RoomDetailProps> = ({
   const [menuItems, setMenuItems] = useState<string>('')
   const [showLeaveModal, setShowLeaveModal] = useState<boolean>(false)
 
+  // 방 입장 시 자동 참여 처리
+  useEffect(() => {
+    if (room && room.id && currentUserId) {
+      // 이미 참여 중인지 확인
+      const alreadyJoined = room.participants?.some(p => p && p.id === currentUserId);
+      
+      if (!alreadyJoined) {
+        // 방에 아직 참여하지 않았다면 자동 참여
+        console.log('방에 자동 참여 시도:', room.id);
+        deliveryRoomApi.joinRoom(room.id)
+          .then(success => {
+            if (success) {
+              console.log('방 자동 참여 성공');
+              // 참여 후 방 정보 다시 불러오기 - 상위 컴포넌트에서 처리할 수 있는 방법이 있다면 추가
+            } else {
+              console.error('방 자동 참여 실패');
+            }
+          })
+          .catch(err => console.error('방 자동 참여 오류:', err));
+      } else {
+        console.log('이미 방에 참여 중');
+      }
+    }
+  }, [room?.id, currentUserId]); // room.id나 currentUserId가 변경될 때만 실행
+
   // room객체가 undefined일 경우 대비
   if (!room || !room.participants) {
     return (
