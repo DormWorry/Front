@@ -1,7 +1,5 @@
 import { API_BASE_URL } from '../config/api';
 import axios from 'axios';
-import { getRecoil } from 'recoil-nexus';
-import { userAtom } from '../atoms/userAtom';
 import { OrderRoomType, ParticipantType } from '../pages/order/order-types';
 
 // Auth 헤더 설정을 위한 인터셉터 추가
@@ -11,9 +9,10 @@ const apiInstance = axios.create({
 });
 
 apiInstance.interceptors.request.use((config) => {
-  const user = getRecoil(userAtom);
-  if (user && user.token) {
-    config.headers.Authorization = `Bearer ${user.token}`;
+  // localStorage에서 토큰을 직접 가져옴
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
@@ -87,11 +86,11 @@ const deliveryRoomApi = {
       const response = await apiInstance.post('/delivery-room', roomData);
       const room = response.data;
       
-      // 사용자 정보로 참여자 추가
-      const currentUser = getRecoil(userAtom);
+      // localStorage에서 토큰을 처리하는 패턴으로 변경
+      // 클라이언트에서 호출 시 사용자 정보를 매개변수로 넘기도록 수정
       const participant: ParticipantType = {
-        id: currentUser.id,
-        name: currentUser.name || currentUser.nickname || '익명',
+        id: '',  // 사용자 ID 추가 필요
+        name: '익명', // 사용자 이름 추가 필요
       };
       
       return {

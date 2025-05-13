@@ -13,6 +13,7 @@ export interface UserState {
   kakaoId?: string;
   profileImage?: string;  // 카카오톡 프로필 이미지 URL
   thumbnailImage?: string;  // 카카오톡 프로필 썸네일 이미지 URL
+  token?: string;        // 사용자 인증 토큰
   isLoggedIn: boolean;
 }
 
