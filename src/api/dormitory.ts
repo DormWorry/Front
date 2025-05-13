@@ -8,7 +8,12 @@ const dormitoryApi = {
    */
   getAllDormitories: async () => {
     try {
-      const response = await axios.get(`${BASE_URL}/dormitories`);
+      const response = await axios.get(`${BASE_URL}/dormitories`, {
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
       return response.data.dormitories;
     } catch (error) {
       console.error('기숙사 정보 가져오기 실패:', error);

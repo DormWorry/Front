@@ -10,7 +10,11 @@ const letterApi = {
   async getReceivedLetters(roomNumber: string, page = 1, limit = 10) {
     try {
       const response = await axios.get(`${API_BASE_URL}/letters/received`, {
+        withCredentials: true,
         params: { roomNumber, page, limit },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
       })
       return response.data
     } catch (error) {
@@ -23,7 +27,11 @@ const letterApi = {
   async getSentLetters(roomNumber: string, page = 1, limit = 10) {
     try {
       const response = await axios.get(`${API_BASE_URL}/letters/sent`, {
+        withCredentials: true,
         params: { roomNumber, page, limit },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
       })
       return response.data
     } catch (error) {
@@ -36,7 +44,11 @@ const letterApi = {
   async getLetter(id: string, roomNumber: string) {
     try {
       const response = await axios.get(`${API_BASE_URL}/letters/${id}`, {
+        withCredentials: true,
         params: { roomNumber },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
       })
       return response.data
     } catch (error) {
@@ -57,7 +69,13 @@ const letterApi = {
         isAnonymous: false, // 추후 익명 옵션 추가 필요
       }
 
-      const response = await axios.post(`${API_BASE_URL}/letters`, payload)
+      const response = await axios.post(`${API_BASE_URL}/letters`, payload, {
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+      })
       return response.data
     } catch (error) {
       console.error('편지 전송 실패123:', error)

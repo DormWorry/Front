@@ -15,6 +15,7 @@ const roommateApi = {
     try {
       const token = localStorage.getItem('token')
       const response = await axios.get(`${API_URL}/roommate-profiles/user/me`, {
+        withCredentials: true,
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -36,6 +37,7 @@ const roommateApi = {
         `${API_URL}/roommate-profiles`,
         profileData,
         {
+          withCredentials: true,
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -60,6 +62,7 @@ const roommateApi = {
         `${API_URL}/roommate-profiles/${id}`,
         profileData,
         {
+          withCredentials: true,
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -93,6 +96,7 @@ const roommateApi = {
 
       const response = await axios.get(
         `${API_URL}/roommate-profiles?${queryParams.toString()}`,
+        { withCredentials: true }
       )
       return response.data
     } catch (error) {
@@ -104,7 +108,7 @@ const roommateApi = {
   // 프로필 상세 조회
   getProfileById: async (id: string): Promise<RoommateProfile> => {
     try {
-      const response = await axios.get(`${API_URL}/roommate-profiles/${id}`)
+      const response = await axios.get(`${API_URL}/roommate-profiles/${id}`, { withCredentials: true })
       return response.data
     } catch (error) {
       console.error('프로필 상세 조회 실패:', error)
@@ -117,6 +121,7 @@ const roommateApi = {
     try {
       const token = localStorage.getItem('token')
       await axios.delete(`${API_URL}/roommate-profiles/${id}`, {
+        withCredentials: true,
         headers: {
           Authorization: `Bearer ${token}`,
         },

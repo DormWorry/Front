@@ -7,6 +7,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://port-0-capstone
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
+  withCredentials: true,  // 쿠키, 인증 헤더 포함 전송 설정
   headers: {
     'Content-Type': 'application/json',
   },
