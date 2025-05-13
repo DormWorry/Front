@@ -6,19 +6,32 @@ class SocketService {
   private socket: Socket | null = null
   private isConnected = false
 
-  connect(user: any) {
-    if (this.isConnected) return
+  connect(user?: any) {
+    if (this.isConnected) return;
 
     try {
-      if (!user || !user.token) {
-        console.error('[Socket] 사용자 정보가 없어 소켓 연결을 할 수 없습니다.')
-        return
+      // localStorage에서 토큰 직접 가져오기
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        console.error('[Socket] 토큰이 없어 소켓 연결을 할 수 없습니다.');
+        return;
       }
 
+      // 사용자 ID 가져오기
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const userId = user?.id;
+      
+      // 사용자 ID가 없으면 연결 실패
+      if (!userId) {
+        console.error('[Socket] 사용자 ID가 없어 소켓 연결을 할 수 없습니다.');
+        return null;
+      }
+      
       this.socket = io(`${SOCKET_URL}/delivery`, {
         auth: {
-          token: user.token,
-          userId: user.id,
+          token: token,
+          userId: userId,
         },
         transports: ['websocket'],
         autoConnect: true,

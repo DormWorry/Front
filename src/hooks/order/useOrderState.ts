@@ -51,11 +51,14 @@ export const useOrderState = () => {
       }
     };
 
-    // 소켓 연결 (사용자 정보 전달)
-    const socket = socketService.connect(userRecoil);
+    // 소켓 연결 (사용자 정보 전달 없이)
+    console.log('소켓 연결 시도...');
+    const socket = socketService.connect();
+    console.log('소켓 연결 결과:', socket ? '성공' : '실패');
     
     // 방 목록 업데이트 이벤트 리스너
     socketService.on('roomsUpdated', (updatedRooms) => {
+      console.log('방 목록 업데이트 받음:', updatedRooms?.length);
       setOrderRooms(updatedRooms);
     });
 
@@ -80,17 +83,42 @@ export const useOrderState = () => {
     
     try {
       console.log('방 참여 시도:', joinedRoomId);
+      
+      // 장애물 1: 방 세부정보 먼저 가져오기
+      const roomDetails = await deliveryRoomApi.getRoom(joinedRoomId);
+      if (!roomDetails) {
+        console.error('방 정보를 가져올 수 없습니다.');
+        setJoinedRoomId(null);
+        return;
+      }
+      
+      // 장애물 2: 이미 방에 참여한 사용자인지 확인
+      const isAlreadyParticipant = roomDetails.participants.some(p => 
+        p.id === currentUser.id
+      );
+      
+      if (isAlreadyParticipant) {
+        console.log('이미 참여한 방입니다. 소켓 연결만 시도합니다.');
+        // 이미 참여했으니 소켓만 연결
+        socketService.emit('joinRoom', { deliveryRoomId: joinedRoomId });
+        setSelectedRoom(roomDetails);
+        setJoinedRoomId(null);
+        return;
+      }
+
       // API를 통해 방 참여 요청
       const joined = await deliveryRoomApi.joinRoom(joinedRoomId);
       
       if (joined) {
         console.log('방 참여 성공');
-        // 방 상세 정보 가져오기
-        const roomDetails = await deliveryRoomApi.getRoom(joinedRoomId);
+        // 참여 후 새로 상세 정보 가져오기
+        const updatedRoom = await deliveryRoomApi.getRoom(joinedRoomId);
         
-        if (roomDetails) {
-          console.log('방 정보 로드 성공:', roomDetails);
+        if (updatedRoom) {
+          console.log('방 정보 로드 성공:', updatedRoom.participants.length, '명 참여 중');
+          
           // 소켓 룸에 조인
+          console.log('소켓 룸 조인 시도:', joinedRoomId);
           socketService.emit('joinRoom', { deliveryRoomId: joinedRoomId });
           
           // 이전 이벤트 리스너 제거 (중복 방지)
@@ -99,7 +127,7 @@ export const useOrderState = () => {
           
           // 참여자 업데이트 이벤트 수신 설정
           socketService.on('participantsUpdated', (participants: ParticipantType[]) => {
-            console.log('참여자 업데이트:', participants);
+            console.log('참여자 업데이트 이벤트 받음:', participants?.length);
             if (selectedRoom && selectedRoom.id === joinedRoomId) {
               setSelectedRoom({
                 ...selectedRoom,
@@ -110,11 +138,10 @@ export const useOrderState = () => {
           
           // 메시지 수신 설정
           socketService.on('newMessage', (message: MessageType) => {
-            // 메시지 처리 로직은 별도로 구현됨
-            console.log('새 메시지:', message);
+            console.log('새 메시지 이벤트 받음:', message);
           });
           
-          setSelectedRoom(roomDetails);
+          setSelectedRoom(updatedRoom);
         } else {
           console.error('방 정보를 가져올 수 없습니다.');
         }

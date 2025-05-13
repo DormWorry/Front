@@ -92,12 +92,18 @@ const KakaoCallbackPage = () => {
           const user = await authApi.getCurrentUser()
 
           if (user) {
-            // Recoil 상태 업데이트 - 토큰도 함께 저장
-            setUser({
+            // 사용자 정보에 토큰 추가
+            const userWithToken = {
               ...user,
-              token: token, // 토큰 저장
+              token: token,
               isLoggedIn: true
-            })
+            };
+            
+            // 사용자 정보를 localStorage에도 저장 (소켓 연결용)
+            localStorage.setItem('user', JSON.stringify(userWithToken));
+
+            // Recoil 상태 업데이트
+            setUser(userWithToken)
 
             // 신규 사용자 여부 확인
             if (user.isNewUser) {
