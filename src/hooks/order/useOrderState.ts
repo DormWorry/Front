@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
-import { OrderRoomType, ParticipantType } from '../../pages/order/order-types'
-import { getMockRooms } from '../../api/mockData'
+import { OrderRoomType, ParticipantType, MessageType } from '../../pages/order/order-types'
+import deliveryRoomApi from '../../api/deliveryRoom'
+import socketService from '../../services/socket.service'
+import { useRecoilValue } from 'recoil'
+import { userAtom } from '../../atoms/userAtom'
 
 /**
  * 주문 기능의 상태 관리를 위한 커스텀 훅
@@ -14,9 +17,11 @@ export const useOrderState = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(6) // 기본값은 PC 기준 6개
 
+  const userRecoil = useRecoilValue(userAtom)
   const currentUser: ParticipantType = {
-    id: 'user-1',
-    name: '권도훈',
+    id: userRecoil.id ? String(userRecoil.id) : '',
+    name: userRecoil.nickname || '익명',
+    avatar: userRecoil.profileImage,
   }
 
   // 반응형 아이템 수 조정
@@ -35,41 +40,80 @@ export const useOrderState = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // 초기 데이터 로드
+  // 초기 데이터 로드 및 소켓 설정
   useEffect(() => {
-    setOrderRooms(getMockRooms())
+    const loadRooms = async () => {
+      try {
+        const rooms = await deliveryRoomApi.getRooms();
+        setOrderRooms(rooms);
+      } catch (error) {
+        console.error('방 목록을 불러오는 중 오류 발생:', error);
+      }
+    };
+
+    // 소켓 연결
+    const socket = socketService.connect();
+    
+    // 방 목록 업데이트 이벤트 리스너
+    socketService.on('roomsUpdated', (updatedRooms) => {
+      setOrderRooms(updatedRooms);
+    });
+
+    // 초기 데이터 로드
+    loadRooms();
+
+    // 컴포넌트 언마운트 시 정리
+    return () => {
+      socketService.off('roomsUpdated');
+    };
   }, [])
 
   // 방 참여 처리를 위한 effect
   useEffect(() => {
-    if (joinedRoomId && selectedRoom) {
+    if (joinedRoomId) {
       handleJoinRoomEffect()
     }
-  }, [joinedRoomId, orderRooms, selectedRoom])
+  }, [joinedRoomId])
 
-  const handleJoinRoomEffect = () => {
-    const roomToJoin = orderRooms.find((room) => room.id === joinedRoomId)
-
-    if (roomToJoin) {
-      const isUserInRoom = roomToJoin.participants.some(
-        (p) => p.id === currentUser.id,
-      )
-
-      if (!isUserInRoom) {
-        const updatedRoom = {
-          ...roomToJoin,
-          participants: [...roomToJoin.participants, currentUser],
+  const handleJoinRoomEffect = async () => {
+    if (!joinedRoomId) return;
+    
+    try {
+      // API를 통해 방 참여 요청
+      const joined = await deliveryRoomApi.joinRoom(joinedRoomId);
+      
+      if (joined) {
+        // 방 상세 정보 가져오기
+        const roomDetails = await deliveryRoomApi.getRoom(joinedRoomId);
+        
+        if (roomDetails) {
+          // 소켓 룸에 조인
+          socketService.emit('joinRoom', { deliveryRoomId: joinedRoomId });
+          
+          // 참여자 업데이트 이벤트 수신 설정
+          socketService.on('participantsUpdated', (participants: ParticipantType[]) => {
+            if (selectedRoom && selectedRoom.id === joinedRoomId) {
+              setSelectedRoom({
+                ...selectedRoom,
+                participants,
+              });
+            }
+          });
+          
+          // 메시지 수신 설정
+          socketService.on('newMessage', (message: MessageType) => {
+            // 메시지 처리 로직은 별도로 구현됨
+            console.log('새 메시지:', message);
+          });
+          
+          setSelectedRoom(roomDetails);
         }
-
-        const updatedRooms = orderRooms.map((room) =>
-          room.id === updatedRoom.id ? updatedRoom : room,
-        )
-
-        setOrderRooms(updatedRooms)
-        setSelectedRoom(updatedRoom)
       }
-
-      setJoinedRoomId(null)
+      
+      setJoinedRoomId(null);
+    } catch (error) {
+      console.error('방 참여 중 오류 발생:', error);
+      setJoinedRoomId(null);
     }
   }
 
@@ -85,56 +129,82 @@ export const useOrderState = () => {
   }
 
   // 방 생성 핸들러
-  const handleCreateRoom = (roomData: {
+  const handleCreateRoom = async (roomData: {
     restaurantName: string
     minOrderAmount: number
     deliveryFee: number
     categoryId: string
     description?: string
   }) => {
-    const newRoom: OrderRoomType = {
-      id: `room-${Date.now()}`,
-      ...roomData,
-      participants: [currentUser],
-      createdAt: new Date().toISOString(),
-      createdBy: currentUser.id,
+    try {
+      // API 형식에 맞게 변환
+      const apiRoomData = {
+        restaurantName: roomData.restaurantName,
+        category: roomData.categoryId,
+        minimumOrderAmount: roomData.minOrderAmount,
+        deliveryFee: roomData.deliveryFee,
+        description: roomData.description || '',
+      };
+      
+      // 소켓을 통해 방 생성 요청
+      socketService.emit('createRoom', apiRoomData, async (response: any) => {
+        if (response.success) {
+          // 소켓 응답이 성공적이면 방 목록 새로고침
+          const rooms = await deliveryRoomApi.getRooms();
+          setOrderRooms(rooms);
+          setShowCreateRoomModal(false);
+        } else {
+          console.error('방 생성 실패:', response.message);
+        }
+      });
+    } catch (error) {
+      console.error('방 생성 중 오류 발생:', error);
     }
-
-    setOrderRooms([newRoom, ...orderRooms])
-    setShowCreateRoomModal(false)
   }
 
   // 방 참여 핸들러
   const handleJoinRoom = (roomId: string) => {
-    const room = orderRooms.find((r) => r.id === roomId)
-    if (room) {
-      setSelectedRoom(room)
-      setJoinedRoomId(roomId)
-    }
+    // 참여할 방 ID 설정하면 effect에서 처리
+    setJoinedRoomId(roomId);
   }
 
   // 방 상세화면에서 뒤로가기 핸들러
   const handleBackFromRoomDetail = () => {
-    setSelectedRoom(null)
+    if (selectedRoom) {
+      // 소켓 이벤트 청취 중지
+      socketService.off('participantsUpdated');
+      socketService.off('newMessage');
+      
+      // 소켓 룸 나가기 (실제 참여자 상태는 유지)
+      socketService.emit('leaveRoom', { roomId: selectedRoom.id });
+    }
+    
+    setSelectedRoom(null);
   }
 
   // 방 나가기 핸들러
-  const handleLeaveRoom = () => {
+  const handleLeaveRoom = async () => {
     if (selectedRoom) {
-      const updatedRooms = orderRooms.map((room) => {
-        if (room.id === selectedRoom.id) {
-          return {
-            ...room,
-            participants: room.participants.filter(
-              (p) => p.id !== currentUser.id,
-            ),
-          }
+      try {
+        // API를 통해 방 나가기 요청
+        const left = await deliveryRoomApi.leaveRoom(selectedRoom.id);
+        
+        if (left) {
+          // 소켓 이벤트 청취 중지
+          socketService.off('participantsUpdated');
+          socketService.off('newMessage');
+          
+          // 소켓을 통해 방 나가기 알림
+          socketService.emit('leaveRoom', { roomId: selectedRoom.id });
+          
+          // 방 목록 새로고침
+          const updatedRooms = await deliveryRoomApi.getRooms();
+          setOrderRooms(updatedRooms);
+          setSelectedRoom(null);
         }
-        return room
-      })
-
-      setOrderRooms(updatedRooms)
-      setSelectedRoom(null)
+      } catch (error) {
+        console.error('방 나가기 중 오류 발생:', error);
+      }
     }
   }
 

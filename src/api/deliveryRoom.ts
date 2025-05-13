@@ -1,0 +1,185 @@
+import { API_BASE_URL } from '../config/api';
+import axios from 'axios';
+import { getRecoil } from 'recoil-nexus';
+import { userAtom } from '../atoms/userAtom';
+import { OrderRoomType, ParticipantType } from '../pages/order/order-types';
+
+// Auth 헤더 설정을 위한 인터셉터 추가
+const apiInstance = axios.create({
+  baseURL: `${API_BASE_URL}`,
+  timeout: 15000,
+});
+
+apiInstance.interceptors.request.use((config) => {
+  const user = getRecoil(userAtom);
+  if (user && user.token) {
+    config.headers.Authorization = `Bearer ${user.token}`;
+  }
+  return config;
+});
+
+// 배달 주문방 관련 API 서비스
+const deliveryRoomApi = {
+  // 주문방 목록 가져오기
+  getRooms: async (category?: string): Promise<OrderRoomType[]> => {
+    try {
+      const queryParam = category ? `?category=${category}` : '';
+      const response = await apiInstance.get(`/delivery-room${queryParam}`);
+      
+      // 서버 응답 데이터를 프론트엔드 타입으로 변환
+      return response.data.map((room: any) => ({
+        id: room.id,
+        restaurantName: room.restaurantName,
+        minOrderAmount: room.minimumOrderAmount,
+        deliveryFee: room.deliveryFee,
+        categoryId: room.category,
+        participants: room.participants.map((p: any) => ({
+          id: p.user.id,
+          name: p.user.name || p.user.nickname || '익명',
+          avatar: p.user.profileImage,
+        })),
+        createdAt: room.createdAt,
+        createdBy: room.creatorId,
+        description: room.description,
+      }));
+    } catch (error) {
+      console.error('주문방 목록 가져오기 오류:', error);
+      return [];
+    }
+  },
+
+  // 주문방 상세 정보 가져오기
+  getRoom: async (roomId: string): Promise<OrderRoomType | null> => {
+    try {
+      const response = await apiInstance.get(`/delivery-room/${roomId}`);
+      const room = response.data;
+      
+      return {
+        id: room.id,
+        restaurantName: room.restaurantName,
+        minOrderAmount: room.minimumOrderAmount,
+        deliveryFee: room.deliveryFee,
+        categoryId: room.category,
+        participants: room.participants.map((p: any) => ({
+          id: p.user.id,
+          name: p.user.name || p.user.nickname || '익명',
+          avatar: p.user.profileImage,
+        })),
+        createdAt: room.createdAt,
+        createdBy: room.creatorId,
+        description: room.description,
+      };
+    } catch (error) {
+      console.error('주문방 상세 정보 가져오기 오류:', error);
+      return null;
+    }
+  },
+
+  // 주문방 생성하기
+  createRoom: async (roomData: {
+    restaurantName: string;
+    category: string;
+    minimumOrderAmount: number;
+    deliveryFee: number;
+    description?: string;
+  }): Promise<OrderRoomType | null> => {
+    try {
+      const response = await apiInstance.post('/delivery-room', roomData);
+      const room = response.data;
+      
+      // 사용자 정보로 참여자 추가
+      const currentUser = getRecoil(userAtom);
+      const participant: ParticipantType = {
+        id: currentUser.id,
+        name: currentUser.name || currentUser.nickname || '익명',
+      };
+      
+      return {
+        id: room.id,
+        restaurantName: room.restaurantName,
+        minOrderAmount: room.minimumOrderAmount,
+        deliveryFee: room.deliveryFee,
+        categoryId: room.category,
+        participants: [participant],
+        createdAt: room.createdAt,
+        createdBy: room.creatorId,
+        description: room.description,
+      };
+    } catch (error) {
+      console.error('주문방 생성 오류:', error);
+      return null;
+    }
+  },
+
+  // 참여자로 주문방 참여하기
+  joinRoom: async (roomId: string, orderDetails?: string, amount?: number): Promise<boolean> => {
+    try {
+      await apiInstance.post('/delivery-participant/join', {
+        deliveryRoomId: roomId,
+        orderDetails,
+        amount,
+      });
+      return true;
+    } catch (error) {
+      console.error('주문방 참여 오류:', error);
+      return false;
+    }
+  },
+
+  // 주문방 나가기
+  leaveRoom: async (roomId: string): Promise<boolean> => {
+    try {
+      await apiInstance.delete(`/delivery-participant/${roomId}/leave`);
+      return true;
+    } catch (error) {
+      console.error('주문방 나가기 오류:', error);
+      return false;
+    }
+  },
+
+  // 주문 정보 업데이트
+  updateOrderDetails: async (roomId: string, orderDetails: string, amount: number): Promise<boolean> => {
+    try {
+      await apiInstance.patch(`/delivery-participant/${roomId}/update-order`, {
+        orderDetails,
+        amount,
+      });
+      return true;
+    } catch (error) {
+      console.error('주문 정보 업데이트 오류:', error);
+      return false;
+    }
+  },
+
+  // 주문방 채팅 메시지 가져오기
+  getMessages: async (roomId: string) => {
+    try {
+      const response = await apiInstance.get(`/delivery-chat/${roomId}`);
+      return response.data.map((msg: any) => ({
+        id: msg.id,
+        senderId: msg.userId,
+        senderName: msg.user.name || msg.user.nickname || '익명',
+        content: msg.message,
+        timestamp: msg.createdAt,
+      }));
+    } catch (error) {
+      console.error('채팅 메시지 가져오기 오류:', error);
+      return [];
+    }
+  },
+
+  // 주문방 채팅 메시지 전송하기
+  sendMessage: async (roomId: string, message: string) => {
+    try {
+      const response = await apiInstance.post(`/delivery-chat/${roomId}`, {
+        message,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('채팅 메시지 전송 오류:', error);
+      return null;
+    }
+  },
+};
+
+export default deliveryRoomApi;

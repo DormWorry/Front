@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
 import styled from 'styled-components'
 import { ParticipantType, MessageType } from '../order-types'
+import socketService from '../../../services/socket.service'
+import deliveryRoomApi from '../../../api/deliveryRoom'
 
 interface ChatRoomProps {
   roomId: string
@@ -10,15 +12,46 @@ interface ChatRoomProps {
 }
 
 const ChatRoom: React.FC<ChatRoomProps> = ({
-  // roomId는 현재 사용되지 않지만 인터페이스 정의 때문에 포함되어 있음
+  roomId,
   participants,
   currentUserId,
   onClose,
 }) => {
   const [messages, setMessages] = useState<MessageType[]>([])
   const [newMessage, setNewMessage] = useState('')
+  const [loading, setLoading] = useState<boolean>(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
+  useEffect(() => {
+    // 기존 메시지 로드
+    const loadMessages = async () => {
+      try {
+        setLoading(true);
+        const msgs = await deliveryRoomApi.getMessages(roomId);
+        setMessages(msgs);
+      } catch (error) {
+        console.error('채팅 메시지 로드 중 오류:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // 소켓 이벤트 리스너 설정
+    socketService.on('newMessage', (message: MessageType) => {
+      if (message.senderId && message.content) {
+        setMessages((prevMessages) => [...prevMessages, message]);
+      }
+    });
+
+    loadMessages();
+
+    // 컴포넌트 언마운트 시 이벤트 리스너 제거
+    return () => {
+      socketService.off('newMessage');
+    };
+  }, [roomId]);
+
+  // 메시지가 변경될 때마다 스크롤 이동
   useEffect(() => {
     scrollToBottom()
   }, [messages])
@@ -31,23 +64,26 @@ const ChatRoom: React.FC<ChatRoomProps> = ({
     return participants && participants.length > 0 ? participants.find((p) => p.id === currentUserId) : undefined
   }
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newMessage.trim()) return
 
     const currentUser = getCurrentUser()
     if (!currentUser) return
-
-    const newMsg: MessageType = {
-      id: `msg-${Date.now()}`,
-      senderId: currentUserId,
-      senderName: currentUser.name,
-      content: newMessage,
-      timestamp: new Date().toISOString(),
+    
+    try {
+      // Socket.io를 통해 메시지 전송
+      socketService.emit('sendMessage', {
+        roomId: roomId,
+        message: newMessage,
+      });
+      
+      // 입력 필드 초기화
+      setNewMessage('');
+    } catch (error) {
+      console.error('메시지 전송 중 오류:', error);
+      alert('메시지 전송에 실패했습니다.');
     }
-
-    setMessages([...messages, newMsg])
-    setNewMessage('')
   }
 
   const formatTime = (timestamp: string) => {
@@ -70,29 +106,35 @@ const ChatRoom: React.FC<ChatRoomProps> = ({
         <CloseButton onClick={onClose}>X</CloseButton>
       </ChatHeader>
       <MessagesContainer>
-        {messages && messages.length > 0 && messages.map((message) => {
-          const isCurrentUser = message.senderId === currentUserId
-          return (
-            <MessageItem key={message.id} isCurrentUser={isCurrentUser}>
-              {!isCurrentUser && (
-                <SenderAvatar>
-                  {getSenderName(message.senderId).charAt(0).toUpperCase()}
-                </SenderAvatar>
-              )}
-              <MessageContent isCurrentUser={isCurrentUser}>
+        {loading ? (
+          <LoadingMessage>메시지를 불러오는 중...</LoadingMessage>
+        ) : messages.length === 0 ? (
+          <EmptyMessage>아직 메시지가 없습니다. 첫 메시지를 보내보세요!</EmptyMessage>
+        ) : (
+          messages.map((message) => {
+            const isCurrentUser = message.senderId === currentUserId
+            return (
+              <MessageItem key={message.id} isCurrentUser={isCurrentUser}>
                 {!isCurrentUser && (
-                  <SenderName>{getSenderName(message.senderId)}</SenderName>
+                  <SenderAvatar>
+                    {getSenderName(message.senderId).charAt(0).toUpperCase()}
+                  </SenderAvatar>
                 )}
-                <MessageText isCurrentUser={isCurrentUser}>
-                  {message.content}
-                </MessageText>
-                <MessageTime isCurrentUser={isCurrentUser}>
-                  {formatTime(message.timestamp)}
-                </MessageTime>
-              </MessageContent>
-            </MessageItem>
-          )
-        })}
+                <MessageContent isCurrentUser={isCurrentUser}>
+                  {!isCurrentUser && (
+                    <SenderName>{getSenderName(message.senderId)}</SenderName>
+                  )}
+                  <MessageText isCurrentUser={isCurrentUser}>
+                    {message.content}
+                  </MessageText>
+                  <MessageTime isCurrentUser={isCurrentUser}>
+                    {formatTime(message.timestamp)}
+                  </MessageTime>
+                </MessageContent>
+              </MessageItem>
+            )
+          })
+        )}
         <div ref={messagesEndRef} />
       </MessagesContainer>
       <MessageInputForm onSubmit={handleSendMessage}>
@@ -149,6 +191,27 @@ const CloseButton = styled.button`
   &:hover {
     background: rgba(255, 255, 255, 0.3);
   }
+`
+
+const LoadingMessage = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: #666;
+  font-size: 14px;
+  padding: 20px;
+`
+
+const EmptyMessage = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: #666;
+  font-size: 14px;
+  padding: 20px;
+  text-align: center;
 `
 
 const MessagesContainer = styled.div`
