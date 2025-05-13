@@ -35,10 +35,9 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose, kakaoId }) =
 
   const [step, setStep] = useState(1);  // 단계별 회원가입 폼 (1: 기본정보, 2: 추가정보)
   const [dormitories, setDormitories] = useState([
-    { id: 1, name: '제1생활관' },
-    { id: 2, name: '제2생활관' },
-    { id: 3, name: '제3생활관' },
-    { id: 4, name: '제4생활관' },
+    { id: 1, name: '제 1기숙사' },
+    { id: 2, name: '제 2기숙사' },
+    { id: 3, name: '제 3기숙사' },
   ]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -72,9 +71,13 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose, kakaoId }) =
     setError(null);
 
     try {
+      // 방 번호에 '호' 붙이기
+      const roomNumberWithSuffix = formData.roomNumber ? `${formData.roomNumber}호` : '';
+      
       // 회원가입 정보 제출
       const profileData = {
         ...formData,
+        roomNumber: roomNumberWithSuffix,
         kakaoId: kakaoId,
       };
 
@@ -207,15 +210,26 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose, kakaoId }) =
 
                 <FormGroup>
                   <Label htmlFor="roomNumber">방 번호</Label>
-                  <Input
-                    type="text"
-                    id="roomNumber"
-                    name="roomNumber"
-                    value={formData.roomNumber}
-                    onChange={handleChange}
-                    placeholder="방 번호를 입력하세요"
-                    required
-                  />
+                  <InputGroup>
+                    <Input
+                      type="text"
+                      id="roomNumber"
+                      name="roomNumber"
+                      value={formData.roomNumber}
+                      onChange={(e) => {
+                        // 숫자만 입력 가능하게 설정
+                        const onlyNumbers = e.target.value.replace(/[^0-9]/g, '');
+                        setFormData({
+                          ...formData,
+                          roomNumber: onlyNumbers
+                        });
+                      }}
+                      placeholder="방 번호 숫자만 입력 (1205 등)"
+                      required
+                    />
+                    <InputSuffix>호</InputSuffix>
+                  </InputGroup>
+                  <HelpText>숫자만 입력하세요. 자동으로 호가 붙습니다.</HelpText>
                 </FormGroup>
 
                 <FormGroup>
@@ -323,16 +337,44 @@ const Label = styled.label`
   color: #555;
 `;
 
+const InputGroup = styled.div`
+  display: flex;
+  align-items: center;
+  width: 100%;
+`;
+
+const InputSuffix = styled.span`
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-left: none;
+  border-radius: 0 4px 4px 0;
+  padding: 10px 12px;
+  color: #666;
+  font-size: 0.95rem;
+`;
+
+const HelpText = styled.div`
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 5px;
+`;
+
 const Input = styled.input`
+  width: 100%;
   padding: 12px;
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 1rem;
+  background-color: white;
   transition: border-color 0.3s;
 
   &:focus {
     outline: none;
     border-color: #90d1ca;
+  }
+  
+  ${InputGroup} & {
+    border-radius: 4px 0 0 4px;
   }
 `;
 

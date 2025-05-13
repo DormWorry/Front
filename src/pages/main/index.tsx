@@ -18,9 +18,13 @@ export default function Main() {
   // Recoil에서 사용자 정보 가져오기
   const user = useRecoilValue(userAtom)
   
-  // 카카오 프로필 이미지 로그 출력
-  console.log('사용자 정보 확인:', user)
-  console.log('프로필 이미지 URL:', user?.profileImage)
+  // 카카오 프로필 이미지 확인을 위한 useEffect
+  useEffect(() => {
+    // 한 번만 로그 출력
+    console.log('사용자 정보 확인 (1회만 출력):', user)
+    console.log('프로필 이미지 URL:', user?.profileImage)
+    console.log('사용자 객체 전체 내용:', JSON.stringify(user, null, 2))
+  }, []) // 빈 의존성 배열로 마운트 시에만 실행
 
   // 날짜/시간 정보 가져오기 (useDateTime 훅 사용)
   const { currentTime, currentDate } = useDateTime()
