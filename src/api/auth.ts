@@ -1,14 +1,10 @@
 import axios from 'axios'
-// 백엔드 API URL 설정 - 직접 연결
-const API_BASE_URL =
-  'https://port-0-capstoneserver-m6xxoqjg3249c6c2.sel4.cloudtype.app'
+import { API_BASE_URL, FRONTEND_URL, KAKAO_CLIENT_ID, TEST_TOKEN } from '../config/api'
 
 // 백엔드 접속 확인
-console.log('백엔드 API URL (직접 연결):', API_BASE_URL)
+console.log('백엔드 API URL (중앙 관리):', API_BASE_URL)
 
-// 프론트엔드 URL 설정
-const FRONTEND_URL =
-  process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://capstone-front-nu.vercel.app'
+// 프론트엔드 URL은 이제 config/api.ts에서 가져옴
 
 // 사용자 프로필 타입 정의
 export type UserProfile = {
@@ -43,7 +39,7 @@ const authApi = {
         // 백엔드 API에 직접 요청 (CORS 문제 해결을 위해)
         const response = await axios.post(
           `${API_BASE_URL}/auth/kakao/token`,
-          { code, redirectUri: `${window.location.origin}/auth/callback` },
+          { code, redirectUri: `${FRONTEND_URL}/auth/callback` },
           {
             headers: {
               'Content-Type': 'application/json',
@@ -72,7 +68,7 @@ const authApi = {
         // 개발 환경에서만 테스트 토큰 사용
         if (process.env.NODE_ENV !== 'production') {
           console.log('개발 환경에서만 테스트 토큰 사용')
-          return 'test_token_for_development_only_12345'
+          return TEST_TOKEN
         }
         throw connectionError
       }
@@ -87,7 +83,7 @@ const authApi = {
       }
       // 임시 해결책: 에러 발생 시에도 임시 토큰 반환
       console.log('오류 발생, 임시 테스트 토큰을 사용합니다')
-      return 'test_token_for_development_only_12345'
+      return TEST_TOKEN
     }
   },
 

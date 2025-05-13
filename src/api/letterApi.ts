@@ -1,8 +1,8 @@
 import axios from 'axios'
 import { Letter, LetterFormData } from '../pages/letter/types'
+import { API_BASE_URL } from '../config/api'
 
-// API 기본 URL 설정
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+// API 기본 URL 설정 - 중앙 관리되는 URL 사용
 
 // 편지 API 클라이언트
 const letterApi = {

@@ -4,9 +4,10 @@ import {
   RoommateType,
   CreateRoommateProfileDto,
 } from '../pages/matching/types'
+import { API_BASE_URL } from '../config/api'
 
-// 임시 해결책: roommate API만 로컬 서버로 리다이렉트
-const API_URL = 'http://localhost:3001'
+// 백엔드 API URL 설정 - 중앙 관리되는 URL 사용
+const API_URL = API_BASE_URL
 
 // 룸메이트 프로필 API 서비스
 const roommateApi = {

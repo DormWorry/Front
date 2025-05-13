@@ -1,9 +1,9 @@
 import io, { Socket } from 'socket.io-client'
 import { ChatMessage } from '../types/delivery'
+import { SOCKET_URL } from '../config/api'
 
-// 웹소켓 기본 URL 설정
-const SOCKET_BASE_URL =
-  process.env.REACT_APP_SOCKET_URL || 'https://port-0-capstoneserver-m6xxoqjg3249c6c2.sel4.cloudtype.app'
+// 웹소켓 기본 URL 설정 - 중앙 관리되는 URL 사용
+const SOCKET_BASE_URL = SOCKET_URL
 
 class DeliveryChatService {
   private socket: Socket | null = null
