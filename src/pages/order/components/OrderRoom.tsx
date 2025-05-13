@@ -95,7 +95,12 @@ const OrderRoom: React.FC<OrderRoomProps> = ({ room, onJoinRoom }) => {
           <TimeIcon>⏱️</TimeIcon>
           <TimeText>{formatTime(room?.createdAt || new Date().toISOString())}</TimeText>
         </TimeInfo>
-        <JoinButton onClick={() => onJoinRoom(room?.id || '')}>
+        <JoinButton 
+          onClick={(e) => {
+            e.preventDefault(); // 기본 동작 방지
+            onJoinRoom(room?.id || '');
+          }}
+        >
           참여하기
         </JoinButton>
       </RoomFooter>
