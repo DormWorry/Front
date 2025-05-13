@@ -131,54 +131,103 @@ export const useOrderState = () => {
     }
   }
 
-  // 방 참여 핸들러
+  // 방 참여 핸들러 - 로그 강화 및 새로고침 방지 개선 버전
   const handleJoinRoom = async (roomId: string) => {
     try {
-      // 방 정보 가져오기
-      const roomDetails = await deliveryRoomApi.getRoom(roomId);
+      // 클릭한 방 ID와 현재 선택된 방 비교
+      console.log('[방 참여 시도]', { roomId, currentSelectedRoomId: selectedRoom?.id });
+      
+      // 이미 선택된 방인 경우 중복 처리 방지
+      if (selectedRoom?.id === roomId) {
+        console.log('[이미 참여 중인 방] 중복 참여 요청 무시');
+        return; // 이미 같은 방에 참여 중이면 아무것도 하지 않음
+      }
+      
+      // 방 정보 조회 - 서버 요청 최소화를 위해 클라이언트 캐시 활용
+      const existingRoom = orderRooms.find(r => r.id === roomId);
+      let roomDetails;
+      
+      if (existingRoom) {
+        // 이미 목록에 있는 방이면 캐시된 정보 사용
+        console.log('[캐시된 방 정보 사용]');
+        roomDetails = existingRoom;
+      } else {
+        // 방 정보가 없으면 서버에서 조회
+        console.log('[서버에서 방 정보 조회]');
+        roomDetails = await deliveryRoomApi.getRoom(roomId);
+      }
+      
       if (!roomDetails) {
-        console.error('방 정보를 가져올 수 없습니다.');
+        console.error('[방 정보 조회 실패] API 응답 없음');
         return;
       }
       
-      // 이미 참여한 사용자인지 확인
-      const isParticipant = roomDetails.participants.some(p => p.id === currentUser.id);
-      
-      // 참여 요청 (API)
-      if (!isParticipant) {
-        const joined = await deliveryRoomApi.joinRoom(roomId);
-        if (!joined) {
-          console.error('방 참여에 실패했습니다.');
-          return;
+      // 방에 참여하는 로직 - 오류 처리 강화
+      try {
+        // 참여 API 호출 - 비동기 실행
+        console.log('[방 참여 API 호출 시작]');
+        await deliveryRoomApi.joinRoom(roomId);
+        console.log('[방 참여 API 호출 성공]');
+      } catch (joinError: any) {
+        // 이미 참여한 경우(409) 등의 오류는 무시
+        console.log('[참여 API 호출 결과]', { 
+          status: joinError?.response?.status,
+          message: joinError?.message
+        });
+        
+        // 409가 아닌 다른 오류면 사용자에게 알림
+        if (joinError?.response?.status !== 409) {
+          console.error('[참여 중 오류 발생]', joinError);
         }
       }
       
-      // 소켓 연결
-      socketService.emit('joinRoom', { deliveryRoomId: roomId });
+      // 소켓 연결 설정 - 예외 처리 강화
+      try {
+        console.log('[소켓 룸 조인 시작]', roomId);
+        // 소켓 이벤트를 미리 초기화하여 중복 이벤트 방지
+        socketService.off('participantsUpdated');
+        socketService.off('newMessage');
+        
+        // 방 참여 이벤트 전송
+        socketService.emit('joinRoom', { deliveryRoomId: roomId });
+        console.log('[소켓 룸 조인 요청 완료]');
+      } catch (socketError) {
+        console.error('[소켓 연결 오류]', socketError);
+        // 소켓 오류가 발생해도 UI는 정상적으로 업데이트
+      }
       
-      // 이밤트 리스너 클린업
-      socketService.off('participantsUpdated');
-      socketService.off('newMessage');
-      
-      // 새 이벤트 리스너 추가
-      socketService.on('participantsUpdated', (participants: ParticipantType[]) => {
-        if (selectedRoom && selectedRoom.id === roomId) {
-          setSelectedRoom({
-            ...selectedRoom,
-            participants,
+      // 소켓 이벤트 리스너 설정 - 추가 예외 처리
+      try {
+        // 참여자 업데이트 이벤트
+        socketService.on('participantsUpdated', (participants: ParticipantType[]) => {
+          console.log('[참여자 업데이트 이벤트]', {
+            count: participants?.length,
+            currentRoomId: selectedRoom?.id,
+            receivedForRoomId: roomId
           });
-        }
-      });
-      
-      // 메시지 이벤트 리스너
-      socketService.on('newMessage', (message: MessageType) => {
-        console.log('새 메시지 받음:', message);
-      });
-      
-      // 방 정보 세팅
+          
+          // 현재 선택된 방의 참여자 정보 업데이트
+          if (selectedRoom && selectedRoom.id === roomId) {
+            setSelectedRoom(prev => prev ? {...prev, participants} : null);
+          }
+        });
+        
+        // 새 메시지 이벤트
+        socketService.on('newMessage', (message: MessageType) => {
+          console.log('[새 메시지 이벤트]', message);
+          // 추가 메시지 처리 로직은 필요시 구현
+        });
+        
+        console.log('[소켓 이벤트 리스너 설정 완료]');
+      } catch (listenerError) {
+        console.error('[이벤트 리스너 설정 오류]', listenerError);
+      }
+
+      // 상태 업데이트 - 방 정보 설정
+      console.log('[방 상태 업데이트]', roomDetails?.name);
       setSelectedRoom(roomDetails);
     } catch (error) {
-      console.error('방 참여 중 오류 발생:', error);
+      console.error('방 참여 처리 중 오류:', error);
     }
   }
 

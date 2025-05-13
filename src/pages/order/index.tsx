@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import { FOOD_CATEGORIES } from '../../constants/foodCategories'
 import { useOrderState } from '../../hooks/order'
 import * as S from './order-styles'
@@ -12,6 +12,15 @@ import { useRouter } from 'next/router'
 
 export default function OrderFeature() {
   const router = useRouter()
+  
+  // 기본 동작 방지 함수 - 추후 필요시 사용
+  const preventRefresh = useCallback((e: React.MouseEvent<HTMLElement> | React.FormEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    return false;
+  }, []);
 
   const goToMainPage = () => {
     router.push('/main')
@@ -71,6 +80,16 @@ export default function OrderFeature() {
     const paginatedRooms = getPaginatedRooms()
     const totalPages = getTotalPages()
 
+    // 페이지 서밋 방지 핸들러
+    const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.nativeEvent) {
+        e.nativeEvent.stopImmediatePropagation();
+      }
+      return false;
+    };
+
     const categoryName = selectedCategory
       ? FOOD_CATEGORIES.find((c) => c.id === selectedCategory)?.name
       : null
@@ -106,7 +125,15 @@ export default function OrderFeature() {
                 <OrderRoom
                   key={room.id}
                   room={room}
-                  onJoinRoom={handleJoinRoom}
+                  onJoinRoom={(roomId) => {
+                    // 상위 컴포넌트에서 추가 보호 조치
+                    console.log('[index.tsx] 방 참여 버튼 클릭 - 새로고침 방지');
+                    // 비동기 처리로 이벤트 흐름 보호
+                    setTimeout(() => {
+                      handleJoinRoom(roomId);
+                    }, 0);
+                    return false;
+                  }}
                 />
               ))}
             </S.RoomsList>
@@ -157,22 +184,24 @@ export default function OrderFeature() {
     )
   }
 
-  if (selectedRoom) {
-    return renderRoomDetail()
-  }
-
   return (
     <S.Container>
-      <S.MainHeader>
-        <S.BackButton onClick={goToMainPage}>←</S.BackButton>
-        <S.PageTitle>주문하기</S.PageTitle>
-        <S.HeaderDescription>
-          기숙사 친구들과 함께 배달음식을 주문하세요!
-        </S.HeaderDescription>
-      </S.MainHeader>
-      {renderCategorySection()}
-      {renderRoomsSection()}
-      {renderCreateRoomModal()}
+      {selectedRoom ? (
+        renderRoomDetail()
+      ) : (
+        <>
+          <S.MainHeader>
+            <S.BackButton onClick={goToMainPage}>←</S.BackButton>
+            <S.PageTitle>주문하기</S.PageTitle>
+            <S.HeaderDescription>
+              기숙사 친구들과 함께 배달음식을 주문하세요!
+            </S.HeaderDescription>
+          </S.MainHeader>
+          {renderCategorySection()}
+          {renderRoomsSection()}
+          {renderCreateRoomModal()}
+        </>
+      )}
     </S.Container>
   )
 }

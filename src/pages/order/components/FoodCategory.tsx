@@ -26,12 +26,12 @@ const FoodCategory: React.FC<FoodCategoryProps> = ({
           <CategoryItem
             key={category.id}
             onClick={() => onSelectCategory(category.id)}
-            isSelected={isSelected}
+            $isSelected={isSelected}
           >
-            <CategoryIconWrapper isSelected={isSelected}>
-              <CategoryIcon isSelected={isSelected}>{category.icon}</CategoryIcon>
+            <CategoryIconWrapper $isSelected={isSelected}>
+              <CategoryIcon $isSelected={isSelected}>{category.icon}</CategoryIcon>
             </CategoryIconWrapper>
-            <CategoryLabel isSelected={isSelected}>
+            <CategoryLabel $isSelected={isSelected}>
               {category.name}
             </CategoryLabel>
             {isSelected && <SelectedIndicator />}
@@ -53,56 +53,48 @@ const CategoryContainer = styled.div`
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 `
 
-const CategoryItem = styled.div<{ isSelected: boolean }>`
+const CategoryItem = styled.div<{ $isSelected: boolean }>`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 16px 8px;
   cursor: pointer;
-  border-radius: 12px;
-  background-color: ${(props) => (props.isSelected ? '#E8F9F7' : 'white')};
-  border: ${(props) =>
-    props.isSelected ? '2px solid #13CFB8' : '1px solid #e0e0e0'};
-  box-shadow: ${(props) =>
-    props.isSelected ? '0 6px 12px rgba(19, 207, 184, 0.15)' : 'none'};
-  transition: all 0.2s ease;
   position: relative;
+  padding: 16px 8px;
+  border-radius: 12px;
+  background-color: ${({ $isSelected }) => $isSelected ? '#F0FBF9' : 'transparent'};
+  transition: background-color 0.2s, transform 0.2s;
 
   &:hover {
-    transform: translateY(-3px);
-    background-color: ${(props) => (props.isSelected ? '#E8F9F7' : '#f9f9f9')};
-    border-color: ${(props) => (props.isSelected ? '#13CFB8' : '#13CFB8')};
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.05);
+    background-color: ${({ $isSelected }) => $isSelected ? '#F0FBF9' : '#f7f7f7'};
+    transform: translateY(-2px);
   }
 `
 
-const CategoryIconWrapper = styled.div<{ isSelected: boolean }>`
-  background-color: ${(props) => (props.isSelected ? '#13CFB8' : '#f5f5f5')};
-  width: 50px;
-  height: 50px;
-  border-radius: 25px;
+const CategoryIconWrapper = styled.div<{ $isSelected: boolean }>`
+  width: 60px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 10px;
-  transition: all 0.2s ease;
-  border: 1px solid ${(props) => (props.isSelected ? '#13CFB8' : '#e0e0e0')};
+  border-radius: 50%;
+  background-color: ${({ $isSelected }) => $isSelected ? '#13cfb8' : '#f3f4f6'};
+  margin-bottom: 12px;
+  transition: background-color 0.2s;
 `
 
-const CategoryIcon = styled.div<{ isSelected: boolean }>`
+const CategoryIcon = styled.div<{ $isSelected: boolean }>`
   font-size: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: ${(props) => (props.isSelected ? 'white' : '#000000')};
+  color: ${({ $isSelected }) => $isSelected ? 'white' : '#000000'};
 `
 
-const CategoryLabel = styled.div<{ isSelected: boolean }>`
+const CategoryLabel = styled.div<{ $isSelected: boolean }>`
   font-size: 14px;
   margin-top: 4px;
-  font-weight: ${(props) => (props.isSelected ? '600' : '500')};
-  color: ${(props) => (props.isSelected ? '#13CFB8' : '#333333')};
+  font-weight: ${({ $isSelected }) => $isSelected ? '600' : '500'};
+  color: ${({ $isSelected }) => $isSelected ? '#13CFB8' : '#333333'};
 `
 
 const SelectedIndicator = styled.div`

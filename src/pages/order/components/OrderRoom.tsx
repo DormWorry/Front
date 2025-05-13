@@ -96,9 +96,23 @@ const OrderRoom: React.FC<OrderRoomProps> = ({ room, onJoinRoom }) => {
           <TimeText>{formatTime(room?.createdAt || new Date().toISOString())}</TimeText>
         </TimeInfo>
         <JoinButton 
+          type="button" /* 버튼 타입을 명시적으로 button으로 지정하여 form 서밋 방지 */
           onClick={(e) => {
-            e.preventDefault(); // 기본 동작 방지
-            onJoinRoom(room?.id || '');
+            // 가장 기본적인 이벤트 동작만 차단
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('[JoinButton] 간소화된 참여하기 버튼 클릭 처리');
+            
+            // 이벤트 흐름과 분리하여 처리
+            setTimeout(() => {
+              if (room?.id) {
+                console.log('[JoinButton] 안전한 방 참여 호출');
+                onJoinRoom(room.id);
+              }
+            }, 0);
+            
+            return false;
           }}
         >
           참여하기
@@ -107,8 +121,30 @@ const OrderRoom: React.FC<OrderRoomProps> = ({ room, onJoinRoom }) => {
     )
   }
 
+  // 클릭 핸들러 간소화
+  const handleJoinClick = (e: React.MouseEvent) => {
+    // 기본 이벤트 처리 만 적용
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('[전체 방 클릭] 단순화된 처리');
+    
+    // 단순 타임아웃 처리
+    setTimeout(() => {
+      if (room?.id) {
+        console.log('[방 전체 클릭] 참여 호출', room.id);
+        onJoinRoom(room.id);
+      }
+    }, 0);
+    
+    return false;
+  };
+  
   return (
-    <RoomContainer onClick={() => onJoinRoom(room?.id || '')}>
+    <RoomContainer 
+      role="button" /* 접근성을 위해 role 지정 */
+      onClick={handleJoinClick}
+    >
       {renderRoomHeader()}
       {renderRoomInfo()}
       {renderParticipants()}
@@ -118,7 +154,15 @@ const OrderRoom: React.FC<OrderRoomProps> = ({ room, onJoinRoom }) => {
   )
 }
 
+// 다른 컴포넌트와 형식은 그대로 유지하면서 속성 추가
 const RoomContainer = styled.div`
+  width: 100%;
+  border: none;
+  text-align: left;
+  padding: 0;
+  background: none;
+  position: relative; /* 포지션 추가 */
+  z-index: 1; /* 레이어 순서 보장 */
   background-color: #fff;
   border-radius: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
@@ -281,6 +325,7 @@ const TimeText = styled.span`
   color: #888;
 `
 
+// div에서 button으로 변경하고 type="button"을 명시적으로 지정하여 새로고침 방지
 const JoinButton = styled.button`
   background-color: #13cfb8;
   color: white;
@@ -291,6 +336,8 @@ const JoinButton = styled.button`
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s;
+  display: inline-block;
+  user-select: none;
 
   &:hover {
     background-color: #10b9a5;

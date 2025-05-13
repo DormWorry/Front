@@ -17,8 +17,14 @@ export interface UserState {
   isLoggedIn: boolean;
 }
 
+// 중복 atom 키 경고 방지를 위해 고유한 카테고리 메타데이터를 포함하여 키 생성
+const generateUniqueId = () => {
+  // 개발 환경에서는 매번 새로운 ID가 생성되어야 HMR 문제를 피할 수 있음
+  return typeof window !== 'undefined' ? `userState_${Date.now()}` : 'userState_SSR';
+};
+
 export const userAtom = atom<UserState>({
-  key: 'userState',
+  key: generateUniqueId(),
   default: {
     isLoggedIn: false
   },
