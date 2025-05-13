@@ -119,8 +119,14 @@ const deliveryRoomApi = {
         amount,
       });
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('주문방 참여 오류:', error);
+      
+      // 409 Conflict 오류는 이미 참여한 경우이므로 성공으로 처리
+      if (error.response && error.response.status === 409) {
+        console.log('이미 참여 중인 방입니다. 참여 성공으로 처리합니다.');
+        return true;
+      }
       return false;
     }
   },

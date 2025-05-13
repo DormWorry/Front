@@ -79,19 +79,27 @@ export const useOrderState = () => {
     if (!joinedRoomId) return;
     
     try {
+      console.log('방 참여 시도:', joinedRoomId);
       // API를 통해 방 참여 요청
       const joined = await deliveryRoomApi.joinRoom(joinedRoomId);
       
       if (joined) {
+        console.log('방 참여 성공');
         // 방 상세 정보 가져오기
         const roomDetails = await deliveryRoomApi.getRoom(joinedRoomId);
         
         if (roomDetails) {
+          console.log('방 정보 로드 성공:', roomDetails);
           // 소켓 룸에 조인
           socketService.emit('joinRoom', { deliveryRoomId: joinedRoomId });
           
+          // 이전 이벤트 리스너 제거 (중복 방지)
+          socketService.off('participantsUpdated');
+          socketService.off('newMessage');
+          
           // 참여자 업데이트 이벤트 수신 설정
           socketService.on('participantsUpdated', (participants: ParticipantType[]) => {
+            console.log('참여자 업데이트:', participants);
             if (selectedRoom && selectedRoom.id === joinedRoomId) {
               setSelectedRoom({
                 ...selectedRoom,
@@ -107,7 +115,11 @@ export const useOrderState = () => {
           });
           
           setSelectedRoom(roomDetails);
+        } else {
+          console.error('방 정보를 가져올 수 없습니다.');
         }
+      } else {
+        console.error('방 참여에 실패했습니다.');
       }
       
       setJoinedRoomId(null);
