@@ -35,8 +35,9 @@ const RoomDetail: React.FC<RoomDetailProps> = ({
     )
   }
 
+  // 사용자 ID 중 undefined값이 있을 경우 오류 방지
   const currentUserParticipant = room.participants.find(
-    (p) => p.id === currentUserId,
+    (p) => p && p.id && p.id === currentUserId
   )
   const isUserInRoom = !!currentUserParticipant
   const deliveryFeePerPerson =
@@ -114,13 +115,17 @@ const RoomDetail: React.FC<RoomDetailProps> = ({
       <ParticipantsSection>
         <SectionTitle>참여자 ({room.participants.length}명)</SectionTitle>
         <ParticipantsList>
-          {room.participants.map((participant) => (
-            <ParticipantItem key={participant?.id || ''}>
+          {room.participants.map((participant, index) => (
+            <ParticipantItem
+              key={participant?.id || `participant-${index}`}
+              isCurrentUser={participant?.id === currentUserId}
+            >
               <UserAvatar>
                 {participant?.name ? participant.name.charAt(0).toUpperCase() : '?'}
               </UserAvatar>
               <ParticipantName>
                 {participant?.name || '익명'}
+                {participant?.id === currentUserId && ' (나)'}
                 {participant?.id === room?.createdBy && (
                   <HostBadge>방장</HostBadge>
                 )}
@@ -369,13 +374,14 @@ const ParticipantsList = styled.div`
   gap: 12px;
 `
 
-const ParticipantItem = styled.div`
+const ParticipantItem = styled.div<{ isCurrentUser?: boolean }>`
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background-color: #f8f9fa;
+  background-color: ${props => props.isCurrentUser ? '#e3f9ff' : '#f8f9fa'};
   border-radius: 20px;
+  border: ${props => props.isCurrentUser ? '1px solid #13cfb8' : 'none'};
 `
 
 const UserAvatar = styled.div`

@@ -19,9 +19,9 @@ export const useOrderState = () => {
 
   const userRecoil = useRecoilValue(userAtom)
   const currentUser: ParticipantType = {
-    id: userRecoil.id ? String(userRecoil.id) : '',
-    name: userRecoil.nickname || '익명',
-    avatar: userRecoil.profileImage,
+    id: userRecoil && userRecoil.id ? String(userRecoil.id) : '0', // 기본값을 빈 문자열 대신 '0'으로 설정
+    name: userRecoil && userRecoil.nickname ? userRecoil.nickname : '익명',
+    avatar: userRecoil && userRecoil.profileImage ? userRecoil.profileImage : undefined,
   }
 
   // 반응형 아이템 수 조정
@@ -146,17 +146,23 @@ export const useOrderState = () => {
         description: roomData.description || '',
       };
       
-      // 소켓을 통해 방 생성 요청
-      socketService.emit('createRoom', apiRoomData, async (response: any) => {
-        if (response.success) {
-          // 소켓 응답이 성공적이면 방 목록 새로고침
+      try {
+        // REST API를 통해 방 생성
+        const newRoom = await deliveryRoomApi.createRoom(apiRoomData);
+        if (newRoom) {
+          // 성공적으로 방이 생성되면 방 목록 새로고침
           const rooms = await deliveryRoomApi.getRooms();
           setOrderRooms(rooms);
           setShowCreateRoomModal(false);
-        } else {
-          console.error('방 생성 실패:', response.message);
+          
+          // 생성된 방에 자동 참여
+          if (newRoom.id) {
+            setJoinedRoomId(newRoom.id);
+          }
         }
-      });
+      } catch (error) {
+        console.error('방 생성 실패:', error);
+      }
     } catch (error) {
       console.error('방 생성 중 오류 발생:', error);
     }
