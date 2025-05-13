@@ -1,11 +1,9 @@
 import axios from 'axios'
-// 백엔드 API URL 설정
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  'https://port-0-capstoneserver-m6xxoqjg3249c6c2.sel4.cloudtype.app'
+// 백엔드 API URL 설정 - 로컬 호스트(프록시 사용)
+const API_BASE_URL = ''
 
-// 백엔드 서버가 정상 작동하는지 확인
-console.log('Backend API URL:', API_BASE_URL)
+// 프록시를 통해 백엔드 접속 확인
+console.log('Using proxy to connect to backend API')
 
 // 프론트엔드 URL 설정
 const FRONTEND_URL =
@@ -37,23 +35,23 @@ const authApi = {
   exchangeCodeForToken: async (code: string) => {
     try {
       console.log('Sending code to backend:', code.substring(0, 10) + '...') // 일부만 표시
-      console.log('API URL:', `${API_BASE_URL}/auth/kakao/token`)
+      
+      // 프록시 사용: 로컬호스트를 통해 요청
+      const proxyUrl = '/proxy/auth/kakao/token'
+      console.log('Using proxy URL:', proxyUrl)
       console.log('Origin:', window.location.origin)
 
-      // 임시 해결책: 백엔드 연결 테스트
       try {
-        // CORS 오류 방지를 위한 설정
+        // 프록시를 통한 요청으로 CORS 문제 해결
         const response = await axios.post(
-          `${API_BASE_URL}/auth/kakao/token`,
+          proxyUrl,
           { code, redirectUri: `${window.location.origin}/auth/callback` },
           {
-            withCredentials: true, // 쿠키 포함 전송
             headers: {
               'Content-Type': 'application/json',
               Accept: 'application/json',
             },
-            // withCredentials 사용 시 CORS 오류 발생하여 제거
-            timeout: 5000, // 5초 타임아웃 설정
+            timeout: 10000, // 10초 타임아웃 설정
           },
         )
 
@@ -96,8 +94,7 @@ const authApi = {
     }
 
     try {
-      const response = await axios.get(`${API_BASE_URL}/auth/kakao/status`, {
-        withCredentials: true,
+      const response = await axios.get(`/auth/kakao/status`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -123,10 +120,9 @@ const authApi = {
 
     try {
       const response = await axios.post(
-        `${API_BASE_URL}/auth/profile/create`,
+        `/auth/profile/create`,
         profileData,
         {
-          withCredentials: true,
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -162,8 +158,7 @@ const authApi = {
     }
 
     try {
-      const response = await axios.get(`${API_BASE_URL}/auth/me`, {
-        withCredentials: true,
+      const response = await axios.get(`/auth/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

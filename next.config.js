@@ -15,11 +15,16 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'https://www.dormworry.p-e.kr/api/:path*',
+        destination: 'https://port-0-capstoneserver-m6xxoqjg3249c6c2.sel4.cloudtype.app/:path*',
       },
       {
         source: '/auth/:path*',
-        destination: 'https://www.dormworry.p-e.kr/auth/:path*',
+        destination: 'https://port-0-capstoneserver-m6xxoqjg3249c6c2.sel4.cloudtype.app/auth/:path*',
+      },
+      // 카카오 토큰 교환용 경로 추가
+      {
+        source: '/proxy/auth/kakao/token',
+        destination: 'https://port-0-capstoneserver-m6xxoqjg3249c6c2.sel4.cloudtype.app/auth/kakao/token',
       },
     ];
   },
