@@ -23,9 +23,7 @@ import {
     TraitList,
     Trait,
     TypeDescription,
-    BlurredGroup,
-    CreditButton,
-    CreditInfo,
+
     LoadingContainer,
     ErrorMessage,
     SpinnerContainer,
@@ -73,7 +71,7 @@ const CardCarousel = ({ selectedType }: Props) => {
 
     // 크레딧 시스템 훅 사용
     const { credits, useCredit, isRevealed } = useCredits();
-    
+
     // 크레딧 사용 핸들러
     const handleUseCredit = (profileId: number | string | null) => {
         if (profileId) {
@@ -103,7 +101,7 @@ const CardCarousel = ({ selectedType }: Props) => {
         if (!selectedCardId) return null;
         return profiles.find(profile => profile.id === String(selectedCardId));
     };
-    
+
     // 프로필이 없을 때 10초 대기 후 매칭 실패 메시지 표시
     useEffect(() => {
         if (!loading && profiles.length === 0) {
@@ -112,14 +110,14 @@ const CardCarousel = ({ selectedType }: Props) => {
                 setIsWaiting(false);
                 setNoMatchFound(true);
             }, 10000); // 10초 대기
-            
+
             return () => clearTimeout(timer);
         } else {
             setIsWaiting(false);
             setNoMatchFound(false);
         }
     }, [loading, profiles.length]);
-    
+
     // 로딩 중일 때
     if (loading) {
         return (
@@ -140,17 +138,17 @@ const CardCarousel = ({ selectedType }: Props) => {
             </ErrorMessage>
         );
     }
-    
+
     // 홈으로 돌아가기
     const handleGoHome = () => {
         window.location.href = '/';
     };
-    
+
     // 다시 검색하기 - API 다시 호출
     const handleRetry = () => {
         setIsWaiting(true);
         setNoMatchFound(false);
-        
+
         // 프로필 새로 불러오기 - API 재호출
         roommateApi.getProfiles({ preferredType: selectedType?.id })
             .then(newProfiles => {
@@ -171,7 +169,7 @@ const CardCarousel = ({ selectedType }: Props) => {
                 setNoMatchFound(true);
             });
     };
-    
+
     // 대기 중인 경우
     if (isWaiting && profiles.length === 0) {
         return (
@@ -184,7 +182,7 @@ const CardCarousel = ({ selectedType }: Props) => {
             </WaitingContainer>
         );
     }
-    
+
     // 매칭을 찾지 못한 경우
     if (noMatchFound && profiles.length === 0) {
         return (
@@ -198,7 +196,7 @@ const CardCarousel = ({ selectedType }: Props) => {
             </NoMatchContainer>
         );
     }
-    
+
     // 프로필이 없는 경우 (대기 상태가 아닐 때)
     if (profiles.length === 0) {
         return (
@@ -237,21 +235,25 @@ const CardCarousel = ({ selectedType }: Props) => {
                                 {profile.myPersonalityType?.description || selectedType.description}
                             </TypeDescription>
                         </CardContent>
+
+
                     </Card>
+
                 ))}
+                <ButtonContainer style={{ position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%)' }}>
+                    <Button onClick={handlePrevClick}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                    </Button>
+                    <Button onClick={handleNextClick}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M9 6L15 12L9 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                    </Button>
+                </ButtonContainer>
             </CarouselContainer>
-            <ButtonContainer>
-                <Button onClick={handlePrevClick}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                </Button>
-                <Button onClick={handleNextClick}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M9 6L15 12L9 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                </Button>
-            </ButtonContainer>
+
 
             {selectedCard && (
                 <ModalOverlay onClick={handleCloseModal}>
@@ -273,23 +275,11 @@ const CardCarousel = ({ selectedType }: Props) => {
                         </TraitList>
 
                         <ContactInfo>
-                            {!isRevealed(selectedCard) && (
-                                <CreditButton
-                                    onClick={() => handleUseCredit(selectedCard)}
-                                    disabled={credits <= 0}
-                                >
-                                    크레딧 사용하기
-                                </CreditButton>
-                            )}
-                            <BlurredGroup isBlurred={!isRevealed(selectedCard)}>
-                                <div>💬 카카오: {findSelectedProfile(profiles, selectedCard)?.kakaoTalkId}</div>
-                                <div>👤 인스타: {findSelectedProfile(profiles, selectedCard)?.instagramId}</div>
-                            </BlurredGroup>
+                            <div>💬 카카오: {findSelectedProfile(profiles, selectedCard)?.kakaoTalkId}</div>
+                            <div>👤 인스타: {findSelectedProfile(profiles, selectedCard)?.instagramId}</div>
                         </ContactInfo>
 
-                        <CreditInfo>
-                            남은 크레딧: <span>{credits}개</span>
-                        </CreditInfo>
+
                     </ModalContent>
                 </ModalOverlay>
             )}
