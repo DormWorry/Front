@@ -239,9 +239,20 @@ class FirebaseProxyService {
   }
 
   // 메시지 가져오기 (REST API 사용)
-  async getMessages(roomId: string, messageLimit: number = 30) {
+  async getMessages(roomId: string, messageLimit: number = 50): Promise<FirebaseMessage[]> {
+    // 서버사이드 렌더링 환경에서는 빈 배열 반환
+    if (typeof window === 'undefined') {
+      console.log('[FirebaseProxy] 서버사이드 렌더링 환경 - 빈 메시지 배열 반환');
+      return [];
+    }
+    
+    console.log(`[FirebaseProxy] 방 ${roomId}의 메시지 ${messageLimit}개 가져오기 시작`);
     try {
-      console.log(`[FirebaseProxy] 방 ${roomId}의 메시지 ${messageLimit}개 가져오기 시작`);
+      // 방 ID 유효성 검사
+      if (!roomId) {
+        console.warn('[FirebaseProxy] 유효하지 않은 방 ID로 메시지를 요청할 수 없습니다.');
+        return [];
+      }
       
       // API를 통해 메시지 목록 조회 (인증 헤더 포함)
       const response = await axios.get(
@@ -261,6 +272,13 @@ class FirebaseProxyService {
       const messages: FirebaseMessage[] = response.data.map((msg: any) => ({
         ...msg,
         isFromCurrentUser: msg.senderId === currentUser.id,
+        // 누락될 수 있는 필드에 기본값 추가
+        id: msg.id || `temp-${Date.now()}-${Math.random()}`,
+        senderId: msg.senderId || '',
+        senderName: msg.senderName || '',
+        content: msg.content || '',
+        timestamp: msg.timestamp || { seconds: Date.now() / 1000, nanoseconds: 0 },
+        deliveryRoomId: msg.deliveryRoomId || roomId
       }));
       
       console.log(`[FirebaseProxy] ${messages.length}개의 메시지를 가져왔습니다`);

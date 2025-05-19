@@ -62,26 +62,31 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
   
   // 메시지 히스토리 로드 및 실시간 리스너 설정
   useEffect(() => {
+    // 서버사이드 렌더링 엔진에서는 실행하지 않음
+    if (typeof window === 'undefined') return;
+    
     // 메시지 히스토리 로드
     const loadMessages = async () => {
       try {
         setLoading(true);
         const firebaseMsgs = await firebaseService.getMessages(roomId);
         
-        // Firebase 메시지를 UI 메시지로 변환
-        const transformedMessages = firebaseMsgs.map(msg => ({
-          id: msg.id,
-          senderId: msg.senderId,
-          senderName: msg.senderName,
-          content: msg.content,
-          timestamp: convertTimestampToDate(msg.timestamp).toISOString(),
-          roomId: msg.deliveryRoomId,
+        // Firebase 메시지를 UI 메시지로 변환 (널 체크 추가)
+        const transformedMessages = (firebaseMsgs || []).map(msg => ({
+          id: msg.id || `temp-${Date.now()}-${Math.random()}`,
+          senderId: msg.senderId || '',
+          senderName: msg.senderName || '',
+          content: msg.content || '',
+          timestamp: msg.timestamp ? convertTimestampToDate(msg.timestamp).toISOString() : new Date().toISOString(),
+          roomId: msg.deliveryRoomId || roomId,
           isFromCurrentUser: msg.senderId === currentUserId
         }));
         
         setMessages(transformedMessages);
       } catch (error) {
         console.error('메시지 로드 실패:', error);
+        // 오류 발생 시 기본 값으로 설정
+        setMessages([]);
       } finally {
         setLoading(false);
       }
