@@ -91,6 +91,12 @@ const deliveryRoomApi = {
       const participant: ParticipantType = {
         id: '',  // 사용자 ID 추가 필요
         name: '익명', // 사용자 이름 추가 필요
+        userId: 0,  // number 형식으로 변경
+        deliveryRoomId: room.id,
+        joinedAt: new Date().toISOString(),
+        isPaid: false,
+        orderDetails: '',
+        amount: 0
       };
       
       return {
@@ -110,21 +116,60 @@ const deliveryRoomApi = {
     }
   },
 
-  // 참여자로 주문방 참여하기
+  // 참여자로 주문방 참여하기 - 중복 처리 개선
   joinRoom: async (roomId: string, orderDetails?: string, amount?: number): Promise<boolean> => {
     try {
+      // 이미 참여중인지 먼저 확인 (로컬에서 확인 가능한지)
+      const alreadyJoined = localStorage.getItem('joinedRooms');
+      if (alreadyJoined) {
+        try {
+          const joinedRooms = JSON.parse(alreadyJoined);
+          if (Array.isArray(joinedRooms) && joinedRooms.includes(roomId)) {
+            console.log('로컬에 이미 참여 중인 방으로 기록되어 있음 - API 요청 스킵');
+            return true;
+          }
+        } catch (e) {
+          console.error('로컬 저장소 확인 오류:', e);
+        }
+      }
+      
+      // API 호출 실행
+      console.log('방 참여 API 요청 시도:', roomId);
       await apiInstance.post('/delivery-participant/join', {
         deliveryRoomId: roomId,
         orderDetails,
         amount,
       });
+      
+      // 성공 시 로컬 스토리지에 저장
+      try {
+        const joinedRoomsStr = localStorage.getItem('joinedRooms');
+        const joinedRooms = joinedRoomsStr ? JSON.parse(joinedRoomsStr) : [];
+        if (!joinedRooms.includes(roomId)) {
+          const updatedRooms = [...joinedRooms, roomId];
+          localStorage.setItem('joinedRooms', JSON.stringify(updatedRooms));
+        }
+      } catch (e) {}
+      
+      console.log('방 참여 API 요청 성공');
       return true;
+      
     } catch (error: any) {
       console.error('주문방 참여 오류:', error);
       
       // 409 Conflict 오류는 이미 참여한 경우이므로 성공으로 처리
       if (error.response && error.response.status === 409) {
         console.log('이미 참여 중인 방입니다. 참여 성공으로 처리합니다.');
+        
+        // 이미 참여중임을 로컬에 누락
+        try {
+          const joinedRoomsStr = localStorage.getItem('joinedRooms');
+          const joinedRooms = joinedRoomsStr ? JSON.parse(joinedRoomsStr) : [];
+          if (!joinedRooms.includes(roomId)) {
+            localStorage.setItem('joinedRooms', JSON.stringify([...joinedRooms, roomId]));
+          }
+        } catch (e) {}
+        
         return true;
       }
       return false;

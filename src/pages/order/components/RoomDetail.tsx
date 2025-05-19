@@ -38,91 +38,188 @@ const RoomDetail: React.FC<RoomDetailProps> = ({
   // 소켓 연결 상태 확인
   const [socketConnected, setSocketConnected] = useState<boolean>(false)
 
-  // 소켓 초기화 및 이벤트 리스너 설정 (한 번만 실행)
+  // 소켓 초기화 및 이벤트 리스너 설정
   useEffect(() => {
-    // 소켓 연결 한 번만 하고, 동일한 이벤트 중복 방지
-    if (socketConnected) return; // 이미 연결되어 있으면 중복 초기화 방지
+    console.log('방 상세 화면 소켓 연결 초기화 | 방 ID:', room?.id);
     
+    // 소켓 연결 상태 확인 및 이벤트 관리
     const socket = socketService.connect();
-    setSocketConnected(!!socket);
+    const isConnected = socketService.isConnectedToServer();
+    setSocketConnected(isConnected);
     
-    if (socket) {
-      console.log('소켓 연결 초기화 완료');
+    // 소켓 연결 상태 이벤트 등록 (재연결 대응)
+    const connectionStateHandler = () => {
+      setSocketConnected(socketService.isConnectedToServer());
       
-      // 참여자 변경 이벤트 구독
-      socketService.on('participantsUpdated', (updatedParticipants: ParticipantType[]) => {
-        console.log('참여자 목록 업데이트 받음:', updatedParticipants);
-        if (Array.isArray(updatedParticipants)) {
-          setLocalRoomState(prev => ({
-            ...prev,
-            participants: updatedParticipants,
-            isJoined: updatedParticipants.some(p => p && p.id === currentUserId)
-          }));
-        }
-      });
-      
-      // 방 정보 변경 이벤트 구독
-      socketService.on('roomUpdated', (updatedRoom: OrderRoomType) => {
-        console.log('방 정보 업데이트 받음:', updatedRoom);
-        if (updatedRoom && updatedRoom.participants) {
-          setLocalRoomState(prev => ({
-            ...prev,
-            participants: updatedRoom.participants,
-            isJoined: updatedRoom.participants.some(p => p && p.id === currentUserId)
-          }));
-        }
-      });
-      
-      // 방 입장 한 번만 하기 (참여자 정보가 이미 있는 경우 정보를 채워서 표시)
-      if (room?.id) {
-        socketService.emit('joinRoom', { deliveryRoomId: room.id });
-        console.log('소켓 초기화 시 방 입장: ', room.id);
+      // 재연결이 이뤄질 경우, 방 재입장 자동화
+      if (socketService.isConnectedToServer() && room?.id) {
+        console.log('소켓 연결 감지 - 방 재입장 시도');
+        socketService.joinRoom(room.id);
+        
+        // 참여자 정보 갱신 요청
+        socketService.emit('getParticipants', { roomId: room.id });
       }
+    };
+    
+    // 연결 상태 변경 리스너 등록
+    socketService.on('connect', connectionStateHandler);
+    socketService.on('disconnect', connectionStateHandler);
+    socketService.on('connect_error', connectionStateHandler);
+    
+    // 참여자 변경 이벤트 구독
+    socketService.on('participantsUpdated', (updatedParticipants: ParticipantType[]) => {
+      console.log('참여자 목록 업데이트 받음:', updatedParticipants);
+      if (Array.isArray(updatedParticipants)) {
+        setLocalRoomState(prev => {
+          // 참여자 정보와 현재 사용자 참여 여부 함께 확인 업데이트
+          const isCurrentUserJoined = updatedParticipants.some(
+            p => p && (p.id === currentUserId || 
+                      (p.userId && p.userId.toString() === currentUserId) ||
+                      (p.user && p.user.id.toString() === currentUserId))
+          );
+          
+          return {
+            participants: updatedParticipants,
+            isJoined: isCurrentUserJoined
+          };
+        });
+      }
+    });
+    
+    // 방 정보 변경 이벤트 구독
+    socketService.on('roomUpdated', (updatedRoom: OrderRoomType) => {
+      console.log('방 정보 업데이트 받음:', updatedRoom);
+      if (updatedRoom && updatedRoom.participants) {
+        setLocalRoomState(prev => {
+          // 참여자 정보와 현재 사용자 참여 여부 함께 확인 업데이트
+          const isCurrentUserJoined = updatedRoom.participants.some(
+            p => p && (p.id === currentUserId || 
+                      (p.userId && p.userId.toString() === currentUserId) ||
+                      (p.user && p.user.id.toString() === currentUserId))
+          );
+          
+          return {
+            participants: updatedRoom.participants,
+            isJoined: isCurrentUserJoined
+          };
+        });
+      }
+    });
+    
+    // 방 입장이 필요하면 개선된 joinRoom 함수 사용
+    if (room?.id) {
+      socketService.joinRoom(room.id);
+      console.log('방 입장 요청:', room.id);
+      
+      // 방 입장 완료 후 초기 상태 갱신을 위한 참여자 정보 요청
+      setTimeout(() => {
+        socketService.emit('getParticipants', { roomId: room.id });
+      }, 500);
     }
     
     // 컴포넌트 언마운트 시 이벤트 리스너 정리
     return () => {
+      socketService.off('connect');
+      socketService.off('disconnect');
+      socketService.off('connect_error');
       socketService.off('participantsUpdated');
       socketService.off('roomUpdated');
+      console.log('방 정보 이벤트 리스너 제거 완료');
     };
-  }, []); // 빈 의존성 배열: 컴포넌트 마운트 시 한 번만 실행
+  }, [room?.id, currentUserId]); // room.id와 currentUserId가 변경될 때 갱신
   
-  // 방 입장 시 한 번만 자동 참여 처리
+  // 방 입장 시 한 번만 자동 참여 처리 - 중복 참여 방지 기능 추가
   useEffect(() => {
     // 방 ID가 없거나 사용자 ID가 없으면 실행하지 않음
     if (!room?.id || !currentUserId) return;
     
-    // 이미 참여 표시되어 있다면 중복 처리 하지 않음
+    // 이미 이 화면에서 참여 처리를 했다면 스킵
     if (localRoomState.isJoined) {
-      console.log('이미 참여 중 - 중복 처리 방지');
+      console.log('이미 참여 처리됨 - 중복 요청 방지');
       return;
     }
     
-    // 일반 방 상태가 아니고 처음 로딩되는 경우에만 자동 참여 시도
-    const autoJoinRoom = async () => {
-      if (room.id && currentUserId) {
-        console.log('방에 자동 참여 시도:', room.id);
+    // 참여 여부 확인 및 참여 처리 함수
+    const checkAndJoinRoom = async () => {
+      console.log('방 참여 여부 확인 및 참여 처리 시작');
+      
+      // 1. 방 참여자 목록에 현재 사용자가 있는지 확인 (ID 형식 모두 고려)
+      if (room.participants && Array.isArray(room.participants)) {
+        const isInParticipantList = room.participants.some(p => 
+          p && (p.id === currentUserId || 
+              (p.userId && p.userId.toString() === currentUserId) ||
+              (p.user && p.user.id && p.user.id.toString() === currentUserId))
+        );
         
-        try {
-          // API를 통해 방 참여 요청
-          const joined = await deliveryRoomApi.joinRoom(room.id);
-          if (joined) {
-            console.log('방 자동 참여 성공!');
-            
-            // 참여 상태 업데이트
-            setLocalRoomState(prev => ({
-              ...prev,
-              isJoined: true
-            }));
+        if (isInParticipantList) {
+          console.log('참여자 목록에서 현재 사용자 발견 - 이미 참여중');
+          setLocalRoomState(prev => ({ ...prev, isJoined: true }));
+          
+          // 로컬 스토리지에도 저장
+          try {
+            const joinedRoomsStr = localStorage.getItem('joinedRooms');
+            const joinedRooms = joinedRoomsStr ? JSON.parse(joinedRoomsStr) : [];
+            if (!joinedRooms.includes(room.id)) {
+              localStorage.setItem('joinedRooms', JSON.stringify([...joinedRooms, room.id]));
+            }
+          } catch (e) {
+            console.error('저장소 업데이트 오류:', e);
           }
-        } catch (error) {
-          console.error('자동 참여 오류:', error);
+          return;
         }
+      }
+      
+      // 2. 로컬 스토리지에서 이미 참여한 방 ID 확인
+      try {
+        const joinedRoomsStr = localStorage.getItem('joinedRooms');
+        const joinedRooms = joinedRoomsStr ? JSON.parse(joinedRoomsStr) : [];
+        
+        if (joinedRooms.includes(room.id)) {
+          console.log('로컬 스토리지에 이미 참여한 방으로 기록되어 있음');
+          setLocalRoomState(prev => ({ ...prev, isJoined: true }));
+          return;
+        }
+      } catch (e) {
+        console.error('저장된 참여방 정보 가져오기 오류:', e);
+      }
+      
+      // 3. 위 두 조건 모두 해당되지 않으면 API를 통해 방 참여 시도
+      console.log('API를 통한 방 참여 시도:', room.id);
+      
+      try {
+        // API를 통해 방 참여 요청
+        const joined = await deliveryRoomApi.joinRoom(room.id);
+        
+        if (joined) {
+          console.log('방 참여 성공!');
+          
+          // 참여 상태 업데이트
+          setLocalRoomState(prev => ({
+            ...prev,
+            isJoined: true
+          }));
+          
+          // 성공적으로 참여한 방 ID를 로컬 스토리지에 저장
+          try {
+            const joinedRoomsStr = localStorage.getItem('joinedRooms');
+            const joinedRooms = joinedRoomsStr ? JSON.parse(joinedRoomsStr) : [];
+            if (!joinedRooms.includes(room.id)) {
+              localStorage.setItem('joinedRooms', JSON.stringify([...joinedRooms, room.id]));
+            }
+          } catch (e) {
+            console.error('로컬 스토리지 저장 오류:', e);
+          }
+        } else {
+          console.log('방 참여 실패 - 상태 갱신 실패');
+        }
+      } catch (error) {
+        console.error('자동 참여 오류:', error);
       }
     };
     
-    autoJoinRoom(); // 한 번만 실행
-  }, [room?.id]); // room.id가 바뀔 때만 한 번 실행
+    // 참여 여부 확인 및 참여 처리 함수 호출
+    checkAndJoinRoom();
+  }, [room?.id, currentUserId, localRoomState.isJoined]);
 
   // room객체가 undefined일 경우 대비
   if (!room || !room.participants) {

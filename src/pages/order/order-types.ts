@@ -40,6 +40,7 @@ export interface MessageType {
   content: string;
   timestamp: string;
   roomId?: string; // 임시 메시지 처리를 위해 추가
+  isFromCurrentUser?: boolean; // 현재 사용자가 보낸 메시지인지 여부
 }
 
 export interface FoodCategoryType {

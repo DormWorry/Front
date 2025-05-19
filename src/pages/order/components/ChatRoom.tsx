@@ -1,554 +1,379 @@
-import React, { useState, useRef, useEffect } from 'react'
-import styled from 'styled-components'
-import { ParticipantType, MessageType } from '../order-types'
-import socketService from '../../../services/socket.service'
-import deliveryRoomApi from '../../../api/deliveryRoom'
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import styled from 'styled-components';
+import { ParticipantType, MessageType } from '../order-types';
+import firebaseService, { FirebaseMessage, FirebaseParticipant } from '../../../services/firebase.service';
 
 interface ChatRoomProps {
-  roomId: string
-  participants: ParticipantType[]
-  currentUserId: string
-  onClose: () => void
+  roomId: string;
+  participants: ParticipantType[];
+  currentUserId: string;
+  onClose: () => void;
 }
 
-const ChatRoom: React.FC<ChatRoomProps> = ({
-  roomId,
-  participants,
-  currentUserId,
-  onClose,
-}) => {
-  const [messages, setMessages] = useState<MessageType[]>([])
-  const [newMessage, setNewMessage] = useState('')
-  const [loading, setLoading] = useState<boolean>(true)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-
-  // 소켓 연결 상태 확인
-  const [socketConnected, setSocketConnected] = useState<boolean>(false);
+// 타임스태프를 Date 객체로 변환하는 유틸리티 함수
+const convertTimestampToDate = (timestamp: any): Date => {
+  if (!timestamp) return new Date();
   
-  // 소켓 연결 초기화 및 채팅방 입장
+  if (timestamp instanceof Date) {
+    return timestamp;
+  } else if (timestamp && typeof timestamp === 'object' && 'seconds' in timestamp) {
+    // Firestore 형식 타임스태프 객체
+    return new Date(timestamp.seconds * 1000 + (timestamp.nanoseconds || 0) / 1000000);
+  } else if (typeof timestamp === 'number') {
+    return new Date(timestamp);
+  } else if (typeof timestamp === 'string') {
+    return new Date(timestamp);
+  }
+  
+  return new Date();
+};
+
+const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialParticipants, currentUserId, onClose }) => {
+  const [messages, setMessages] = useState<MessageType[]>([]);
+  const [localParticipants, setLocalParticipants] = useState<ParticipantType[]>(initialParticipants);
+  const [newMessage, setNewMessage] = useState('');
+  const [loading, setLoading] = useState<boolean>(true);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Firebase 연결 상태
+  const [isConnected, setIsConnected] = useState<boolean>(true);
+  
+  // 채팅방 입장
   useEffect(() => {
-    // 채팅 기능을 위한 소켓 초기화 - 연결 여부와 관계없이 항상 실행
-    console.log('채팅용 소켓 연결 및 방 입장 시도 | 방 ID:', roomId);
+    console.log('Firebase를 통해 채팅방 입장 시도 | 방 ID:', roomId);
     
-    // 1. 소켓 연결 확인/시도
-    const socket = socketService.connect();
-    setSocketConnected(!!socket);
-    
-    // 2. 방 입장 - 각별 소켓에 이 거드워를 통해 메시지를 전달
-    if (socket) {
-      console.log('채팅방 입장 시도 - 소켓 이벤트 발생: joinRoom ->', roomId);
-      socketService.emit('joinRoom', { deliveryRoomId: roomId });
-      
-      // 방 입장 확인 메시지 발송 - 서버에서 모든 사용자에게 알림
-      socketService.emit('sendMessage', {
-        roomId: roomId,
-        message: '💬 채팅방에 입장했습니다.'
+    firebaseService.joinRoom(roomId)
+      .then(() => {
+        console.log('채팅방 입장 성공');
+        // 채팅방 입장 메시지 전송 (선택적)
+        setTimeout(() => {
+          firebaseService.sendMessage(roomId, '💬 채팅방에 입장했습니다.')
+            .catch(error => console.error('입장 메시지 전송 실패:', error));
+        }, 300);
+      })
+      .catch(error => {
+        console.error('채팅방 입장 실패:', error);
+        setIsConnected(false);
       });
-    }
     
     // 컴포넌트 언마운트 시 정리
     return () => {
       console.log('채팅방 나가기 처리');
-      socketService.off('joinRoom');
+      firebaseService.leaveRoom(roomId)
+        .catch(error => console.error('채팅방 나가기 실패:', error));
     };
-  }, [roomId]);  // roomId가 변경될 때마다 다시 연결
+  }, [roomId]);
   
-  // 소켓 이벤트 리스너 및 메시지 로드
+  // 메시지 히스토리 로드 및 실시간 리스너 설정
   useEffect(() => {
-    console.log('채팅 메시지 리스너 설정 및 기존 메시지 로드');
-    
-    // 1. 기존 메시지 로드
+    // 메시지 히스토리 로드
     const loadMessages = async () => {
       try {
         setLoading(true);
-        const msgs = await deliveryRoomApi.getMessages(roomId);
-        console.log('채팅 메시지 로드 성공:', msgs?.length || 0);
-        setMessages(msgs || []);
+        const firebaseMsgs = await firebaseService.getMessages(roomId);
+        
+        // Firebase 메시지를 UI 메시지로 변환
+        const transformedMessages = firebaseMsgs.map(msg => ({
+          id: msg.id,
+          senderId: msg.senderId,
+          senderName: msg.senderName,
+          content: msg.content,
+          timestamp: convertTimestampToDate(msg.timestamp).toISOString(),
+          roomId: msg.deliveryRoomId,
+          isFromCurrentUser: msg.senderId === currentUserId
+        }));
+        
+        setMessages(transformedMessages);
       } catch (error) {
-        console.error('채팅 메시지 로드 중 오류:', error);
+        console.error('메시지 로드 실패:', error);
       } finally {
         setLoading(false);
       }
     };
-
-    // 2. 소켓 이벤트 리스너 설정
-    const handleNewMessage = (message: MessageType) => {
-      console.log('🔔 실시간 새 메시지 수신:', message);
-      if (message && message.content) {
-        // 시간이 없는 경우, 현재 시간 추가
-        if (!message.timestamp) {
-          message.timestamp = new Date().toISOString();
-        }
-        // 메시지 ID가 없는 경우, 임의 ID 부여
-        if (!message.id) {
-          message.id = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        }
-        
-        // 메시지 상태 업데이트 - 중복 없이 추가
-        setMessages(prev => {
-          // 이미 동일한 ID의 메시지가 있는지 확인
-          if (message.id && prev.some(m => m.id === message.id)) {
-            return prev;
-          }
-          return [...prev, message];
-        });
-      }
-    };
-
-    // 이벤트 리스너 등록
-    socketService.on('newMessage', handleNewMessage);
     
-    // 오류 시에도 연결 유지를 위한 메시지 처리
-    socketService.on('error', (error: any) => {
-      console.error('소켓 오류 발생:', error);
-      // 오류에도 불구하고 방 재입장 시도
-      socketService.emit('joinRoom', { deliveryRoomId: roomId });
-    });
-    
-    // 초기 메시지 로드
+    // 메시지 로드 실행
     loadMessages();
-
-    // 컴포넌트 언마운트 시 이벤트 리스너 제거
-    return () => {
-      console.log('채팅 이벤트 리스너 제거');
-      socketService.off('newMessage');
-      socketService.off('error');
-    };
-  }, [roomId]);
-
-  // 메시지가 변경될 때마다 스크롤 이동
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages])
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
-
-  const getCurrentUser = () => {
-    return participants && participants.length > 0 ? participants.find((p) => p.id === currentUserId) : undefined
-  }
-
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const messageText = newMessage.trim();
-    if (!messageText) return;
     
-    // 메시지 입력창 매우 빠르게 초기화 - UI 응답성 향상
-    setNewMessage('');
-
-    console.log(`[채팅 메시지 전송] 시도 - 방 ID: ${roomId}, 내용: ${messageText}`);
-    
-    try {
-      // 1. 로컬에 임시 메시지 추가 (낙관적 UI 업데이트)
-      const tempId = `temp-${Date.now()}`;
-      const tempMessage = {
-        id: tempId,
-        senderId: currentUserId,
-        content: messageText,
-        timestamp: new Date().toISOString()
+    // 실시간 메시지 수신 리스너 설정
+    const unsubscribeMessages = firebaseService.onNewMessages(roomId, (newMessages) => {
+      // 새 메시지 배열 처리 (단일 메시지도 배열로 오기 때문에 반복문 사용)
+      newMessages.forEach(newMessage => {
+      // 새 메시지 도착 시 처리
+      const transformedMessage: MessageType = {
+        id: newMessage.id,
+        senderId: newMessage.senderId,
+        senderName: newMessage.senderName,
+        content: newMessage.content,
+        timestamp: convertTimestampToDate(newMessage.timestamp).toISOString(),
+        roomId: newMessage.deliveryRoomId,
+        isFromCurrentUser: newMessage.senderId === currentUserId
       };
       
-      // 추가 - 상태 갱신을 안정적으로 처리
-      setMessages(prev => [...prev, tempMessage]);
-      
-      // 2. 초간단 지연 후 매우 실제적인 메시지 전송 시도
-      setTimeout(() => {
-        // 플래그를 통해 처리 중임을 표시
-        console.log(`[채팅] 전송 시도 중...`);
-        
-        // 소켓 이벤트 발송 시 클리어한 형태로 데이터 전달
-        socketService.emit('sendMessage', {
-          roomId: roomId,  // 방 ID는 반드시 포함
-          message: messageText // 메시지 내용
-        });
-        
-        // 방 입장도 함께 보내서 현재 채팅방에 연결되어 있는지 확인
-        socketService.emit('joinRoom', { deliveryRoomId: roomId });
-      }, 10); // 지연이 처리되도록 짧은 지연 추가
-      
-    } catch (error) {
-      console.error('메시지 전송 오류:', error);
-      // 사용자에게는 알리지 않고 업데이트만 취소
-    }
-  }
-
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp)
-    return `${date.getHours().toString().padStart(2, '0')}:${date
-      .getMinutes()
-      .toString()
-      .padStart(2, '0')}`
-  }
-
-  // 발신자가 자신인지 확인하는 함수 - 완전히 확장된 버전
-  const isMessageFromCurrentUser = (senderId: string) => {
-    // 현재 사용자 ID와 직접 비교
-    if (senderId === currentUserId) {
-      console.log('확인 1: 발신자 ID == 현재 사용자 ID');
-      return true;
-    }
+        setMessages(prevMessages => [...prevMessages, transformedMessage]);
+      });
+    });
     
-    try {
-      // 현재 사용자 정보 추출 (여러 방법 시도)
-      let myUserId: number | string | null = null;
-      let myParticipantId: string | null = null;
-      
-      // 1. 현재 사용자의 참여자 객체 찾기
-      const currentParticipant = participants.find(p => p.id === currentUserId);
-      if (currentParticipant) {
-        myParticipantId = currentParticipant.id;
-        
-        // 중첩된 user 객체에서 ID 추출
-        if (currentParticipant.user) {
-          myUserId = currentParticipant.user.id;
-        }
-        // 직접 userId에서 추출
-        else if (currentParticipant.userId) {
-          myUserId = currentParticipant.userId;
-        }
-      }
-      
-      // 2. 참여자 목록에서 userId가 나의 것과 같은 참여자 찾기
-      if (!myUserId) {
-        // userId에 따른 참여자 추출 시도
-        const otherParticipant = participants.find(p => p.userId === Number(currentUserId));
-        if (otherParticipant) {
-          myParticipantId = otherParticipant.id;
-          myUserId = otherParticipant.userId;
-        }
-      }
-      
-      // 내 사용자 정보 출력 (디버깅)
-      console.log('확인: 내 사용자 정보', { 
-        currentUserId,
-        myUserId, 
-        myParticipantId,
-        isNumeric: !isNaN(Number(senderId))
+    // 참여자 상태 리스너 설정
+    const unsubscribeParticipants = firebaseService.onParticipantsUpdated(roomId, (participants) => {
+      // 참여자 목록 업데이트 시 처리
+      const transformedParticipants = participants.map(participant => {
+        const partObj: ParticipantType = {
+          id: participant.id,
+          userId: Number(participant.id), // ID를 숫자로 변환
+          name: participant.name,
+          avatar: participant.avatar,
+          deliveryRoomId: roomId,
+          joinedAt: convertTimestampToDate(participant.lastActive).toISOString(),
+          isPaid: false, // 기본값으로 false 설정
+          amount: 0,
+          orderDetails: ''
+        };
+        return partObj;
       });
       
-      // 분류 3: 메시지의 senderId가 사용자 ID와 매칭
-      if (myUserId && senderId === myUserId.toString()) {
-        console.log('확인 2: 메시지 발신자 ID == 내 사용자 ID');
-        return true;
-      }
-      
-      // 분류 4: 메시지의 senderId가 참여자 ID와 매칭
-      if (myParticipantId && senderId === myParticipantId) {
-        console.log('확인 3: 메시지 발신자 ID == 내 참여자 ID');
-        return true;
-      }
-      
-      // 분류 5: 순전히 숫자 매칭 (대부분 백엔드에서 user.id)
-      if (myUserId && !isNaN(Number(senderId)) && Number(myUserId) === Number(senderId)) {
-        console.log('확인 4: 메시지 발신자 ID(숫자형) == 내 사용자 ID(숫자형)');
-        return true;
-      }
-      
-      // 분류 6: 마지막 시도 - 모든 참여자의 모든 ID 값과 순차 테스트
-      for (const participant of participants) {
-        // 모든 ID 값을 추출하여 비교
-        const allIds = [
-          participant.id, 
-          participant.userId?.toString(),
-          participant.user?.id?.toString(),
-          participant.user?.kakaoId
-        ].filter(Boolean); // null/undefined 필터링
-        
-        // 현재 사용자의 모든 ID와 매칭하는지 확인
-        const isCurrentUserParticipant = allIds.includes(currentUserId);
-        
-        if (isCurrentUserParticipant && allIds.includes(senderId)) {
-          console.log('확인 5: 본인 참여자의 다양한 ID 중 하나와 메시지 발신자 ID 일치');
-          return true;
-        }
-      }
-      
-      console.log('메시지 발신자는 내가 아님:', senderId);
-      return false;
-      
-    } catch (error) {
-      console.error('발신자 확인 중 오류:', error);
-      // 오류 발생시 기본적으로 아닌 것으로 간주
-      return false;
-    }
-  };
+      setLocalParticipants(transformedParticipants);
+    });
+    
+    // 클린업 함수
+    return () => {
+      unsubscribeMessages();
+      unsubscribeParticipants();
+    };
+  }, [roomId, currentUserId]);
   
-  const getSenderName = (senderId: string) => {
-    if (!participants || participants.length === 0) {
-      console.log(`참여자 없음: 발신자 ID ${senderId} 의 이름을 찾을 수 없음`);
-      return '알 수 없음';
+  // 새 메시지 전송
+  const handleSendMessage = useCallback(async () => {
+    if (!newMessage.trim() || !isConnected) return;
+    
+    try {
+      await firebaseService.sendMessage(roomId, newMessage);
+      setNewMessage(''); // 메시지 전송 후 입력 필드 초기화
+    } catch (error) {
+      console.error('메시지 전송 실패:', error);
     }
-
-    // 발신자 ID와 참여자 ID의 매칭을 디버그
-    console.log('참여자 ID 목록:', participants.map(p => ({ id: p.id, userId: p.userId })));
-    console.log('찾는 발신자 ID:', senderId);
-    
-    // 멤버 식별 방법 1: 참여자 ID와 일치
-    let sender = participants.find(p => p.id === senderId);
-    
-    // 멤버 식별 방법 2: 사용자 ID(숫자)와 일치
-    if (!sender && !isNaN(Number(senderId))) {
-      sender = participants.find(p => p.userId === Number(senderId));
+  }, [newMessage, roomId, isConnected]);
+  
+  // 엔터 키로 메시지 전송
+  const handleKeyPress = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
-    
-    // 멤버 식별 방법 3: 내부 user 객체의 ID와 일치
-    if (!sender) {
-      sender = participants.find(p => p.user && p.user.id.toString() === senderId);
+  }, [handleSendMessage]);
+  
+  // 메시지 도착 시 스크롤 아래로 이동
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-    
-    // 발신자 정보 확인
-    if (sender) {
-      // 사용자 이름 처리
-      const userName = sender.user?.nickname || sender.name || '익명';
-      return userName;
-    }
-    
-    // 일치하는 참여자가 없는 경우 문제 추적을 위한 로그
-    console.warn(`발신자 찾기 실패: ID ${senderId}를 가진 참여자를 찾을 수 없음`);
-    return '알 수 없음';
-  }
-
+  }, [messages]);
+  
+  // 참여자 정보 업데이트 (예: 사용자 이름 표시)
+  const getParticipantName = useCallback((senderId: string) => {
+    const participant = localParticipants.find(p => p.id === senderId);
+    return participant?.name || '알 수 없음';
+  }, [localParticipants]);
+  
   return (
     <ChatContainer>
       <ChatHeader>
-        <ParticipantCount>참여자 {participants && participants.length || 0}명</ParticipantCount>
-        <CloseButton onClick={onClose}>X</CloseButton>
+        <h3>채팅방 ({localParticipants.length}명)</h3>
+        <CloseButton onClick={onClose}>×</CloseButton>
       </ChatHeader>
-      <MessagesContainer>
+      
+      <ChatContent>
         {loading ? (
-          <LoadingMessage>메시지를 불러오는 중...</LoadingMessage>
+          <LoadingMessage>메시지 로딩 중...</LoadingMessage>
         ) : messages.length === 0 ? (
-          <EmptyMessage>아직 메시지가 없습니다. 첫 메시지를 보내보세요!</EmptyMessage>
+          <NoMessages>아직 메시지가 없습니다. 첫 메시지를 보내보세요!</NoMessages>
         ) : (
-          messages.map((message) => {
-            // 개선된 발신자 확인 방법 적용
-            const isCurrentUser = isMessageFromCurrentUser(message.senderId);
-            
-            // 발신자 이름 가져오기
-            const senderName = isCurrentUser ? '나' : getSenderName(message.senderId);
-            
-            // 메시지 분석 (테스트용 로깅)
-            console.log(`메시지 [${message.id}]: 발신자=${message.senderId}, 내가 보낸 것=${isCurrentUser}`);
-            
-            return (
-              <MessageItem key={message.id} isCurrentUser={isCurrentUser}>
-                {!isCurrentUser && (
-                  <SenderAvatar>
-                    {senderName.charAt(0).toUpperCase()}
-                  </SenderAvatar>
-                )}
-                <MessageContent isCurrentUser={isCurrentUser}>
-                  {!isCurrentUser && (
-                    <SenderName>{senderName}</SenderName>
-                  )}
-                  <MessageText isCurrentUser={isCurrentUser}>
-                    {message.content}
-                  </MessageText>
-                  <MessageTime isCurrentUser={isCurrentUser}>
-                    {formatTime(message.timestamp)}
-                  </MessageTime>
-                </MessageContent>
+          <MessageList>
+            {messages.map((message) => (
+              <MessageItem 
+                key={`${message.id}-${message.timestamp}`} 
+                isCurrentUser={message.isFromCurrentUser || false}
+              >
+                <MessageHeader>
+                  <strong>{message.senderName || getParticipantName(message.senderId)}</strong>
+                  <span>{new Date(message.timestamp || Date.now()).toLocaleTimeString()}</span>
+                </MessageHeader>
+                <MessageBody isCurrentUser={message.isFromCurrentUser || false}>
+                  {message.content || ''}
+                </MessageBody>
               </MessageItem>
-            )
-          })
+            ))}
+            <div ref={messagesEndRef} />
+          </MessageList>
         )}
-        <div ref={messagesEndRef} />
-      </MessagesContainer>
-      <MessageInputForm onSubmit={handleSendMessage}>
-        <MessageInput
-          type="text"
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          placeholder="메시지를 입력하세요"
-        />
-        <SendButton type="submit" disabled={!newMessage.trim()}>
-          전송
-        </SendButton>
-      </MessageInputForm>
+      </ChatContent>
+      
+      <ChatInputArea>
+        <ConnectionStatus isConnected={isConnected}>
+          {isConnected ? '🟢 연결됨' : '🔴 연결 끊김'}
+        </ConnectionStatus>
+        <InputWrapper>
+          <ChatInput 
+            type="text" 
+            placeholder="메시지 입력..."
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            disabled={!isConnected}
+          />
+          <SendButton onClick={handleSendMessage} disabled={!isConnected || !newMessage.trim()}>
+            전송
+          </SendButton>
+        </InputWrapper>
+      </ChatInputArea>
     </ChatContainer>
-  )
-}
+  );
+};
 
+// 스타일 컴포넌트
 const ChatContainer = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100%;
-  min-height: 400px;
-  background-color: #f8f9fa;
-`
+  height: 450px;
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+`;
 
 const ChatHeader = styled.div`
+  padding: 10px 15px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #ddd;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
-  background-color: #13cfb8;
-  color: white;
-`
-
-const ParticipantCount = styled.div`
-  font-weight: 500;
-  color: #444;
-`
+  
+  h3 {
+    margin: 0;
+    font-size: 16px;
+  }
+`;
 
 const CloseButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.2);
+  background: none;
   border: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  color: white;
-  font-size: 14px;
+  font-size: 24px;
   cursor: pointer;
-  transition: all 0.2s;
-
+  color: #999;
+  
   &:hover {
-    background: rgba(255, 255, 255, 0.3);
+    color: #333;
   }
-`
+`;
+
+const ChatContent = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  background-color: #fff;
+`;
 
 const LoadingMessage = styled.div`
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   height: 100%;
-  color: #666;
-  font-size: 14px;
-  padding: 20px;
-`
+  color: #888;
+`;
 
-const EmptyMessage = styled.div`
+const NoMessages = styled.div`
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   height: 100%;
-  color: #666;
-  font-size: 14px;
-  padding: 20px;
+  color: #888;
   text-align: center;
-`
+  padding: 20px;
+`;
 
-const MessagesContainer = styled.div`
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px;
+const MessageList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-`
+`;
 
 const MessageItem = styled.div<{ isCurrentUser: boolean }>`
-  display: flex;
-  flex-direction: ${({ isCurrentUser }) => (isCurrentUser ? 'row-reverse' : 'row')};
-  align-items: flex-start;
-  gap: 8px;
-  margin-bottom: 4px;
-`
-
-const SenderAvatar = styled.div`
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background-color: #4dabf7;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 14px;
-  flex-shrink: 0;
-`
-
-const MessageContent = styled.div<{ isCurrentUser: boolean }>`
-  display: flex;
-  flex-direction: column;
   max-width: 70%;
-  ${({ isCurrentUser }) => isCurrentUser && 'align-items: flex-end;'}
-`
+  margin-bottom: 10px;
+  align-self: ${props => props.isCurrentUser ? 'flex-end' : 'flex-start'};
+`;
 
-const SenderName = styled.div`
-  font-size: 12px;
-  color: #666;
-  margin-bottom: 4px;
-  margin-left: 4px;
-`
-
-const MessageText = styled.div<{ isCurrentUser: boolean }>`
-  padding: 10px 14px;
-  border-radius: 16px;
-  color: ${({ isCurrentUser }) => (isCurrentUser ? 'white' : '#444')};
-  background-color: ${({ isCurrentUser }) => (isCurrentUser ? '#13cfb8' : 'white')};
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  word-break: break-word;
-  line-height: 1.4;
-`
-
-const MessageTime = styled.div<{ isCurrentUser: boolean }>`
-  font-size: 11px;
-  color: #888;
-  margin-top: 4px;
-  ${({ isCurrentUser }) => isCurrentUser ? 'margin-right: 4px;' : 'margin-left: 4px;'}
-`
-
-const MessageInputForm = styled.form`
+const MessageHeader = styled.div`
   display: flex;
-  padding: 12px 0 0 0;
-  gap: 8px;
-`
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 4px;
+  
+  span {
+    color: #999;
+    margin-left: 8px;
+  }
+`;
 
-const MessageInput = styled.input`
-  flex: 1;
-  padding: 12px 16px;
-  border: 1px solid #ddd;
-  border-radius: 24px;
-  font-size: 14px;
-  color: #444;
+const MessageBody = styled.div<{ isCurrentUser: boolean }>`
+  padding: 8px 12px;
+  border-radius: 12px;
+  background-color: ${props => props.isCurrentUser ? '#007bff' : '#f1f1f1'};
+  color: ${props => props.isCurrentUser ? '#fff' : '#333'};
+  word-break: break-word;
+`;
+
+const ChatInputArea = styled.div`
+  padding: 10px;
   background-color: #f8f9fa;
-  transition: all 0.2s;
+  border-top: 1px solid #ddd;
+`;
 
+const ConnectionStatus = styled.div<{ isConnected: boolean }>`
+  font-size: 12px;
+  text-align: right;
+  margin-bottom: 5px;
+  color: ${props => props.isConnected ? 'green' : 'red'};
+`;
+
+const InputWrapper = styled.div`
+  display: flex;
+`;
+
+const ChatInput = styled.input`
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  outline: none;
+  
   &:focus {
-    outline: none;
-    border-color: #13cfb8;
-    background-color: #fff;
-    box-shadow: 0 0 0 3px rgba(19, 207, 184, 0.1);
+    border-color: #007bff;
   }
   
-  &::placeholder {
-    color: #aaa;
+  &:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
   }
-`
+`;
 
 const SendButton = styled.button`
-  background-color: #13cfb8;
+  padding: 8px 16px;
+  margin-left: 8px;
+  background-color: #007bff;
   color: white;
   border: none;
-  border-radius: 24px;
-  padding: 12px 20px;
-  font-weight: 600;
+  border-radius: 20px;
   cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background-color: #10b9a5;
-    transform: translateY(-2px);
+  
+  &:hover:not(:disabled) {
+    background-color: #0069d9;
   }
-
-  &:active {
-    transform: translateY(0);
-  }
-
+  
   &:disabled {
-    background-color: #ddd;
-    color: #999;
+    background-color: #cccccc;
     cursor: not-allowed;
-    transform: none;
   }
-`
+`;
 
-export default ChatRoom
+export default ChatRoom;
