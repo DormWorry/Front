@@ -45,11 +45,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
     firebaseService.joinRoom(roomId)
       .then(() => {
         console.log('채팅방 입장 성공');
-        // 채팅방 입장 메시지 전송 (선택적)
-        setTimeout(() => {
-          firebaseService.sendMessage(roomId, '💬 채팅방에 입장했습니다.')
-            .catch(error => console.error('입장 메시지 전송 실패:', error));
-        }, 300);
+        // 입장 메시지 전송 제거 (사용자 요청에 따라)
       })
       .catch(error => {
         console.error('채팅방 입장 실패:', error);
@@ -95,21 +91,69 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
     loadMessages();
     
     // 실시간 메시지 수신 리스너 설정
-    const unsubscribeMessages = firebaseService.onNewMessages(roomId, (newMessages) => {
-      // 새 메시지 배열 처리 (단일 메시지도 배열로 오기 때문에 반복문 사용)
-      newMessages.forEach(newMessage => {
-      // 새 메시지 도착 시 처리
-      const transformedMessage: MessageType = {
+    const unsubscribeMessages = firebaseService.onNewMessages(roomId, (newMessage) => {
+      console.log('[ChatRoom] 실시간 메시지 수신:', newMessage);
+      
+      // 실시간 메시지 객체 디버깅
+      console.log('[ChatRoom] 메시지 상세 정보:', {
         id: newMessage.id,
         senderId: newMessage.senderId,
-        senderName: newMessage.senderName,
         content: newMessage.content,
-        timestamp: convertTimestampToDate(newMessage.timestamp).toISOString(),
-        roomId: newMessage.deliveryRoomId,
-        isFromCurrentUser: newMessage.senderId === currentUserId
-      };
+        timestamp: newMessage.timestamp,
+        deliveryRoomId: newMessage.deliveryRoomId
+      });
       
-        setMessages(prevMessages => [...prevMessages, transformedMessage]);
+      // 메시지 중복 여부 확인 - 개선된 중복 처리 로직
+      setMessages(prevMessages => {
+        // 1. 임시 ID가 아닌 경우에만 중복 체크 수행
+        if (newMessage.id && !newMessage.id.toString().startsWith('temp-')) {
+          const existingMsgIndex = prevMessages.findIndex(msg => 
+            msg.id === newMessage.id || 
+            (msg.id.toString().startsWith('temp-') && 
+             msg.content === newMessage.content && 
+             msg.senderId === newMessage.senderId)
+          );
+          
+          // 이미 존재하는 메시지인 경우
+          if (existingMsgIndex >= 0) {
+            // 이미 받은 메시지가 임시 ID이고 새 메시지가 실제 ID인 경우, 임시 ID를 실제 ID로 대체
+            if (prevMessages[existingMsgIndex].id.toString().startsWith('temp-')) {
+              console.log(`[ChatRoom] 임시 ID를 실제 ID로 대체: ${prevMessages[existingMsgIndex].id} -> ${newMessage.id}`);
+              const updatedMessages = [...prevMessages];
+              updatedMessages[existingMsgIndex] = {
+                ...updatedMessages[existingMsgIndex],
+                id: newMessage.id
+              };
+              return updatedMessages;
+            }
+            
+            console.log(`[ChatRoom] 메시지 중복 방지 - ID: ${newMessage.id}`);
+            return prevMessages; // 중복된 메시지는 무시
+          }
+        }
+        
+        // 2. 새 메시지 생성 및 추가
+        const transformedMessage: MessageType = {
+          id: newMessage.id || `temp-${Date.now()}`, // ID가 없을 경우 임시 ID 생성
+          senderId: newMessage.senderId,
+          senderName: newMessage.senderName,
+          content: newMessage.content,
+          timestamp: convertTimestampToDate(newMessage.timestamp).toISOString(),
+          roomId: newMessage.deliveryRoomId || roomId, // 누락된 경우 현재 룸 ID 사용
+          isFromCurrentUser: newMessage.senderId === currentUserId
+        };
+        
+        // 메시지 정보 로깅 - 머리글/풀이 기능 확인
+        console.log(`[ChatRoom] 새 메시지 (내 메시지: ${transformedMessage.isFromCurrentUser}):`, transformedMessage.content);
+        
+        // 3. 자동 스크롤 처리
+        setTimeout(() => {
+          if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 100);
+        
+        return [...prevMessages, transformedMessage];
       });
     });
     
@@ -146,8 +190,26 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
     if (!newMessage.trim() || !isConnected) return;
     
     try {
-      await firebaseService.sendMessage(roomId, newMessage);
-      setNewMessage(''); // 메시지 전송 후 입력 필드 초기화
+      // 메시지 전송
+      const sentMessage = await firebaseService.sendMessage(roomId, newMessage);
+      
+      // Firebase에서 응답을 기다리지 않고 UI에 즉시 반영
+      const currentUser = await firebaseService.getCurrentUser();
+      const newLocalMessage: MessageType = {
+        id: sentMessage?.id || `temp-${Date.now()}`,
+        senderId: currentUser.id.toString(),
+        senderName: currentUser.name,
+        content: newMessage,
+        timestamp: new Date().toISOString(),
+        roomId: roomId,
+        isFromCurrentUser: true
+      };
+      
+      // 즉시 UI에 메시지 추가
+      setMessages(prevMessages => [...prevMessages, newLocalMessage]);
+      
+      // 입력 필드 초기화
+      setNewMessage('');
     } catch (error) {
       console.error('메시지 전송 실패:', error);
     }

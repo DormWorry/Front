@@ -8,9 +8,9 @@ export type { FirebaseMessage, FirebaseParticipant };
 // firebase-proxy.service.ts로 대체된 클래스
 class FirebaseService {
   // 프록시 서비스를 통해 사용자 정보 가져오기
-  private getCurrentUser() {
-    // 구현은 firebase-proxy.service.ts로 이동됨
-    return {};
+  getCurrentUser() {
+    // firebase-proxy 서비스에서 사용자 정보 가져오기
+    return firebaseProxyService.getCurrentUser();
   }
   
   // 방 초기화 (NestJS 백엔드 사용)
@@ -46,10 +46,10 @@ class FirebaseService {
   }
   
   // 메시지 리스너 설정 (프록시 서비스 사용)
-  onNewMessages(roomId: string, callback: (messages: FirebaseMessage[]) => void) {
+  onNewMessages(roomId: string, callback: (message: FirebaseMessage) => void) {
     return firebaseProxyService.onNewMessages(roomId, (message) => {
-      // 단일 메시지를 배열로 래핑하여 기존 API와 호환성 유지
-      callback([message]);
+      // 단일 메시지 처리
+      callback(message);
     });
   }
   
