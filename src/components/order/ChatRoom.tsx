@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
-import { ParticipantType, MessageType } from '../order-types';
-import firebaseService, { FirebaseMessage, FirebaseParticipant } from '../../../services/firebase.service';
+import { ParticipantType, MessageType } from '../../pages/order/order-types';
+import firebaseService, { FirebaseMessage, FirebaseParticipant } from '../../services/firebase.service';
 
 interface ChatRoomProps {
   roomId: string;

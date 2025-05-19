@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { OrderRoomType, ParticipantType } from '../order-types'
-import ChatRoom from './ChatRoom'
+import ChatRoom from '../../../components/order/ChatRoom'
 import { FOOD_CATEGORIES } from '../../../constants/foodCategories'
 import deliveryRoomApi from '../../../api/deliveryRoom'
 import socketService from '../../../services/socket.service'
