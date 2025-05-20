@@ -52,19 +52,6 @@ const ServiceSection: React.FC = () => {
             </M.ServiceDescription>
           </M.ServiceCardContent>
         </M.ServiceCard>
-
-        <M.ServiceCard onClick={() => navigateTo('/notice')}>
-          <M.ServiceIconWrapper>
-            <M.ServiceIcon>📢</M.ServiceIcon>
-          </M.ServiceIconWrapper>
-          <M.ServiceCardContent>
-            <M.ServiceTitle>기숙사 공지사항</M.ServiceTitle>
-            <M.ServiceDescription>
-              중요한 기숙사 공지사항을 한눈에 확인하세요. 최신 소식을 놓치지
-              마세요.
-            </M.ServiceDescription>
-          </M.ServiceCardContent>
-        </M.ServiceCard>
       </M.ServiceGrid>
     </M.ServiceSection>
   )

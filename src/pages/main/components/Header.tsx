@@ -56,12 +56,7 @@ const Header: React.FC<HeaderProps> = ({
             ) : (
               <>
                 <M.WeatherIcon>
-                  {weather?.icon && (
-                    <img
-                      src={`http://openweathermap.org/img/wn/${weather.icon}@2x.png`}
-                      alt={weather?.description || '날씨 아이콘'}
-                    />
-                  )}
+                  <span style={{ fontSize: '2rem' }}>{weather?.icon}</span>
                 </M.WeatherIcon>
                 <M.WeatherInfo>
                   <M.WeatherTemp>{weather?.temp || '-'}°C</M.WeatherTemp>
