@@ -1,11 +1,11 @@
 import styled from 'styled-components'
 
-// 전체 페이지를 감싸는 컨테이너 - 현대적인 디자인으로 업데이트
+//전체 페이지를 감싸는 컨테이너 - 현대적인 디자인으로 업데이트
 export const Container = styled.div`
   position: relative;
   width: 100%;
-  height: 100vh;
-  max-height: 100vh;
+  height: 70vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -13,7 +13,6 @@ export const Container = styled.div`
   perspective: 1000px;
   gap: 40px;
   padding: 1.5rem;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
   overflow-y: auto;
   overflow-x: hidden;
 
@@ -24,222 +23,333 @@ export const Container = styled.div`
   }
 `
 
+// // 카드 캐러셀 컨테이너 - 화면 너비 활용 및 모던한 디자인
+// export const CarouselContainer = styled.div`
+//   position: relative;
+//   width: 90%;
+//   max-width: 1200px;
+//   height: auto;
+//   transform-style: preserve-3d;
+//   transition: all 0.5s ease;
+//   display: grid;
+//   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+//   gap: 2rem;
+//   align-items: stretch;
+//   justify-content: center;
+//   padding: 2rem;
+//   margin: 0 auto;
+//   background: rgba(255, 255, 255, 0.7);
+//   backdrop-filter: blur(10px);
+//   border-radius: 24px;
+//   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+//   overflow-y: auto;
+//   max-height: calc(100vh - 180px);
+
+//   @media (max-width: 768px) {
+//     grid-template-columns: 1fr;
+//     width: 100%;
+//     padding: 1.5rem;
+//     max-height: calc(100vh - 160px);
+//   }
+// `
 // 카드 캐러셀 컨테이너 - 화면 너비 활용 및 모던한 디자인
+// 3D 회전 효과를 가진 카드 캐러셀을 감싸는 컨테이너
 export const CarouselContainer = styled.div`
   position: relative;
   width: 90%;
-  max-width: 1200px;
-  height: auto;
+  height: 100%;
   transform-style: preserve-3d;
-  transition: all 0.5s ease;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 2rem;
-  align-items: stretch;
+  transition: transform 0.5s ease;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  padding: 2rem;
-  margin: 0 auto;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  border-radius: 24px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  overflow-y: auto;
-  max-height: calc(100vh - 180px);
 
   @media (max-width: 768px) {
-    grid-template-columns: 1fr;
+    padding-top: 70px;
     width: 100%;
-    padding: 1.5rem;
-    max-height: calc(100vh - 160px);
+    overflow: hidden;
   }
 `
+// // 캐러셀 내의 개별 카드 스타일 - 더 현대적이고 세련된 디자인
+// export const Card = styled.div`
+//   position: relative;
+//   width: 100%;
+//   height: auto;
+//   min-height: 450px;
+//   max-width: 350px;
+//   margin: 0 auto;
+//   background: white;
+//   border-radius: 16px;
+//   display: flex;
+//   flex-direction: column;
+//   align-items: center;
+//   padding: 0;
+//   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+//   transition: all 0.3s ease;
+//   cursor: pointer;
+//   transform-style: preserve-3d;
+//   overflow: hidden;
+//   border: 1px solid rgba(0, 0, 0, 0.05);
 
-// 캐러셀 내의 개별 카드 스타일 - 더 현대적이고 세련된 디자인
+//   &::before {
+//     content: '';
+//     position: absolute;
+//     top: 0;
+//     left: 0;
+//     width: 100%;
+//     height: 130px;
+//     background: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%);
+//     z-index: 1;
+//   }
+
+//   .detail-hint {
+//     position: absolute;
+//     bottom: 20px;
+//     left: 0;
+//     right: 0;
+//     text-align: center;
+//     z-index: 10;
+//     opacity: 0;
+//     transform: translateY(10px);
+//     transition: all 0.3s ease;
+//   }
+
+//   .detail-hint span {
+//     background: rgba(97, 97, 255, 0.9);
+//     color: white;
+//     font-size: 0.8rem;
+//     padding: 5px 15px;
+//     border-radius: 20px;
+//     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+//   }
+
+//   &:hover .detail-hint {
+//     opacity: 1;
+//     transform: translateY(0);
+//   }
+
+//   @media (max-width: 768px) {
+//     height: auto;
+//     min-height: 400px;
+//     max-width: 100%;
+//   }
+
+//   &:hover {
+//     transform: translateY(-5px);
+//     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+//   }
+
+//   &:active {
+//     transform: scale(0.98);
+//     transition: transform 0.1s;
+//   }
+// `
+
 export const Card = styled.div`
-  position: relative;
-  width: 100%;
-  height: auto;
-  min-height: 450px;
-  max-width: 350px;
-  margin: 0 auto;
+  position: absolute;
+  width: 280px;
+  height: 300px;
   background: white;
-  border-radius: 16px;
+  border-radius: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
+  padding: 80px 20px 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.5s ease;
+  backface-visibility: hidden;
   cursor: pointer;
   transform-style: preserve-3d;
-  overflow: hidden;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 130px;
-    background: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%);
-    z-index: 1;
-  }
-
-  .detail-hint {
-    position: absolute;
-    bottom: 20px;
-    left: 0;
-    right: 0;
-    text-align: center;
-    z-index: 10;
-    opacity: 0;
-    transform: translateY(10px);
-    transition: all 0.3s ease;
-  }
-
-  .detail-hint span {
-    background: rgba(97, 97, 255, 0.9);
-    color: white;
-    font-size: 0.8rem;
-    padding: 5px 15px;
-    border-radius: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  &:hover .detail-hint {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  will-change: box-shadow;
 
   @media (max-width: 768px) {
+    width: 85%;
+    max-width: 280px;
     height: auto;
-    min-height: 400px;
-    max-width: 100%;
+    min-height: 300px;
+    padding-top: 70px;
   }
 
   &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
-  }
-  
-  &:active {
-    transform: scale(0.98);
-    transition: transform 0.1s;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
   }
 `
 
-// 프로필 이미지를 표시하는 원형 컨테이너
+// // 프로필 이미지를 표시하는 원형 컨테이너
+// export const ProfileImage = styled.div`
+//   position: relative;
+//   margin-bottom: 20px;
+//   width: 110px;
+//   height: 110px;
+//   background: #f0f0f0;
+//   border-radius: 20px;
+//   overflow: hidden;
+//   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+//   border: 5px solid white;
+//   z-index: 5;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+
+//   @media (max-width: 768px) {
+//     width: 100px;
+//     height: 100px;
+//     margin-bottom: 15px;
+//   }
+
+//   img {
+//     width: 100%;
+//     height: 100%;
+//     object-fit: cover;
+//     transition: transform 0.5s ease;
+//   }
+
+//   &:hover img {
+//     transform: scale(1.05);
+//   }
+// `
+
 export const ProfileImage = styled.div`
-  position: relative;
-  margin-bottom: 20px;
-  width: 110px;
-  height: 110px;
+  position: absolute;
+  top: -60px;
+  width: 100px;
+  height: 100px;
   background: #f0f0f0;
-  border-radius: 20px;
+  border-radius: 15px;
   overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-  border: 5px solid white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border: 4px solid white;
   z-index: 5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 
   @media (max-width: 768px) {
-    width: 100px;
-    height: 100px;
-    margin-bottom: 15px;
+    top: -50px;
+    width: 90px;
+    height: 90px;
   }
 
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.5s ease;
-  }
-
-  &:hover img {
-    transform: scale(1.05);
   }
 `
+
+// // 카드 내용을 감싸는 컨테이너
+// export const CardContent = styled.div`
+//   position: relative;
+//   width: 100%;
+//   height: 100%;
+//   display: flex;
+//   flex-direction: column;
+//   align-items: center;
+//   text-align: center;
+//   padding: 100px 20px 30px;
+//   z-index: 2;
+//   cursor: pointer;
+
+//   /* 클릭 효과 강화 */
+//   &:active {
+//     opacity: 0.8;
+//   }
+
+//   @media (max-width: 768px) {
+//     padding: 90px 20px 25px;
+//   }
+// `
 
 // 카드 내용을 감싸는 컨테이너
 export const CardContent = styled.div`
-  position: relative;
   width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   text-align: center;
-  padding: 100px 20px 30px;
-  z-index: 2;
-  cursor: pointer;
-  
-  /* 클릭 효과 강화 */
-  &:active {
-    opacity: 0.8;
-  }
-  
-  @media (max-width: 768px) {
-    padding: 90px 20px 25px;
-  }
+  padding-top: 8px;
 `
 
-// 이름 표시 스타일 - 더 모던한 타이포그래피
+// // 이름 표시 스타일 - 더 모던한 타이포그래피
+// export const Name = styled.h2`
+//   font-size: 1.5rem;
+//   font-weight: 600;
+//   color: #333;
+//   margin: 10px 0 5px;
+//   letter-spacing: -0.01em;
+//   width: 100%;
+//   text-align: center;
+//   text-overflow: ellipsis;
+//   overflow: hidden;
+//   white-space: nowrap;
+//   padding: 0 5px;
+// `
+
+// // 역할/소속 표시를 위한 태그 스타일 - 강조된 디자인
+// export const Role = styled.div`
+//   font-size: 0.95rem;
+//   color: #6161ff;
+//   font-weight: 500;
+//   background: #f0f0ff;
+//   padding: 3px 15px;
+//   border-radius: 30px;
+//   display: inline-block;
+//   margin-bottom: 18px;
+// `
+
+// // 설명 텍스트 스타일 - 가독성 개선
+// export const Description = styled.p`
+//   font-size: 0.95rem;
+//   color: #555;
+//   line-height: 1.6;
+//   margin: 5px 0 24px;
+//   text-align: left;
+//   padding: 0 5px;
+//   flex-grow: 1;
+//   max-height: 120px;
+//   overflow-y: auto;
+//   width: 100%;
+//   word-break: break-word;
+//   min-height: 80px;
+
+//   &::-webkit-scrollbar {
+//     width: 4px;
+//   }
+
+//   &::-webkit-scrollbar-thumb {
+//     background-color: rgba(0, 0, 0, 0.1);
+//     border-radius: 10px;
+//   }
+
+//   @media (max-width: 768px) {
+//     font-size: 0.9rem;
+//     max-height: 100px;
+//   }
+// `
+
+// 이름 표시 스타일
 export const Name = styled.h2`
   font-size: 1.5rem;
-  font-weight: 600;
   color: #333;
-  margin: 10px 0 5px;
-  letter-spacing: -0.01em;
-  width: 100%;
-  text-align: center;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-  padding: 0 5px;
+  margin-bottom: 5px;
 `
 
-// 역할/소속 표시를 위한 태그 스타일 - 강조된 디자인
+// 역할/소속 표시를 위한 태그 스타일
 export const Role = styled.div`
-  font-size: 0.95rem;
-  color: #6161FF;
-  font-weight: 500;
-  background: #f0f0ff;
-  padding: 3px 15px;
-  border-radius: 30px;
+  font-size: 1rem;
+  color: #666;
+  background: #e8f0fe;
+  padding: 5px 15px;
+  border-radius: 20px;
   display: inline-block;
-  margin-bottom: 18px;
+  margin-bottom: 15px;
 `
 
-// 설명 텍스트 스타일 - 가독성 개선
+// 설명 텍스트 스타일
 export const Description = styled.p`
-  font-size: 0.95rem;
-  color: #555;
-  line-height: 1.6;
-  margin: 5px 0 24px;
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.5;
+  margin-bottom: 15px;
   text-align: left;
-  padding: 0 5px;
-  flex-grow: 1;
-  max-height: 120px;
-  overflow-y: auto;
-  width: 100%;
-  word-break: break-word;
-  min-height: 80px;
-  
-  &::-webkit-scrollbar {
-    width: 4px;
-  }
-  
-  &::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
-  }
+  padding: 0 10px;
 
   @media (max-width: 768px) {
-    font-size: 0.9rem;
-    max-height: 100px;
+    font-size: 0.85rem;
   }
 `
 
@@ -282,7 +392,8 @@ export const ButtonContainer = styled.div`
   gap: 16px;
   justify-content: center;
   gap: 100px;
-  padding-top: 70px;
+  padding-top: 100px;
+  z-index: 1000;
 `
 
 // 이전/다음 버튼 스타일
@@ -298,7 +409,7 @@ export const Button = styled.button`
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
   cursor: pointer;
   transition: all 0.3s ease;
-  color: #4F4F4F;
+  color: #4f4f4f;
   font-size: 1.2rem;
 
   &:hover {
@@ -498,13 +609,13 @@ export const ModalContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
-  
+
   h2 {
     margin-top: 0.5rem;
     margin-bottom: 1rem;
     text-align: center;
   }
-  
+
   @media (max-width: 768px) {
     padding: 1.5rem;
     width: 95%;
@@ -874,7 +985,7 @@ export const BlurredText = styled.span`
   background: rgba(97, 97, 255, 0.1);
   border-radius: 4px;
   border: 1px dashed rgba(97, 97, 255, 0.3);
-  
+
   &::after {
     content: '크레딧 사용';
     position: absolute;
@@ -882,7 +993,7 @@ export const BlurredText = styled.span`
     left: 50%;
     transform: translate(-50%, -50%);
     background: rgba(255, 255, 255, 0.9);
-    color: #6161FF;
+    color: #6161ff;
     padding: 1px 6px;
     border-radius: 10px;
     font-size: 0.7rem;
@@ -891,11 +1002,11 @@ export const BlurredText = styled.span`
     opacity: 0;
     transition: opacity 0.2s ease;
   }
-  
+
   &:hover {
     filter: blur(3px);
     background: rgba(97, 97, 255, 0.15);
-    
+
     &::after {
       opacity: 1;
     }
@@ -943,14 +1054,19 @@ export const BlurredGroup = styled.div<{ isBlurred: boolean }>`
   filter: ${(props) => (props.isBlurred ? 'blur(4px)' : 'none')};
   user-select: ${(props) => (props.isBlurred ? 'none' : 'auto')};
   transition: all 0.3s ease;
-  background: ${(props) => (props.isBlurred ? 'rgba(97, 97, 255, 0.08)' : 'rgba(250, 250, 250, 0.8)')};
+  background: ${(props) =>
+    props.isBlurred ? 'rgba(97, 97, 255, 0.08)' : 'rgba(250, 250, 250, 0.8)'};
   padding: 12px;
   border-radius: 10px;
   margin-bottom: 12px;
   position: relative;
-  border: 1px solid ${(props) => (props.isBlurred ? 'rgba(97, 97, 255, 0.2)' : 'rgba(0, 0, 0, 0.05)')};
-  
-  ${(props) => props.isBlurred && `
+  border: 1px solid
+    ${(props) =>
+      props.isBlurred ? 'rgba(97, 97, 255, 0.2)' : 'rgba(0, 0, 0, 0.05)'};
+
+  ${(props) =>
+    props.isBlurred &&
+    `
     &::after {
       content: '크레딧 사용하여 연락처 보기';
       position: absolute;
@@ -978,7 +1094,7 @@ export const CreditButton = styled.button`
   transform: none;
   width: 100%;
   margin: 0.5rem 0 1rem;
-  background: linear-gradient(135deg, #6161FF 0%, #5050FF 100%);
+  background: linear-gradient(135deg, #6161ff 0%, #5050ff 100%);
   color: white;
   border: none;
   border-radius: 25px;
@@ -996,11 +1112,11 @@ export const CreditButton = styled.button`
   gap: 8px;
 
   &:hover:not(:disabled) {
-    background: linear-gradient(135deg, #5050FF 0%, #4040FF 100%);
+    background: linear-gradient(135deg, #5050ff 0%, #4040ff 100%);
     transform: translateY(-2px);
     box-shadow: 0 6px 15px rgba(97, 97, 255, 0.3);
   }
-  
+
   &:active:not(:disabled) {
     transform: translateY(0);
     box-shadow: 0 2px 8px rgba(97, 97, 255, 0.2);
@@ -1047,13 +1163,12 @@ export const LoadingContainer = styled.div`
   height: 300px;
   max-width: 500px;
   margin: 0 auto;
-  
+
   h3 {
     margin-bottom: 15px;
     color: #333;
     font-weight: 600;
   }
-  
 
   p {
     color: #666;
@@ -1140,8 +1255,12 @@ export const WaitingSpinner = styled.div`
   animation: waitingSpinner 1.5s linear infinite;
 
   @keyframes waitingSpinner {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 `
 
@@ -1161,7 +1280,7 @@ export const ActionButton = styled.button`
     background-color: #019999;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
-  
+
   &:disabled {
     background-color: #cccccc;
     cursor: not-allowed;
@@ -1193,13 +1312,13 @@ export const WaitingContainer = styled.div`
   height: 350px;
   max-width: 500px;
   margin: 0 auto;
-  
+
   h3 {
     margin-bottom: 15px;
     color: #333;
     font-weight: 600;
   }
-  
+
   p {
     color: #666;
     margin-bottom: 30px;

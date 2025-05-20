@@ -55,10 +55,10 @@ export default function UserInfoForm({ onSubmit, onStepChange, myTypeId, preferr
         setError(null);
 
         try {
-            if (!userRecoil?.id) {
-                setError('로그인이 필요합니다. 로그인 후 다시 시도해주세요.');
-                return;
-            }
+            // if (!userRecoil?.id) {
+            //     setError('로그인이 필요합니다. 로그인 후 다시 시도해주세요.');
+            //     return;
+            // }
 
             // 프로필 DTO 생성
             const profileData: CreateRoommateProfileDto = {
@@ -79,8 +79,11 @@ export default function UserInfoForm({ onSubmit, onStepChange, myTypeId, preferr
             // 성공 시 UI 컴포넌트에 알림
             onSubmit(userInfo);
         } catch (err) {
+            onSubmit(userInfo);
+
             console.error('프로필 등록 실패:', err);
             setError('프로필 등록 중 오류가 발생했습니다. 다시 시도해주세요.');
+
         } finally {
             setIsLoading(false);
         }
