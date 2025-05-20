@@ -11,10 +11,12 @@ export interface ChatMessage {
   createdAt: string;
   user?: {
     id: number;
-    name: string;
+    name?: string;
+    nickname?: string;
     profileImage?: string;
   };
   isFromCurrentUser?: boolean;
+  senderName?: string; // 캐시에 저장할 발신자 이름
 }
 
 export interface ChatParticipant {
@@ -26,9 +28,19 @@ export interface ChatParticipant {
   createdAt: string;
   user: {
     id: number;
-    name: string;
+    name?: string;
+    nickname?: string;
     profileImage?: string;
   };
+}
+
+// 사용자 상태 타입 정의
+interface UserState {
+  id: number;
+  email: string;
+  nickname?: string;
+  name?: string;
+  phoneNumber?: string;
 }
 
 class DeliveryChatService {
@@ -115,45 +127,75 @@ class DeliveryChatService {
       console.error('[DeliveryChat] 소켓 오류:', error);
     });
 
-    // 메시지 수신 이벤트 핸들러
+    // 새 메시지 수신 이벤트 핸들러 설정
+    this.setupMessageHandler();
+  }
+
+  private setupMessageHandler() {
+    if (!this.socket) return;
+
+    // 새 메시지 이벤트 핸들러
     this.socket.on('newMessage', (message: ChatMessage) => {
       console.log('[DeliveryChat] 새 메시지 수신:', message);
-      
-      // 비어있는 메시지 무시
-      if (!message || !message.message || !message.userId || !message.deliveryRoomId) {
-        console.warn('[DeliveryChat] 유효하지 않은 메시지 무시:', message);
-        return;
-      }
-      
+
       // 캐시에 메시지 추가
       if (!this.messageCache[message.deliveryRoomId]) {
         this.messageCache[message.deliveryRoomId] = [];
       }
-      
+
       // 현재 사용자 ID 가져오기
       const currentUser = this.getCurrentUser();
       // currentUser와 currentUser.id가 존재하는지 확인하여 TypeError 방지
-      const isFromCurrentUser = !!(currentUser && currentUser.id && message.userId === (currentUser.id + ''));
-      
+      const isFromCurrentUser = !!(currentUser && currentUser.id && message.userId === String(currentUser.id));
+
+      // 발신자 이름 결정 (메시지 저장을 위한 영구적인 정보)
+      let senderName: string | undefined;
+
+      // 1. 자신이 보낸 메시지
+      if (isFromCurrentUser && currentUser) {
+        message.senderName = '나'; // UI용 표시 이름
+
+        // 백엔드에 저장하기 위한 실제 발신자 정보 보존
+        if (!message.user) {
+          message.user = {
+            id: currentUser.id,
+            nickname: currentUser.nickname || ''
+          };
+        }
+      }
+      // 2. 다른 사용자가 보낸 메시지는 user 객체 사용
+      else if (message.user) {
+        senderName = message.user.nickname || message.user.name;
+        // 발신자 이름 캐싱
+        message.senderName = senderName;
+      }
+
       // 중복 메시지 체크 강화
-      const isDuplicate = this.messageCache[message.deliveryRoomId].some(msg => 
+      const isDuplicate = this.messageCache[message.deliveryRoomId].some(msg =>
         // ID가 같은 경우
         msg.id === message.id ||
         // 내용, 사용자, 시간이 비슷한 경우 (반복적인 소켓 이벤트 처리)
         (
-          msg.message === message.message && 
-          msg.userId === message.userId && 
+          msg.message === message.message &&
+          msg.userId === message.userId &&
           Math.abs(new Date(msg.createdAt).getTime() - new Date(message.createdAt).getTime()) < 2000
         )
       );
-      
+
       if (!isDuplicate) {
         // 자신이 보낸 메시지인지 표시
         message.isFromCurrentUser = isFromCurrentUser;
-        
+
+        console.log('[DeliveryChat] 캐시에 추가된 메시지 정보:', {
+          id: message.id,
+          발신자ID: message.userId,
+          발신자이름: message.senderName,
+          user정보: message.user
+        });
+
         // 캐시에 추가
         this.messageCache[message.deliveryRoomId].push(message);
-        
+
         // 리스너에게 알림
         const listener = this.messageListeners.get(message.deliveryRoomId);
         if (listener) {
@@ -161,27 +203,6 @@ class DeliveryChatService {
         }
       } else {
         console.log('[DeliveryChat] 중복 메시지 제외:', message.message);
-      }
-    });
-
-    // 참여자 목록 업데이트 이벤트 핸들러
-    this.socket.on('participantsUpdated', (participants: ChatParticipant[]) => {
-      console.log('[DeliveryChat] 참여자 목록 업데이트:', participants);
-      
-      if (!participants || !Array.isArray(participants) || participants.length === 0) {
-        console.warn('[DeliveryChat] 참여자 목록이 비어있거나 유효하지 않음');
-        return;
-      }
-      
-      // 현재 채팅방에 대한 리스너에게만 알림
-      const deliveryRoomId = participants[0].deliveryRoomId;
-      const listener = this.participantListeners.get(deliveryRoomId);
-      
-      if (listener) {
-        console.log(`[DeliveryChat] 방 ${deliveryRoomId}의 참여자 목록 업데이트 알림, 참여자 수: ${participants.length}`);
-        listener(participants);
-      } else {
-        console.log(`[DeliveryChat] 방 ${deliveryRoomId}의 참여자 목록 업데이트 무시 (리스너 없음)`);
       }
     });
   }
@@ -265,7 +286,7 @@ class DeliveryChatService {
           }
           resolve(true);
         }, 5000);
-        
+
         if (!this.socket) {
           clearTimeout(timeout);
           this.currentRoomId = null;
@@ -275,14 +296,14 @@ class DeliveryChatService {
 
         this.socket.emit('leaveRoom', { roomId }, (response: any) => {
           clearTimeout(timeout);
-          
+
           if (response && response.success) {
             console.log(`[DeliveryChat] 방 ${roomId}에서 나가기 성공`);
           } else {
             // 실패해도 클라이언트 측에서는 성공으로 처리
             console.log(`[DeliveryChat] 서버 응답 없음 또는 참여 정보를 찾을 수 없음. 로컬에서만 처리합니다.`);
           }
-          
+
           if (this.currentRoomId === roomId) {
             this.currentRoomId = null;
           }
@@ -317,17 +338,17 @@ class DeliveryChatService {
           return;
         }
 
-        this.socket.emit('sendMessage', { 
-          roomId, 
-          message: content 
+        this.socket.emit('sendMessage', {
+          roomId,
+          message: content
         }, (response: any) => {
           if (response.success) {
             console.log(`[DeliveryChat] 메시지 전송 성공`);
-            
+
             // 서버로부터 받은 메시지에 현재 사용자 플래그 추가
             const message = response.message;
             message.isFromCurrentUser = true;
-            
+
             resolve(message);
           } else {
             console.error(`[DeliveryChat] 메시지 전송 실패:`, response.message);
@@ -343,117 +364,161 @@ class DeliveryChatService {
 
   // 메시지 목록 가져오기
   async getMessages(roomId: string): Promise<ChatMessage[]> {
-    // 캐시된 메시지가 있으면 반환
-    if (this.messageCache[roomId] && this.messageCache[roomId].length > 0) {
-      return this.messageCache[roomId];
-    }
+    this.checkConnection();
 
-    if (!this.socket || !this.isConnected) {
-      console.error('[DeliveryChat] 소켓 연결이 없어 메시지를 가져올 수 없습니다');
-      return [];
-    }
-
-    try {
-      // 서버에 메시지 목록 요청
-      return new Promise((resolve) => {
-        if (!this.socket) {
-          resolve([]);
-          return;
-        }
-
+    return new Promise((resolve, reject) => {
+      if (this.socket) {
         this.socket.emit('getMessages', { roomId }, (response: any) => {
           if (response.success) {
-            console.log(`[DeliveryChat] 메시지 조회 성공: ${response.messages.length}개`);
-            
-            // 현재 사용자 ID
+            const messages = response.messages || [];
+            console.log('[DeliveryChat] 서버에서 가져온 메시지:', messages);
+
+            // 캐시 업데이트
+            if (!this.messageCache[roomId]) {
+              this.messageCache[roomId] = [];
+            }
+
+            // 현재 사용자 정보
             const currentUser = this.getCurrentUser();
-            
-            // 메시지에 현재 사용자 플래그 추가
-            const messages = response.messages.map((msg: ChatMessage) => ({
-              ...msg,
-              isFromCurrentUser: currentUser && msg.userId === currentUser.id.toString()
-            }));
-            
-            // 캐시에 저장
-            this.messageCache[roomId] = messages;
-            
-            resolve(messages);
+            const currentUserId = currentUser?.id;
+
+            // 메시지 처리 및 캐시에 추가
+            messages.forEach((message: ChatMessage) => {
+              // 자신이 보낸 메시지인지 확인
+              const isFromCurrentUser = currentUserId && message.userId === String(currentUserId);
+              message.isFromCurrentUser = isFromCurrentUser;
+
+              // 발신자 정보 보존 및 강화
+              if (message.user) {
+                // 백엔드에서 받은 user 객체에서 이름 정보 추출
+                message.senderName = message.user.nickname || message.user.name;
+              }
+
+              // 자신의 메시지는 '나'로 표시 (UI용)
+              if (isFromCurrentUser) {
+                message.senderName = '나';
+              }
+
+              // 중복 메시지 체크
+              const isDuplicate = this.messageCache[roomId].some(msg => msg.id === message.id);
+              if (!isDuplicate) {
+                this.messageCache[roomId].push(message);
+              }
+            });
+
+            // 시간순 정렬 (오래된 메시지가 위로)
+            this.messageCache[roomId].sort((a, b) =>
+              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+            );
+
+            console.log('[DeliveryChat] 최종 메시지 캐시:', this.messageCache[roomId]);
+            resolve(this.messageCache[roomId]);
           } else {
-            console.error(`[DeliveryChat] 메시지 조회 실패:`, response.message);
-            resolve([]);
+            reject(new Error(response.message || '메시지를 가져오는데 실패했습니다'));
           }
         });
-      });
-    } catch (error) {
-      console.error('[DeliveryChat] 메시지 조회 중 오류:', error);
-      return [];
+      } else {
+        reject(new Error('소켓 연결이 없습니다'));
+      }
+    });
+  }
+
+  // 참여자 목록 가져오기
+  async getParticipants(roomId: string): Promise<ChatParticipant[]> {
+    this.checkConnection();
+
+    if (!this.socket) {
+      return Promise.reject(new Error('소켓이 연결되어 있지 않습니다.'));
     }
+
+    return new Promise((resolve, reject) => {
+      this.socket!.emit('getRoomDetails', { roomId }, (response: any) => {
+        if (response.success && response.room && response.room.participants) {
+          const participants = response.room.participants;
+
+          // 참여자 정보 로깅 (디버깅용)
+          participants.forEach((p: ChatParticipant) => {
+            if (p.user) {
+              console.log(`[DeliveryChat] 참여자 ${p.id}: 이름=${p.user.nickname || p.user.name}, 유저ID=${p.userId}`);
+            }
+          });
+
+          console.log('[DeliveryChat] 참여자 목록 가져옴:', participants);
+          resolve(participants);
+        } else {
+          console.error('[DeliveryChat] 참여자 목록 실패:', response);
+          reject(new Error(response.message || '참여자 목록을 가져오는데 실패했습니다'));
+        }
+      });
+    });
   }
 
   // 새 메시지 리스너 등록
   onNewMessage(roomId: string, callback: (message: ChatMessage) => void): () => void {
     if (!roomId) {
       console.error('[DeliveryChat] 방 ID가 없어 리스너를 등록할 수 없습니다');
-      return () => {};
+      return () => { };
     }
 
     // 기존 리스너 삭제
     this.messageListeners.delete(roomId);
-    
+
     // 새 리스너 등록
     this.messageListeners.set(roomId, callback);
-    
+
     // 해제 함수 반환
     return () => {
       this.messageListeners.delete(roomId);
     };
   }
-  
-  // 참여자 목록 가져오기
-  async getParticipants(roomId: string): Promise<ChatParticipant[]> {
-    if (!this.socket || !this.isConnected) {
-      console.error('[DeliveryChat] 소켓 연결이 없어 참여자 목록을 가져올 수 없습니다');
-      return [];
+
+  // 참여자 목록 변경 리스너 등록
+  onParticipantsUpdated(roomId: string, callback: (participants: ChatParticipant[]) => void): () => void {
+    if (!roomId) {
+      console.error('[DeliveryChat] 방 ID가 없어 참여자 리스너를 등록할 수 없습니다');
+      return () => {};
     }
 
-    try {
-      return new Promise((resolve) => {
-        if (!this.socket) {
-          resolve([]);
+    // 기존 리스너 삭제
+    this.participantListeners.delete(roomId);
+
+    // 새 리스너 등록
+    this.participantListeners.set(roomId, callback);
+
+    // 참여자 목록 업데이트 이벤트 핸들러 (소켓에 직접 등록)
+    if (this.socket) {
+      this.socket.on('participantsUpdated', (participants: ChatParticipant[]) => {
+        console.log('[DeliveryChat] 참여자 목록 업데이트:', participants);
+        
+        if (!participants || !Array.isArray(participants) || participants.length === 0) {
+          console.warn('[DeliveryChat] 참여자 목록이 비어있거나 유효하지 않음');
           return;
         }
-
-        // 서버에 참여자 목록 요청
-        this.socket.emit('getParticipants', { roomId }, (response: any) => {
-          if (response.success && Array.isArray(response.participants)) {
-            console.log(`[DeliveryChat] 참여자 목록 가져오기 성공:`, response.participants.length);
-            resolve(response.participants);
-          } else {
-            console.error(`[DeliveryChat] 참여자 목록 가져오기 실패:`, response.message || '알 수 없는 오류');
-            resolve([]);
+        
+        // 현재 채팅방에 대한 리스너에게만 알림
+        const deliveryRoomId = participants[0].deliveryRoomId;
+        if (deliveryRoomId === roomId) {
+          const listener = this.participantListeners.get(deliveryRoomId);
+          
+          if (listener) {
+            listener(participants);
           }
-        });
-
-        // 타임아웃 처리 (3초)
-        setTimeout(() => {
-          console.warn('[DeliveryChat] 참여자 목록 요청 타임아웃');
-          resolve([]);
-        }, 3000);
+        }
       });
-    } catch (error) {
-      console.error('[DeliveryChat] 참여자 목록 가져오기 중 오류:', error);
-      return [];
     }
-  }
 
-  // 참여자 목록 업데이트 리스너 등록
-  onParticipantsUpdated(roomId: string, callback: (participants: ChatParticipant[]) => void): () => void {
-    this.participantListeners.set(roomId, callback);
-    
     // 해제 함수 반환
     return () => {
       this.participantListeners.delete(roomId);
+      // 소켓 리스너는 연결 해제시 함께 정리됨
     };
+  }
+
+  // 소켓 연결 상태 확인
+  private checkConnection() {
+    if (!this.socket || !this.isConnected) {
+      this.setupConnection();
+    }
   }
 }
 

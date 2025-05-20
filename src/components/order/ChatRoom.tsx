@@ -38,45 +38,57 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
   // 소켓 연결 상태
   const [isConnected, setIsConnected] = useState<boolean>(true);
   
-  // 참여자 이름 찾기 유틸리티 (개선된 버전)
-  const getParticipantName = useCallback((senderId: string) => {
-    // 현재 사용자인 경우 '나'로 바로 표시
-    if (senderId === currentUserId.toString()) {
-      return '나';
+  // 참여자 이름 가져오기 함수
+  const getParticipantName = useCallback((senderId: string): string => {
+    if (!senderId) {
+      return '사용자';
     }
     
-    // 참여자 목록에서 발신자 찾기
-    console.log('발신자 ID 조회:', senderId, '참여자 수:', localParticipants.length);
-    const participant = localParticipants.find(p => {
-      // 모든 ID 대조 시 문자열로 변환하여 비교
-      const pId = p.id?.toString() || '';
-      const pUserId = p.userId?.toString() || '';
-      const pUserObjId = p.user?.id?.toString() || '';
-      const sId = senderId?.toString() || '';
+    // 현재 사용자인 경우
+    if (senderId === String(currentUserId)) return '나';
+
+    try {
+      console.log(`발신자 이름 찾는 중: 발신자ID=${senderId}, 참여자 수=${localParticipants.length}`);
       
-      // 디버깅을 위한 로그
-      if (pId === sId || pUserId === sId || pUserObjId === sId) {
-        console.log('참여자 매칭 성공:', 
-          p.user?.nickname || p.name || '이름 없음');
+      // 참여자 목록에서 찾기
+      const participant = localParticipants.find(p => {
+        // 모든 ID를 문자열로 변환하여 비교 (더 안전한 방식)
+        const participantId = p.id ? String(p.id) : '';
+        const participantUserId = p.userId ? String(p.userId) : '';
+        const participantUserActualId = p.user?.id ? String(p.user.id) : '';
+        
+        // 디버깅용 로깅
+        if (participantId === senderId || participantUserId === senderId || participantUserActualId === senderId) {
+          console.log(`발신자 매칭 성공: ${participantId}, 사용자 정보=`, 
+            p.user ? `이름=${p.user.nickname}` : '사용자 정보 없음');
+        }
+        
+        return participantId === senderId || 
+               participantUserId === senderId || 
+               participantUserActualId === senderId;
+      });
+      
+      if (participant) {
+        // 사용자 정보가 있는 경우
+        if (participant.user) {
+          // nickname 사용
+          if (participant.user.nickname) {
+            return participant.user.nickname;
+          }
+        }
+        
+        // 이전 구조: participant에 직접 name이 있는 경우
+        if (participant.name) {
+          return participant.name;
+        }
       }
       
-      return pId === sId || pUserId === sId || pUserObjId === sId;
-    });
-    
-    if (participant) {
-      // 이름 정보를 찾는 여러 방법 시도 (개선된 버전)
-      const name = participant.user?.nickname || participant.name || '사용자';
-      return name;
+      return '사용자';
+    } catch (e) {
+      console.error('참여자 이름 가져오기 오류:', e);
+      return '사용자';
     }
-    
-    // 발신자가 시스템인 경우
-    if (senderId === 'system') {
-      return '시스템';
-    }
-    
-    return '사용자';
-  }, [localParticipants, currentUserId]);
-  
+  }, [currentUserId, localParticipants]);  
   // 참여자 목록 업데이트 핸들러
   const handleParticipantsUpdated = useCallback((participants: ChatParticipant[]) => {
     console.log('[ChatRoom] 참여자 목록 업데이트:', participants.length);
@@ -159,16 +171,57 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
         setLoading(true);
         const chatMessages = await deliveryChatService.getMessages(roomId);
         
+        console.log('불러온 메시지 데이터:', chatMessages);
+        
         // 소켓 메시지를 UI 메시지로 변환 (개선된 버전)
         const transformedMessages = (chatMessages || []).map(msg => {
-          const isFromCurrentUser = msg.isFromCurrentUser || msg.userId === currentUserId.toString();
+          console.log('처리할 메시지 원본:', msg);
+          
+          // 현재 로그인한 사용자의 메시지인지 확인
+          const isFromCurrentUser = msg.userId === String(currentUserId);
+          
+          // 발신자 이름 문제를 해결하기 위한 방법:
+          // 1. 이미 senderName이 저장되어 있는 경우 (캐시에 발신자 이름을 저장한 경우)
+          if (msg.senderName && !isFromCurrentUser) {
+            console.log('저장된 발신자 이름 사용:', msg.senderName);
+          }
+          
+          // 2. 사용자 정보가 있는 경우 (백엔드에서 보낸 사용자 정보)
+          if (msg.user) {
+            // 사용자 프로필 정보를 로그로 출력
+            console.log('메시지 사용자 프로필:', msg.user);
+          }
+
+          // 발신자 이름 처리 로직 (4단계 우선순위)
+          let senderName = '사용자';  // 기본값
+          
+          // 1. 자기자신의 메시지
+          if (isFromCurrentUser) {
+            senderName = '나';
+          }
+          // 2. 메시지에 이미 발신자 이름이 있는 경우
+          else if (msg.senderName) {
+            senderName = msg.senderName;
+          }
+          // 3. user 객체에 nickname이 있는 경우
+          else if (msg.user && msg.user.nickname) {
+            senderName = msg.user.nickname;
+          }
+          // 4. 참여자 목록에서 찾기
+          else {
+            const participantName = getParticipantName(msg.userId || '');
+            if (participantName !== '사용자') {
+              senderName = participantName;
+            }
+          }
+          
+          // 변환된 메시지 결과 출력
+          console.log(`메시지 우선순위 체크 결과: 발신자=${senderName}, 내가보낸메시지=${isFromCurrentUser}`);
+          
           return {
             id: msg.id || `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
             senderId: msg.userId || '',
-            // 발신자 이름 개선: 가장 우선 순위로 확인
-            senderName: isFromCurrentUser 
-              ? '나' 
-              : (msg.user?.name || getParticipantName(msg.userId || '')),
+            senderName,
             content: msg.message || '',
             timestamp: msg.createdAt || new Date().toISOString(),
             roomId: msg.deliveryRoomId || roomId,
