@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
 import styled from 'styled-components';
 import { ParticipantType, MessageType } from '../../pages/order/order-types';
 import deliveryChatService, { ChatMessage, ChatParticipant } from '../../services/delivery-chat.service';
@@ -28,10 +28,89 @@ const convertTimestampToDate = (timestamp: any): Date => {
   return new Date();
 };
 
+// 메시지 항목 최적화를 위한 메모이제이션된 컴포넌트
+const MessageItemMemo = memo(({ message, isCurrentUser, getParticipantName, currentUserId }: {
+  message: MessageType;
+  isCurrentUser: boolean;
+  getParticipantName: (senderId: string) => string;
+  currentUserId: string;
+}) => {
+  return (
+    <MessageItem 
+      key={message.id} 
+      $isCurrentUser={isCurrentUser}
+    >
+      <MessageHeader>
+        <strong>{message.senderName || getParticipantName(message.senderId)}</strong>
+        <span>{new Date(message.timestamp || Date.now()).toLocaleTimeString()}</span>
+      </MessageHeader>
+      <MessageBody $isCurrentUser={isCurrentUser}>
+        {message.content || ''}
+      </MessageBody>
+    </MessageItem>
+  );
+}, (prevProps, nextProps) => {
+  // props가 변경되지 않았으면 리렌더링하지 않음
+  return prevProps.message.id === nextProps.message.id &&
+         prevProps.isCurrentUser === nextProps.isCurrentUser &&
+         prevProps.getParticipantName === nextProps.getParticipantName &&
+         prevProps.currentUserId === nextProps.currentUserId;
+});
+MessageItemMemo.displayName = 'MessageItemMemo';
+
+// 채팅 입력 컴포넌트 추출 및 메모이제이션
+interface ChatInputProps {
+  newMessage: string;
+  onMessageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onKeyPress: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  onSendMessage: () => void;
+  isConnected: boolean;
+}
+
+const ChatInputMemo = memo(({ 
+  newMessage, 
+  onMessageChange, 
+  onKeyPress, 
+  onSendMessage, 
+  isConnected 
+}: ChatInputProps) => {
+  return (
+    <ChatInputArea>
+      <ConnectionStatus $isConnected={isConnected}>
+        {isConnected ? '🟢 연결됨' : '🔴 연결 끊김'}
+      </ConnectionStatus>
+      <InputWrapper>
+        <ChatInput 
+          type="text" 
+          placeholder="메시지 입력..."
+          value={newMessage}
+          onChange={onMessageChange}
+          onKeyPress={onKeyPress}
+          disabled={!isConnected}
+          autoComplete="off"
+          spellCheck="false"
+        />
+        <SendButton 
+          onClick={onSendMessage}
+          disabled={!newMessage.trim() || !isConnected}
+        >
+          전송
+        </SendButton>
+      </InputWrapper>
+    </ChatInputArea>
+  );
+});
+
+ChatInputMemo.displayName = 'ChatInputMemo';
+
 const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialParticipants, currentUserId, onClose }) => {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [localParticipants, setLocalParticipants] = useState<ParticipantType[]>(initialParticipants);
   const [newMessage, setNewMessage] = useState('');
+  // 입력 필드 상태 변경을 위한 최적화된 핸들러
+  const handleMessageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewMessage(e.target.value);
+  }, []);
   const [loading, setLoading] = useState<boolean>(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContentRef = useRef<HTMLDivElement>(null);
@@ -102,9 +181,12 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
     // 서버 데이터를 UI 형식으로 변환
     const transformedParticipants = participants.map(p => {
       // 유효한 사용자 정보가 있는지 확인
-      if (!p.user || !p.user.name) {
+      if (!p.user || (!p.user.name && !p.user.nickname)) {
         console.warn('사용자 정보가 없는 참여자:', p.id);
       }
+      
+      // 사용자 이름 결정 (nickname 우선, 없으면 name 사용)
+      const userName = p.user?.nickname || p.user?.name || '알 수 없음';
       
       return {
         id: p.id,
@@ -114,10 +196,10 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
         isPaid: false,
         amount: p.amount || 0,
         orderDetails: p.orderDetails || '',
-        name: p.user?.name || '알 수 없음',
+        name: userName,
         user: {
           id: p.user?.id || 0,
-          nickname: p.user?.name || '알 수 없음',
+          nickname: userName,
           kakaoId: ''
         }
       };
@@ -178,8 +260,8 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
         const transformedMessages = (chatMessages || []).map(msg => {
           console.log('처리할 메시지 원본:', msg);
           
-          // 현재 로그인한 사용자의 메시지인지 확인
-          const isFromCurrentUser = msg.userId === String(currentUserId);
+          // 현재 로그인한 사용자의 메시지인지 확인 (ID를 문자열로 변환하여 비교)
+          const isFromCurrentUser = String(msg.userId) === String(currentUserId);
           
           // 발신자 이름 문제를 해결하기 위한 방법:
           // 1. 이미 senderName이 저장되어 있는 경우 (캐시에 발신자 이름을 저장한 경우)
@@ -260,8 +342,8 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
       }
       
       // 메시지 객체 변환
-      // 발신자가 현재 사용자인지 확인 (toString 사용 시 안전하게)
-      const isFromCurrentUser = newMsg.userId === String(currentUserId);
+      // 발신자가 현재 사용자인지 확인 (항상 문자열로 변환하여 비교)
+      const isFromCurrentUser = String(newMsg.userId) === String(currentUserId);
       
       // 자신이 보낸 메시지의 중복 처리 확인
       if (isFromCurrentUser && messages.some(msg => 
@@ -278,9 +360,9 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
       if (isFromCurrentUser) {
         senderName = '나';
       }
-      // 2. user 객체에 name이 있는 경우 
-      else if (newMsg.user?.name) {
-        senderName = newMsg.user.name;
+      // 2. user 객체에 nickname이나 name이 있는 경우 
+      else if (newMsg.user?.nickname || newMsg.user?.name) {
+        senderName = newMsg.user.nickname || newMsg.user.name;
         console.log('사용자 이름 확인 (user 객체):', senderName);
       }
       // 3. 참여자 목록에서 이름 찾기
@@ -345,15 +427,15 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
     }
   }, [messages]);
   
-  // 스크롤을 하단으로 이동하는 함수
-  const scrollToBottom = (smooth = false) => {
+  // 스크롤을 하단으로 이동하는 함수 (최적화를 위해 useCallback으로 메모이제이션)
+  const scrollToBottom = useCallback((smooth = false) => {
     if (chatContentRef.current) {
       chatContentRef.current.scrollTo({
         top: chatContentRef.current.scrollHeight,
         behavior: smooth ? 'smooth' : 'auto'
       });
     }
-  };
+  }, []);
 
   // 메시지 보내기 함수
   const handleSendMessage = async () => {
@@ -415,46 +497,30 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
           <NoMessages>아직 메시지가 없습니다. 첫 채팅을 시작해보세요!</NoMessages>
         ) : (
           <MessageList>
-            {messages.map((message) => (
-              <MessageItem 
-                key={`${message.id}-${message.senderId}-${Math.random().toString(36).substring(2, 9)}`} 
-                $isCurrentUser={message.isFromCurrentUser || false}
-              >
-                <MessageHeader>
-                  <strong>{message.senderName || getParticipantName(message.senderId)}</strong>
-                  <span>{new Date(message.timestamp || Date.now()).toLocaleTimeString()}</span>
-                </MessageHeader>
-                <MessageBody $isCurrentUser={message.isFromCurrentUser || false}>
-                  {message.content || ''}
-                </MessageBody>
-              </MessageItem>
-            ))}
+            {messages.map((message) => {
+              const isMessageFromCurrentUser = message.isFromCurrentUser || String(message.senderId) === String(currentUserId);
+              return (
+                <MessageItemMemo
+                  key={`${message.id}-${message.senderId}`}
+                  message={message}
+                  isCurrentUser={isMessageFromCurrentUser}
+                  getParticipantName={getParticipantName}
+                  currentUserId={currentUserId}
+                />
+              );
+            })}
             <div ref={messagesEndRef} />
           </MessageList>
         )}
       </ChatContent>
       
-      <ChatInputArea>
-        <ConnectionStatus $isConnected={isConnected}>
-          {isConnected ? '🟢 연결됨' : '🔴 연결 끊김'}
-        </ConnectionStatus>
-        <InputWrapper>
-          <ChatInput 
-            type="text" 
-            placeholder="메시지 입력..."
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            disabled={!isConnected}
-          />
-          <SendButton 
-            onClick={handleSendMessage}
-            disabled={!newMessage.trim() || !isConnected}
-          >
-            전송
-          </SendButton>
-        </InputWrapper>
-      </ChatInputArea>
+      <ChatInputMemo 
+        newMessage={newMessage}
+        onMessageChange={handleMessageChange}
+        onKeyPress={handleKeyPress}
+        onSendMessage={handleSendMessage}
+        isConnected={isConnected}
+      />
     </ChatContainer>
   );
 };
@@ -648,18 +714,25 @@ const ChatInput = styled.input`
 const SendButton = styled.button`
   padding: 8px 16px;
   margin-left: 8px;
-  background-color: #007bff;
+  background-color: #26a69a; /* 파란색에서 민트색계열로 변경 */
   color: white;
   border: none;
   border-radius: 20px;
   cursor: pointer;
+  transition: all 0.2s ease;
   
   &:hover:not(:disabled) {
-    background-color: #0069d9;
+    background-color: #00897b; /* 호버 시 색상도 변경 */
+    transform: translateY(-2px);
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(0);
   }
   
   &:disabled {
-    background-color: #cccccc;
+    background-color: #b2dfdb; /* 비활성화 시 연한 민트색 */
+    opacity: 0.7;
     cursor: not-allowed;
   }
 `;
