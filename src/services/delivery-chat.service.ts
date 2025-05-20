@@ -183,6 +183,12 @@ class DeliveryChatService {
         // 발신자 이름 캐싱
         message.senderName = senderName;
       }
+      // 4. 발신자 정보가 전혀 없는 경우 '익명'으로 표시
+      else {
+        console.log('[DeliveryChat] 발신자 정보가 없어 익명으로 표시');
+        senderName = '익명';
+        message.senderName = '익명';
+      }
 
       // 중복 메시지 체크 강화
       const isDuplicate = this.messageCache[message.deliveryRoomId].some(msg =>

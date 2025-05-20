@@ -219,14 +219,34 @@ const deliveryRoomApi = {
   },
 
   // 주문방 채팅 메시지 전송하기
-  sendMessage: async (roomId: string, message: string) => {
+  sendMessage: async (roomId: string, message: string): Promise<boolean> => {
     try {
-      const response = await apiInstance.post(`/delivery-chat/${roomId}`, {
-        message,
-      });
-      return response.data;
+      const response = await apiInstance.post(`/delivery-room/${roomId}/messages`, { content: message });
+      return response.status === 201;
     } catch (error) {
       console.error('채팅 메시지 전송 오류:', error);
+      return false;
+    }
+  },
+  
+  // 공동주문 링크 저장하기
+  updateRoomLink: async (roomId: string, link: string): Promise<boolean> => {
+    try {
+      const response = await apiInstance.patch(`/delivery-room/${roomId}`, { orderLink: link });
+      return response.status === 200;
+    } catch (error) {
+      console.error('공동주문 링크 업데이트 오류:', error);
+      return false;
+    }
+  },
+  
+  // 공동주문 링크 가져오기
+  getRoomLink: async (roomId: string): Promise<string | null> => {
+    try {
+      const response = await apiInstance.get(`/delivery-room/${roomId}`);
+      return response.data.orderLink || null;
+    } catch (error) {
+      console.error('공동주문 링크 가져오기 오류:', error);
       return null;
     }
   },

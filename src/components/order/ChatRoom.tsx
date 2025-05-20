@@ -34,6 +34,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState<boolean>(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContentRef = useRef<HTMLDivElement>(null);
 
   // 소켓 연결 상태
   const [isConnected, setIsConnected] = useState<boolean>(true);
@@ -41,7 +42,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
   // 참여자 이름 가져오기 함수
   const getParticipantName = useCallback((senderId: string): string => {
     if (!senderId) {
-      return '사용자';
+      return '익명';
     }
     
     // 현재 사용자인 경우
@@ -83,10 +84,10 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
         }
       }
       
-      return '사용자';
+      return '익명';
     } catch (e) {
       console.error('참여자 이름 가져오기 오류:', e);
-      return '사용자';
+      return '익명';
     }
   }, [currentUserId, localParticipants]);  
   // 참여자 목록 업데이트 핸들러
@@ -193,7 +194,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
           }
 
           // 발신자 이름 처리 로직 (4단계 우선순위)
-          let senderName = '사용자';  // 기본값
+          let senderName = '익명';  // 기본값 (사용자 과 알 수 없음 대신 익명으로 대체)
           
           // 1. 자기자신의 메시지
           if (isFromCurrentUser) {
@@ -210,7 +211,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
           // 4. 참여자 목록에서 찾기
           else {
             const participantName = getParticipantName(msg.userId || '');
-            if (participantName !== '사용자') {
+            if (participantName !== '익명' && participantName !== '사용자') {
               senderName = participantName;
             }
           }
@@ -229,7 +230,13 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
           };
         });
         
+        // 시간순 정렬
         setMessages(transformedMessages);
+        
+        // 메시지 로드 후 스크롤 이동
+        setTimeout(() => {
+          scrollToBottom();
+        }, 100);
       } catch (error) {
         console.error('메시지 로드 실패:', error);
         // 오류 발생 시 기본 값으로 설정
@@ -320,8 +327,6 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
       });
     };
     
-    // 이 함수는 위로 이동했습니다.
-    
     // 소켓 이벤트 리스너 등록
     deliveryChatService.onNewMessage(roomId, handleNewMessage);
     deliveryChatService.onParticipantsUpdated(roomId, handleParticipantsUpdated);
@@ -340,8 +345,18 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
     }
   }, [messages]);
   
-  // 메시지 전송 처리
-  const handleSendMessage = useCallback(async () => {
+  // 스크롤을 하단으로 이동하는 함수
+  const scrollToBottom = (smooth = false) => {
+    if (chatContentRef.current) {
+      chatContentRef.current.scrollTo({
+        top: chatContentRef.current.scrollHeight,
+        behavior: smooth ? 'smooth' : 'auto'
+      });
+    }
+  };
+
+  // 메시지 보내기 함수
+  const handleSendMessage = async () => {
     if (!newMessage.trim() || !isConnected) return;
     
     try {
@@ -368,12 +383,16 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
       await deliveryChatService.sendMessage(roomId, newMessage);
       
       // 메시지 전송 성공 후 추가 작업 (필요한 경우)
+      // 메시지 보낸 후 스크롤 바로 이동
+      setTimeout(() => {
+        scrollToBottom(true);
+      }, 100); // 약간의 지연으로 UI 갱신 후 스크롤
     } catch (error) {
       console.error('메시지 전송 실패:', error);
       alert('메시지 전송에 실패했습니다.');
     }
-  }, [newMessage, roomId, currentUserId, isConnected]);
-  
+  };
+
   // 키보드 핸들러 - Enter 키로 메시지 전송
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -389,11 +408,11 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
         <CloseButton onClick={onClose}>X</CloseButton>
       </ChatHeader>
       
-      <ChatContent>
+      <ChatContent ref={chatContentRef}>
         {loading ? (
-          <LoadingText>메시지 로드 중...</LoadingText>
+          <LoadingText>메시지를 불러오는 중...</LoadingText>
         ) : messages.length === 0 ? (
-          <NoMessages>아직 메시지가 없습니다. 첫 메시지를 보내보세요!</NoMessages>
+          <NoMessages>아직 메시지가 없습니다. 첫 채팅을 시작해보세요!</NoMessages>
         ) : (
           <MessageList>
             {messages.map((message) => (
@@ -444,24 +463,28 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
 const ChatContainer = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100%;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  max-height: 600px; /* 채팅방 최대 높이 제한 - 더 크게 조정 */
+  height: 600px; /* 고정 높이 설정 - 더 크게 조정 */
+  border: 1px solid #e0f2f1; /* 미리 민트 계열 경계선 */
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 183, 170, 0.1);
+  background-color: #ffffff;
 `;
 
 const ChatHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #ddd;
+  padding: 15px 20px;
+  background-color: #26a69a; /* 메인 민트 계열 색상 */
+  border-bottom: 1px solid #b2dfdb;
   
   h2 {
     margin: 0;
     font-size: 1.2rem;
+    color: white;
+    font-weight: 500;
   }
 `;
 
@@ -470,18 +493,36 @@ const CloseButton = styled.button`
   border: none;
   font-size: 1.2rem;
   cursor: pointer;
-  color: #666;
+  color: white;
+  transition: all 0.2s ease;
   
   &:hover {
-    color: #333;
+    color: #e0f2f1;
+    transform: scale(1.1);
   }
 `;
 
 const ChatContent = styled.div`
   flex: 1;
-  padding: 15px;
+  padding: 20px;
   overflow-y: auto;
-  background-color: #fff;
+  background-color: #f5f5f5;
+  scroll-behavior: smooth;
+  
+  /* 스크롤바 스타일링 */
+  &::-webkit-scrollbar {
+    width: 8px;
+    background-color: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: #b2dfdb;
+    border-radius: 10px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
 `;
 
 const NoMessages = styled.div`
@@ -507,60 +548,95 @@ const LoadingText = styled.div`
 const MessageList = styled.div`
   display: flex;
   flex-direction: column;
+  padding: 5px 0;
 `;
 
 const MessageItem = styled.div<{ $isCurrentUser: boolean }>`
   max-width: 70%;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
   align-self: ${props => props.$isCurrentUser ? 'flex-end' : 'flex-start'};
+  animation: ${props => props.$isCurrentUser ? 'slideInRight' : 'slideInLeft'} 0.3s ease;
+  
+  @keyframes slideInRight {
+    from { transform: translateX(20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  
+  @keyframes slideInLeft {
+    from { transform: translateX(-20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
 `;
 
 const MessageHeader = styled.div`
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: 13px;
   margin-bottom: 4px;
+  font-weight: 500;
   
   span {
-    color: #999;
+    color: #757575;
     margin-left: 8px;
+    font-size: 11px;
+    align-self: flex-end;
   }
 `;
 
 const MessageBody = styled.div<{ $isCurrentUser: boolean }>`
-  padding: 8px 12px;
-  border-radius: 12px;
-  background-color: ${props => props.$isCurrentUser ? '#007bff' : '#f1f1f1'};
-  color: ${props => props.$isCurrentUser ? '#fff' : '#333'};
+  padding: 12px 16px;
+  border-radius: ${props => props.$isCurrentUser ? '18px 18px 0 18px' : '18px 18px 18px 0'};
+  background-color: ${props => props.$isCurrentUser ? '#26a69a' : '#e0f2f1'};
+  color: ${props => props.$isCurrentUser ? '#fff' : '#00695c'};
   word-break: break-word;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  line-height: 1.4;
+  position: relative;
 `;
 
 const ChatInputArea = styled.div`
-  padding: 10px;
-  background-color: #f8f9fa;
-  border-top: 1px solid #ddd;
+  padding: 15px;
+  background-color: #ffffff;
+  border-top: 1px solid #e0f2f1;
 `;
 
 const ConnectionStatus = styled.div<{ $isConnected: boolean }>`
   font-size: 12px;
   text-align: right;
-  margin-bottom: 5px;
-  color: ${props => props.$isConnected ? 'green' : 'red'};
+  margin-bottom: 8px;
+  color: ${props => props.$isConnected ? '#00897b' : '#e53935'};
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  
+  &:before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: ${props => props.$isConnected ? '#00897b' : '#e53935'};
+    margin-right: 6px;
+  }
 `;
 
 const InputWrapper = styled.div`
   display: flex;
+  align-items: center;
 `;
 
 const ChatInput = styled.input`
   flex: 1;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 20px;
+  padding: 12px 16px;
+  border: 1px solid #b2dfdb;
+  border-radius: 24px;
   outline: none;
+  transition: all 0.2s ease;
+  font-size: 14px;
   
   &:focus {
-    border-color: #007bff;
+    border-color: #26a69a;
+    box-shadow: 0 0 0 2px rgba(0, 150, 136, 0.2);
   }
   
   &:disabled {

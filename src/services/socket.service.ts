@@ -1,17 +1,17 @@
-import { io, Socket } from 'socket.io-client'
-import { userAtom } from '../atoms/userAtom'
-import { API_BASE_URL, SOCKET_URL } from '../config/api'
-import { getRecoil } from 'recoil-nexus'
+import { io, Socket } from 'socket.io-client';
+import { userAtom } from '../atoms/userAtom';
+import { API_BASE_URL, SOCKET_URL } from '../config/api';
+import { getRecoil } from 'recoil-nexus';
 
 class SocketService {
-  private socket: Socket | null = null
-  private isConnected = false
-  private reconnectAttempts = 0
-  private maxReconnectAttempts = 10
-  private reconnectInterval = 2000
-  private reconnectTimer: NodeJS.Timeout | null = null
-  private roomJoined: string | null = null
-  private eventListeners: Record<string, Array<(data: any) => void>> = {}
+  private socket: Socket | null = null;
+  private isConnected = false;
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 10;
+  private reconnectInterval = 2000;
+  private reconnectTimer: NodeJS.Timeout | null = null;
+  private roomJoined: string | null = null;
+  private eventListeners: Record<string, Array<(data: any) => void>> = {};
 
   connect(user?: any) {
     if (this.isConnected && this.socket) {
@@ -279,104 +279,121 @@ class SocketService {
     }
   }
 
-  // 소켓 연결 상태 확인
-  isSocketConnected() {
-    return this.isConnected && this.socket !== null
-}
-
-// 소켓 이벤트 수신 리스너 등록
-on(event: string, callback: (data: any) => void): () => void {
-  console.log(`[Socket] 이벤트 리스너 등록: ${event}`)
-
-  // 소켓이 없으면 자동으로 연결 시도
-  if (!this.socket) {
-    console.log('[Socket] 소켓이 초기화되지 않아 연결을 시도합니다.')
-    this.connect()
+    // 소켓 연결 상태 확인
+  isSocketConnected(): boolean {
+    return this.isConnected && this.socket !== null;
   }
 
-  // 이벤트 리스너 맵에 콜백 추가
-  if (!this.eventListeners[event]) {
-    this.eventListeners[event] = []
-  }
+  // 소켓 이벤트 수신 리스너 등록
+  on(event: string, callback: (data: any) => void): () => void {
+    console.log(`[Socket] 이벤트 리스너 등록: ${event}`);
 
-  // 중복 등록 방지
-  if (!this.eventListeners[event].includes(callback)) {
-    this.eventListeners[event].push(callback)
-  }
-
-  // 소켓이 연결되었는지 확인
-  if (this.isSocketConnected()) {
-    // 기존 리스너가 이미 있는지 확인
-    console.log(`[Socket] ${event} 이벤트 리스너 등록 시도`)
-    
-    // 해당 이벤트에 대한 기존 리스너 해제
-    this.socket?.off(event)
-    
-    // 새로운 이벤트 리스너 등록
-    this.socket?.on(event, (data: any) => {
-      console.log(`[Socket] 이벤트 수신: ${event}`, typeof data === 'object' ? JSON.stringify(data).substring(0, 100) : data)
-      
-      // 각 콜백을 호출하여 이벤트 데이터 공유
-      if (this.eventListeners[event]) {
-        this.eventListeners[event].forEach(cb => {
-          try {
-            cb(data)
-          } catch (error) {
-            console.error(`[Socket] 이벤트 처리 중 오류: ${event}`, error)
-          }
-        })
-      }
-    })
-    
-    console.log(`[Socket] ${event} 이벤트 리스너 등록 완료`)
-  } else {
-    console.warn(`[Socket] 소켓이 연결되지 않아 리스너만 등록함. 연결 후 자동으로 리스너 등록 예정`)
-  }
-
-  // 리스너 해제 함수 반환
-  return () => {
-    console.log(`[Socket] 이벤트 리스너 제거: ${event}`)
-    
-    // 리스너 제거
-    if (this.eventListeners[event]) {
-      this.eventListeners[event] = this.eventListeners[event].filter(
-        (cb) => cb !== callback,
-      )
+    // 소켓이 없으면 자동으로 연결 시도
+    if (!this.socket) {
+      console.log('[Socket] 소켓이 초기화되지 않아 연결을 시도합니다.');
+      this.connect();
     }
+
+    // 이벤트 리스너 맵에 콜백 추가
+    if (!this.eventListeners[event]) {
+      this.eventListeners[event] = [];
+    }
+
+    // 중복 등록 방지
+    if (!this.eventListeners[event].includes(callback)) {
+      this.eventListeners[event].push(callback);
+    }
+
+    // 소켓이 연결되었는지 확인
+    if (this.isSocketConnected()) {
+      // 기존 리스너가 이미 있는지 확인
+      console.log(`[Socket] ${event} 이벤트 리스너 등록 시도`);
+      
+      // 해당 이벤트에 대한 기존 리스너 해제
+      this.socket?.off(event);
+      
+      // 새로운 이벤트 리스너 등록
+      this.socket?.on(event, (data: any) => {
+        console.log(`[Socket] 이벤트 수신: ${event}`, typeof data === 'object' ? JSON.stringify(data).substring(0, 100) : data);
+        
+        // 각 콜백을 호출하여 이벤트 데이터 공유
+        if (this.eventListeners[event]) {
+          this.eventListeners[event].forEach(cb => {
+            try {
+              cb(data);
+            } catch (error) {
+              console.error(`[Socket] 이벤트 처리 중 오류: ${event}`, error);
+            }
+          });
+        }
+      });
+      
+      console.log(`[Socket] ${event} 이벤트 리스너 등록 완료`);
+    } else {
+      console.warn(`[Socket] 소켓이 연결되지 않아 리스너만 등록함. 연결 후 자동으로 리스너 등록 예정`);
+    }
+
+    // 리스너 해제 함수 반환
+    return () => {
+      console.log(`[Socket] 이벤트 리스너 제거: ${event}`);
+      
+      // 리스너 제거
+      if (this.eventListeners[event]) {
+        this.eventListeners[event] = this.eventListeners[event].filter(
+          (cb) => cb !== callback
+        );
+      }
+      
+      if (this.socket) {
+        this.socket.off(event);
+      }
+    };
   }
-}
 
-off(event: string) {
-  if (!this.socket) {
-    console.error('[Socket] 소켓이 초기화되지 않았습니다.')
-    return
+  // 이벤트 리스너 제거
+  off(event: string): void {
+    if (!this.socket) {
+      console.log('[Socket] 소켓이 초기화되지 않아 이벤트 리스너를 제거할 수 없습니다.');
+      return;
+    }
+    
+    this.socket.off(event);
+    delete this.eventListeners[event];
+    console.log(`[Socket] '${event}' 이벤트 리스너 제거 완료`);
   }
 
-  // 소켓에서 이벤트 리스너 제거
-  this.socket.off(event)
-
-  // 내부 관리 목록에서도 제거
-  if (this.eventListeners[event]) {
-    delete this.eventListeners[event]
-    console.log(`[Socket] '${event}' 이벤트 리스너 제거 완료`)
+  // 이벤트 리스너 추가(편의 함수)
+  addEventListener(event: string, callback: (data: any) => void): () => void {
+    return this.on(event, callback);
   }
-}
 
-getSocket() {
-  return this.socket
-}
+  // 이벤트 리스너 제거(편의 함수)
+  removeEventListener(event: string): void {
+    this.off(event);
+  }
 
-isConnectedToServer() {
-  return this.isConnected && this.socket !== null && this.socket.connected
-}
+  // 공동 주문 링크 업데이트 발송
+  sendRoomLinkUpdate(roomId: string, link: string): any {
+    const eventName = `room_link_update_${roomId}`;
+    return this.emit(eventName, { link: link });
+  }
 
-// 현재 참여 중인 방 ID 반환
-getCurrentRoom() {
-  return this.roomJoined
-}
+  // 소켓 연결 상태 확인
+  isConnectedToServer(): boolean {
+    return this.isConnected && this.socket !== null && this.socket.connected;
+  }
 
+  // 소켓 인스턴스 반환
+  getSocket(): Socket | null {
+    return this.socket;
+  }
+
+  // 현재 참여 중인 방 ID 반환
+  getCurrentRoom(): string | null {
+    return this.roomJoined;
+  }
 }
 
 // 싱글턴 인스턴스 생성
-const socketService = new SocketService()
-export default socketService
+const socketService = new SocketService();
+export default socketService;

@@ -323,24 +323,24 @@ const RoomDetail: React.FC<RoomDetailProps> = ({
 
   // 참여자 데이터 처리 로직
   useEffect(() => {
-    const participants = localRoomState.participants;
-    
+    const participants = localRoomState.participants
+
     // 참여자 데이터 처리는 그대로 유지 (디버깅 로그)
     if (participants && Array.isArray(participants)) {
-      console.log(`참여자 데이터 처리: ${participants.length}명`);
-      
+      console.log(`참여자 데이터 처리: ${participants.length}명`)
+
       // 사용자 이름 매핑 확인
-      participants.forEach(p => {
+      participants.forEach((p) => {
         if (p && p.user && p.user.nickname) {
           // 새 구조: user 객체 내부에 nickname이 있는 경우
-          console.log(`참여자 ID: ${p.id}, 이름: ${p.user.nickname}`);
+          console.log(`참여자 ID: ${p.id}, 이름: ${p.user.nickname}`)
         } else if (p && p.name) {
           // 이전 구조: participant에 직접 name이 있는 경우
-          console.log(`참여자 ID: ${p.id}, 이름: ${p.name}`);
+          console.log(`참여자 ID: ${p.id}, 이름: ${p.name}`)
         }
-      });
+      })
     }
-  }, [localRoomState.participants]);
+  }, [localRoomState.participants])
 
   // 방 상태 변경시 로컬 상태 업데이트
   useEffect(() => {
@@ -409,18 +409,295 @@ const RoomDetail: React.FC<RoomDetailProps> = ({
     )
   }
 
+  // 공동주문 링크 관리 상태 추가
+  const [orderLink, setOrderLink] = useState<string>('')
+  const [showLinkEditor, setShowLinkEditor] = useState<boolean>(false)
+  const [isLinkSaving, setIsLinkSaving] = useState<boolean>(false)
+  const [linkRegistered, setLinkRegistered] = useState<boolean>(false)
+
+  // 모든 참여자가 편집 가능하도록 변경
+  const isUserInTheRoom = Boolean(localRoomState.isJoined)
+  
+  // 디버깅을 위한 콘솔 로그
+  useEffect(() => {
+    console.log('[디버깅] 사용자 방 참여 상태:', isUserInTheRoom)
+    console.log('[디버깅] 링크 등록 상태:', linkRegistered)
+    console.log('[디버깅] 현재 링크:', orderLink)
+  }, [isUserInTheRoom, linkRegistered, orderLink])
+
+  // localStorage에서 링크 정보 불러오기
+  useEffect(() => {
+    // localStorage에서 방 ID에 해당하는 링크 가져오기
+    const checkLinkUpdate = () => {
+      console.log('[디버깅] localStorage 링크 확인 중...')
+      const savedLink = localStorage.getItem(`room_link_${room.id}`)
+      console.log('[디버깅] localStorage 링크 값:', savedLink)
+      
+      if (savedLink) {
+        setOrderLink(savedLink)
+        setLinkRegistered(true)
+        console.log('[디버깅] 링크 발견, 등록 완료 상태로 설정')
+      } else {
+        // 링크가 없는 경우 링크 미등록 상태로 설정
+        setLinkRegistered(false)
+        console.log('[디버깅] 링크 없음, 미등록 상태로 설정')
+      }
+    }
+    
+    // 초기 로딩 시 링크 확인
+    checkLinkUpdate()
+    
+    // 페이지가 포커스를 받을 때마다 링크 업데이트 확인 (다른 탭/창에서 업데이트 감지)
+    const handleFocus = () => {
+      checkLinkUpdate()
+    }
+    
+    window.addEventListener('focus', handleFocus)
+    
+    // 1초마다 주기적으로 localStorage 확인 (실시간 업데이트 시뮬레이션)
+    const intervalId = setInterval(checkLinkUpdate, 1000)
+    
+    // 컴포넌트 언마운트 시 이벤트 리스너와 인터벌 제거
+    return () => {
+      window.removeEventListener('focus', handleFocus)
+      clearInterval(intervalId)
+    }
+  }, [room.id])
+
+  // 링크 저장 함수 - localStorage 사용 (최초 등록 후 수정 불가)
+  const handleSaveLink = () => {
+    if (!isUserInTheRoom || linkRegistered) return
+
+    setIsLinkSaving(true)
+    try {
+      // 링크가 비어있지 않은 경우에만 저장
+      if (orderLink.trim()) {
+        // localStorage에 링크 저장
+        localStorage.setItem(`room_link_${room.id}`, orderLink)
+        // 링크 등록 완료 표시
+        setLinkRegistered(true)
+        setShowLinkEditor(false)
+        alert('링크가 저장되었습니다! 이후 수정이 불가합니다.')
+      } else {
+        alert('유효한 링크를 입력해주세요.')
+      }
+    } catch (error) {
+      console.error('링크 저장 오류:', error)
+      alert('링크 저장 중 오류가 발생했습니다.')
+    } finally {
+      setIsLinkSaving(false)
+    }
+  }
+
+  // 공동주문 링크 섹션 렌더링
+  const renderOrderLinks = () => {
+    // 디버깅을 위한 콘솔 로그 (렌더링 시점)
+    console.log('[디버깅] 링크 섹션 렌더링 - 사용자 방 참여:', isUserInTheRoom, '링크 등록 상태:', linkRegistered)
+    
+    return (
+      <InfoSection>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '15px',
+          }}
+        >
+          <InfoHeader>공동주문 링크</InfoHeader>
+          {isUserInTheRoom && !linkRegistered && (
+            <button
+              onClick={() =>
+                showLinkEditor ? handleSaveLink() : setShowLinkEditor(true)
+              }
+              style={{
+                backgroundColor: showLinkEditor ? '#00796b' : '#26a69a',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '8px 15px',
+                fontSize: '14px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                transition: 'all 0.2s ease',
+              }}
+              disabled={isLinkSaving}
+            >
+              {isLinkSaving ? '저장 중...' : showLinkEditor ? '저장' : '편집'}
+            </button>
+          )}
+          {isUserInTheRoom && linkRegistered && (
+            <div style={{ fontSize: '13px', color: '#555', fontStyle: 'italic' }}>
+              (한 번 등록된 링크는 수정할 수 없습니다)
+            </div>
+          )}
+        </div>
+
+        {showLinkEditor ? (
+          <div
+            style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
+          >
+            <div
+              style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+            >
+              <label
+                style={{ fontSize: '15px', color: '#00695c', fontWeight: 500 }}
+              >
+                공동주문 링크 입력
+              </label>
+              <div style={{ display: 'flex' }}>
+                <input
+                  type="url"
+                  placeholder="공동주문 링크를 입력해주세요 (예: https://baemin.com/share...)"
+                  value={orderLink}
+                  onChange={(e) => setOrderLink(e.target.value)}
+                  style={{
+                    padding: '12px 16px',
+                    border: '1px solid #b2dfdb',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    outline: 'none',
+                    flexGrow: 1,
+                  }}
+                />
+                <button
+                  onClick={() => setShowLinkEditor(false)}
+                  style={{
+                    backgroundColor: '#f5f5f5',
+                    color: '#777',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '8px 12px',
+                    marginLeft: '8px',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  취소
+                </button>
+              </div>
+              <div
+                style={{ fontSize: '13px', color: '#777', marginTop: '4px' }}
+              >
+                * 링크를 입력한 후 '저장' 버튼을 눌러 저장하세요. 입력한 링크는
+                다른 참여자들도 확인할 수 있습니다.
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div
+            style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
+          >
+            {orderLink ? (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '14px',
+                  backgroundColor: 'white',
+                  borderRadius: '10px',
+                  border: '1px solid #e0f2f1',
+                  boxShadow: '0 2px 5px rgba(0, 0, 0, 0.05)',
+                }}
+              >
+                <div style={{ fontSize: '22px', marginRight: '15px' }}>🍝</div>
+                <div
+                  style={{
+                    flex: 1,
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontWeight: 500,
+                      color: '#00695c',
+                      fontSize: '15px',
+                    }}
+                  >
+                    공동주문 링크
+                  </div>
+                  <a
+                    href={orderLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      color: '#26a69a',
+                      textDecoration: 'none',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      fontSize: '15px',
+                      fontWeight: 500,
+                    }}
+                  >
+                    {orderLink.length > 40
+                      ? `${orderLink.substring(0, 40)}...`
+                      : orderLink}
+                  </a>
+                </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(orderLink)
+                    alert('링크가 복사되었습니다!')
+                  }}
+                  style={{
+                    backgroundColor: '#e0f2f1',
+                    color: '#00695c',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '8px 14px',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    marginLeft: '10px',
+                  }}
+                >
+                  복사
+                </button>
+              </div>
+            ) : (
+              <div
+                style={{
+                  padding: '20px',
+                  backgroundColor: '#f7f7f7',
+                  borderRadius: '10px',
+                  color: '#555',
+                  fontSize: '15px',
+                  textAlign: 'center',
+                  border: '1px dashed #b2dfdb',
+                }}
+              >
+                {isUserInTheRoom
+                  ? '편집 버튼을 눌러 공동주문 링크를 추가해보세요!'
+                  : '아직 등록된 공동주문 링크가 없습니다.'}
+              </div>
+            )}
+          </div>
+        )}
+      </InfoSection>
+    )
+  }
+
   return (
     <Container>
       {renderHeader()}
       <MainContent>
-        {renderRoomInfo()}
-        {isUserInRoom && renderOrderSection()}
-        <ChatRoom
-          roomId={room.id}
-          participants={localRoomState.participants}
-          currentUserId={currentUserId}
-          onClose={onBack}
-        />
+        <LeftColumn>
+          {renderRoomInfo()}
+          {renderOrderLinks()}
+          {isUserInRoom && renderOrderSection()}
+        </LeftColumn>
+        <RightColumn>
+          <ChatRoom
+            roomId={room.id}
+            participants={localRoomState.participants}
+            currentUserId={currentUserId}
+            onClose={onBack}
+          />
+        </RightColumn>
       </MainContent>
       {showLeaveModal && (
         <ModalOverlay>
@@ -451,38 +728,48 @@ const Container = styled.div`
   height: 100%;
   max-width: 1200px;
   margin: 0 auto;
+  background-color: #f5f5f5;
 `
 
 const HeaderContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
+  padding: 18px 24px;
+  background-color: #26a69a;
+  border-bottom: 1px solid #b2dfdb;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `
 
 const BackButton = styled.button`
   background: none;
   border: none;
-  color: #444;
+  color: white;
   cursor: pointer;
   display: flex;
   align-items: center;
   font-size: 15px;
   font-weight: 500;
+  transition: all 0.2s ease;
 
   span {
     margin-right: 6px;
     font-size: 18px;
   }
+
+  &:hover {
+    transform: translateX(-3px);
+    opacity: 0.9;
+  }
 `
 
 const HeaderTitle = styled.h1`
   margin: 0;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
-  color: #444;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 `
 
 const HeaderActions = styled.div`
@@ -491,65 +778,128 @@ const HeaderActions = styled.div`
 
 const LeaveButton = styled.button`
   background: none;
-  border: 1px solid #e03131;
-  color: #e03131;
-  border-radius: 6px;
-  padding: 8px 12px;
+  border: 1px solid white;
+  color: white;
+  border-radius: 8px;
+  padding: 8px 14px;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    background-color: #e03131;
-    color: white;
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 `
 
 const MainContent = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 24px;
+  padding: 16px 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2열 그리드 레이아웃 */
+  gap: 20px;
+
+  /* 스크롤바 스타일 */
+  &::-webkit-scrollbar {
+    width: 8px;
+    background-color: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: #26a69a;
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr; /* 모바일에서는 단일 열로 변경 */
+  }
+`
+
+const LeftColumn = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
+`
+
+const RightColumn = styled.div`
+  display: flex;
+  flex-direction: column;
 `
 
 const InfoSection = styled.section`
   background-color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 183, 170, 0.1);
+  padding: 18px;
+  border: 1px solid #e0f2f1;
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 6px 16px rgba(0, 183, 170, 0.15);
+    transform: translateY(-2px);
+  }
 `
 
 const InfoHeader = styled.h2`
   margin: 0 0 16px 0;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
-  color: #444;
+  color: #00897b;
+  position: relative;
+  padding-bottom: 8px;
+
+  &:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 3px;
+    background-color: #26a69a;
+    border-radius: 3px;
+  }
 `
 
 const InfoRow = styled.div`
   display: flex;
   margin-bottom: 12px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #e0f2f1;
+  transition: all 0.2s ease;
 
   &:last-child {
     margin-bottom: 0;
     padding-bottom: 0;
     border-bottom: none;
   }
+
+  &:hover {
+    background-color: #f9fffd;
+  }
 `
 
 const InfoLabel = styled.div`
   flex: 0 0 120px;
   font-weight: 500;
-  color: #444;
+  color: #3e8e41;
+  font-size: 15px;
 `
 
 const InfoValue = styled.div`
   flex: 1;
-  color: #444;
+  color: #424242;
+  font-size: 15px;
+  line-height: 1.4;
 `
 
 const ParticipantsSection = styled.section`
@@ -563,37 +913,50 @@ const SectionTitle = styled.h2`
   margin: 0 0 16px 0;
   font-size: 18px;
   font-weight: 600;
-  color: #444;
+  color: #3e8e41;
 `
 
 const ParticipantsList = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
+  margin-top: 12px;
+  animation: fadeIn 0.5s ease;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 `
 
 const ParticipantItem = styled.div<{ $isCurrentUser?: boolean }>`
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
+  gap: 6px;
+  padding: 6px 12px;
   background-color: ${(props) =>
-    props.$isCurrentUser ? '#e3f9ff' : '#f8f9fa'};
-  border-radius: 20px;
-  border: ${(props) => (props.$isCurrentUser ? '1px solid #13cfb8' : 'none')};
+    props.$isCurrentUser ? '#e0f2f1' : '#f5f5f5'};
+  border-radius: 16px;
+  border: ${(props) => (props.$isCurrentUser ? '1px solid #26a69a' : 'none')};
+  font-size: 13px;
 `
 
 const UserAvatar = styled.div`
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background-color: #13cfb8;
+  background-color: #26a69a;
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 11px;
   font-weight: 600;
-  font-size: 14px;
 `
 
 const ParticipantName = styled.div`
@@ -601,14 +964,14 @@ const ParticipantName = styled.div`
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #444;
+  color: #424242;
 `
 
 const HostBadge = styled.span`
   font-size: 11px;
   padding: 2px 6px;
-  background-color: #ffe8cc;
-  color: #fd7e14;
+  background-color: #e0f2f1;
+  color: #00897b;
   border-radius: 4px;
   font-weight: 600;
 `
@@ -623,11 +986,11 @@ const JoinSection = styled.section`
 
 const JoinMessage = styled.p`
   margin: 0 0 16px 0;
-  color: #444;
+  color: #424242;
 `
 
 const JoinButton = styled.button`
-  background-color: #13cfb8;
+  background-color: #8bc34a;
   color: white;
   border: none;
   border-radius: 8px;
@@ -638,7 +1001,7 @@ const JoinButton = styled.button`
   transition: all 0.2s;
 
   &:hover {
-    background-color: #10b9a5;
+    background-color: #00897b;
     transform: translateY(-2px);
   }
 
@@ -647,11 +1010,9 @@ const JoinButton = styled.button`
   }
 `
 
-const OrderSection = styled.section`
-  background-color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  padding: 24px;
+const OrderSection = styled(InfoSection)`
+  margin-top: 16px;
+  background-color: #f7f7f7;
 `
 
 const OrderInputGroup = styled.div`
@@ -663,28 +1024,24 @@ const OrderInputLabel = styled.label`
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
-  color: #444;
+  color: #3e8e41;
 `
 
 const OrderInputField = styled.input`
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #ddd;
+  padding: 12px 14px;
+  border: 1px solid #8bc34a;
   border-radius: 8px;
   font-size: 15px;
-  color: #444;
-  background-color: #f8f9fa;
+  outline: none;
   transition: all 0.2s;
 
   &:focus {
-    outline: none;
-    border-color: #13cfb8;
-    background-color: #fff;
-    box-shadow: 0 0 0 3px rgba(19, 207, 184, 0.1);
+    border-color: #26a69a;
+    box-shadow: 0 0 0 2px rgba(0, 150, 136, 0.2);
   }
 
   &::placeholder {
-    color: #aaa;
+    color: #b0bec5;
   }
 `
 
@@ -692,45 +1049,50 @@ const InputAddon = styled.div`
   position: absolute;
   right: 16px;
   top: 40px;
-  color: #444;
+  color: #424242;
 `
 
 const OrderSummary = styled.div`
-  margin-top: 24px;
-  padding: 16px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
+  background-color: #e0f2f1;
+  padding: 18px;
+  border-radius: 12px;
+  margin-top: 20px;
+  box-shadow: 0 2px 6px rgba(0, 150, 136, 0.1);
+  border: 1px solid #8bc34a;
 `
 
 const SummaryItem = styled.div`
   display: flex;
   justify-content: space-between;
-  margin-bottom: 8px;
-  padding-bottom: 8px;
-  border-bottom: 1px dashed #eee;
+  margin-bottom: 10px;
+  font-size: 15px;
+  padding: 4px 0;
 `
 
 const SummaryLabel = styled.div`
-  font-size: 14px;
-  color: #444;
+  color: #3e8e41;
+  font-weight: 500;
 `
 
 const SummaryValue = styled.div`
-  font-size: 14px;
-  color: #444;
+  color: #424242;
+  font-weight: 500;
 `
 
 const SummaryTotal = styled.div`
   display: flex;
   justify-content: space-between;
-  margin-top: 8px;
-  padding-top: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #b2dfdb;
+  font-size: 16px;
   font-weight: 600;
 `
 
 const TotalValue = styled.div`
-  color: #13cfb8;
-  font-size: 16px;
+  color: #3e8e41;
+  font-size: 18px;
+  font-weight: 700;
 `
 
 const ChatSection = styled.section`
@@ -750,11 +1112,22 @@ const ModalOverlay = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.3s ease;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
 `
 
 const ModalContent = styled.div`
@@ -770,24 +1143,26 @@ const ModalTitle = styled.h3`
   margin: 0 0 16px 0;
   font-size: 18px;
   font-weight: 600;
-  color: #444;
+  color: #3e8e41;
 `
 
 const ModalMessage = styled.p`
   margin: 0 0 24px 0;
-  color: #444;
+  color: #424242;
   line-height: 1.5;
 `
 
 const ModalActions = styled.div`
   display: flex;
+  justify-content: flex-end;
   gap: 12px;
+  margin-top: 10px;
 `
 
 const ConfirmButton = styled.button`
   flex: 1;
   padding: 12px;
-  background-color: #e03131;
+  background-color: #f44336;
   color: white;
   border: none;
   border-radius: 8px;
