@@ -28,198 +28,214 @@ const RoomDetail: React.FC<RoomDetailProps> = ({
   const [orderAmount, setOrderAmount] = useState<number>(0)
   const [menuItems, setMenuItems] = useState<string>('')
   const [showLeaveModal, setShowLeaveModal] = useState<boolean>(false)
-  
+
   // 추가: 로컬 방 상태 관리 (참여자 목록 실시간 관리)
   const [localRoomState, setLocalRoomState] = useState<LocalRoomState>(() => ({
     participants: room?.participants || [],
-    isJoined: room?.participants?.some(p => p && p.id === currentUserId) || false
+    isJoined:
+      room?.participants?.some((p) => p && p.id === currentUserId) || false,
   }))
-  
+
   // 소켓 연결 상태 확인
   const [socketConnected, setSocketConnected] = useState<boolean>(false)
 
   // 소켓 초기화 및 이벤트 리스너 설정
   useEffect(() => {
-    console.log('방 상세 화면 소켓 연결 초기화 | 방 ID:', room?.id);
-    
+    console.log('방 상세 화면 소켓 연결 초기화 | 방 ID:', room?.id)
+
     // 소켓 연결 상태 확인 및 이벤트 관리
-    const socket = socketService.connect();
-    const isConnected = socketService.isConnectedToServer();
-    setSocketConnected(isConnected);
-    
+    const socket = socketService.connect()
+    const isConnected = socketService.isConnectedToServer()
+    setSocketConnected(isConnected)
+
     // 소켓 연결 상태 이벤트 등록 (재연결 대응)
     const connectionStateHandler = () => {
-      setSocketConnected(socketService.isConnectedToServer());
-      
+      setSocketConnected(socketService.isConnectedToServer())
+
       // 재연결이 이뤄질 경우, 방 재입장 자동화
       if (socketService.isConnectedToServer() && room?.id) {
-        console.log('소켓 연결 감지 - 방 재입장 시도');
-        socketService.joinRoom(room.id);
-        
+        console.log('소켓 연결 감지 - 방 재입장 시도')
+        socketService.joinRoom(room.id)
+
         // 참여자 정보 갱신 요청
-        socketService.emit('getParticipants', { roomId: room.id });
+        socketService.emit('getParticipants', { roomId: room.id })
       }
-    };
-    
+    }
+
     // 연결 상태 변경 리스너 등록
-    socketService.on('connect', connectionStateHandler);
-    socketService.on('disconnect', connectionStateHandler);
-    socketService.on('connect_error', connectionStateHandler);
-    
+    socketService.on('connect', connectionStateHandler)
+    socketService.on('disconnect', connectionStateHandler)
+    socketService.on('connect_error', connectionStateHandler)
+
     // 참여자 변경 이벤트 구독
-    socketService.on('participantsUpdated', (updatedParticipants: ParticipantType[]) => {
-      console.log('참여자 목록 업데이트 받음:', updatedParticipants);
-      if (Array.isArray(updatedParticipants)) {
-        setLocalRoomState(prev => {
-          // 참여자 정보와 현재 사용자 참여 여부 함께 확인 업데이트
-          const isCurrentUserJoined = updatedParticipants.some(
-            p => p && (p.id === currentUserId || 
-                      (p.userId && p.userId.toString() === currentUserId) ||
-                      (p.user && p.user.id.toString() === currentUserId))
-          );
-          
-          return {
-            participants: updatedParticipants,
-            isJoined: isCurrentUserJoined
-          };
-        });
-      }
-    });
-    
+    socketService.on(
+      'participantsUpdated',
+      (updatedParticipants: ParticipantType[]) => {
+        console.log('참여자 목록 업데이트 받음:', updatedParticipants)
+        if (Array.isArray(updatedParticipants)) {
+          setLocalRoomState((prev) => {
+            // 참여자 정보와 현재 사용자 참여 여부 함께 확인 업데이트
+            const isCurrentUserJoined = updatedParticipants.some(
+              (p) =>
+                p &&
+                (p.id === currentUserId ||
+                  (p.userId && p.userId.toString() === currentUserId) ||
+                  (p.user && p.user.id.toString() === currentUserId)),
+            )
+
+            return {
+              participants: updatedParticipants,
+              isJoined: isCurrentUserJoined,
+            }
+          })
+        }
+      },
+    )
+
     // 방 정보 변경 이벤트 구독
     socketService.on('roomUpdated', (updatedRoom: OrderRoomType) => {
-      console.log('방 정보 업데이트 받음:', updatedRoom);
+      console.log('방 정보 업데이트 받음:', updatedRoom)
       if (updatedRoom && updatedRoom.participants) {
-        setLocalRoomState(prev => {
+        setLocalRoomState((prev) => {
           // 참여자 정보와 현재 사용자 참여 여부 함께 확인 업데이트
           const isCurrentUserJoined = updatedRoom.participants.some(
-            p => p && (p.id === currentUserId || 
-                      (p.userId && p.userId.toString() === currentUserId) ||
-                      (p.user && p.user.id.toString() === currentUserId))
-          );
-          
+            (p) =>
+              p &&
+              (p.id === currentUserId ||
+                (p.userId && p.userId.toString() === currentUserId) ||
+                (p.user && p.user.id.toString() === currentUserId)),
+          )
+
           return {
             participants: updatedRoom.participants,
-            isJoined: isCurrentUserJoined
-          };
-        });
+            isJoined: isCurrentUserJoined,
+          }
+        })
       }
-    });
-    
+    })
+
     // 방 입장이 필요하면 개선된 joinRoom 함수 사용
     if (room?.id) {
-      socketService.joinRoom(room.id);
-      console.log('방 입장 요청:', room.id);
-      
+      socketService.joinRoom(room.id)
+      console.log('방 입장 요청:', room.id)
+
       // 방 입장 완료 후 초기 상태 갱신을 위한 참여자 정보 요청
       setTimeout(() => {
-        socketService.emit('getParticipants', { roomId: room.id });
-      }, 500);
+        socketService.emit('getParticipants', { roomId: room.id })
+      }, 500)
     }
-    
+
     // 컴포넌트 언마운트 시 이벤트 리스너 정리
     return () => {
-      socketService.off('connect');
-      socketService.off('disconnect');
-      socketService.off('connect_error');
-      socketService.off('participantsUpdated');
-      socketService.off('roomUpdated');
-      console.log('방 정보 이벤트 리스너 제거 완료');
-    };
-  }, [room?.id, currentUserId]); // room.id와 currentUserId가 변경될 때 갱신
-  
+      socketService.off('connect')
+      socketService.off('disconnect')
+      socketService.off('connect_error')
+      socketService.off('participantsUpdated')
+      socketService.off('roomUpdated')
+      console.log('방 정보 이벤트 리스너 제거 완료')
+    }
+  }, [room?.id, currentUserId]) // room.id와 currentUserId가 변경될 때 갱신
+
   // 방 입장 시 한 번만 자동 참여 처리 - 중복 참여 방지 기능 추가
   useEffect(() => {
     // 방 ID가 없거나 사용자 ID가 없으면 실행하지 않음
-    if (!room?.id || !currentUserId) return;
-    
+    if (!room?.id || !currentUserId) return
+
     // 이미 이 화면에서 참여 처리를 했다면 스킵
     if (localRoomState.isJoined) {
-      console.log('이미 참여 처리됨 - 중복 요청 방지');
-      return;
+      console.log('이미 참여 처리됨 - 중복 요청 방지')
+      return
     }
-    
+
     // 참여 여부 확인 및 참여 처리 함수
     const checkAndJoinRoom = async () => {
-      console.log('방 참여 여부 확인 및 참여 처리 시작');
-      
+      console.log('방 참여 여부 확인 및 참여 처리 시작')
+
       // 1. 방 참여자 목록에 현재 사용자가 있는지 확인 (ID 형식 모두 고려)
       if (room.participants && Array.isArray(room.participants)) {
-        const isInParticipantList = room.participants.some(p => 
-          p && (p.id === currentUserId || 
+        const isInParticipantList = room.participants.some(
+          (p) =>
+            p &&
+            (p.id === currentUserId ||
               (p.userId && p.userId.toString() === currentUserId) ||
-              (p.user && p.user.id && p.user.id.toString() === currentUserId))
-        );
-        
+              (p.user && p.user.id && p.user.id.toString() === currentUserId)),
+        )
+
         if (isInParticipantList) {
-          console.log('참여자 목록에서 현재 사용자 발견 - 이미 참여중');
-          setLocalRoomState(prev => ({ ...prev, isJoined: true }));
-          
+          console.log('참여자 목록에서 현재 사용자 발견 - 이미 참여중')
+          setLocalRoomState((prev) => ({ ...prev, isJoined: true }))
+
           // 로컬 스토리지에도 저장
           try {
-            const joinedRoomsStr = localStorage.getItem('joinedRooms');
-            const joinedRooms = joinedRoomsStr ? JSON.parse(joinedRoomsStr) : [];
+            const joinedRoomsStr = localStorage.getItem('joinedRooms')
+            const joinedRooms = joinedRoomsStr ? JSON.parse(joinedRoomsStr) : []
             if (!joinedRooms.includes(room.id)) {
-              localStorage.setItem('joinedRooms', JSON.stringify([...joinedRooms, room.id]));
+              localStorage.setItem(
+                'joinedRooms',
+                JSON.stringify([...joinedRooms, room.id]),
+              )
             }
           } catch (e) {
-            console.error('저장소 업데이트 오류:', e);
+            console.error('저장소 업데이트 오류:', e)
           }
-          return;
+          return
         }
       }
-      
+
       // 2. 로컬 스토리지에서 이미 참여한 방 ID 확인
       try {
-        const joinedRoomsStr = localStorage.getItem('joinedRooms');
-        const joinedRooms = joinedRoomsStr ? JSON.parse(joinedRoomsStr) : [];
-        
+        const joinedRoomsStr = localStorage.getItem('joinedRooms')
+        const joinedRooms = joinedRoomsStr ? JSON.parse(joinedRoomsStr) : []
+
         if (joinedRooms.includes(room.id)) {
-          console.log('로컬 스토리지에 이미 참여한 방으로 기록되어 있음');
-          setLocalRoomState(prev => ({ ...prev, isJoined: true }));
-          return;
+          console.log('로컬 스토리지에 이미 참여한 방으로 기록되어 있음')
+          setLocalRoomState((prev) => ({ ...prev, isJoined: true }))
+          return
         }
       } catch (e) {
-        console.error('저장된 참여방 정보 가져오기 오류:', e);
+        console.error('저장된 참여방 정보 가져오기 오류:', e)
       }
-      
+
       // 3. 위 두 조건 모두 해당되지 않으면 API를 통해 방 참여 시도
-      console.log('API를 통한 방 참여 시도:', room.id);
-      
+      console.log('API를 통한 방 참여 시도:', room.id)
+
       try {
         // API를 통해 방 참여 요청
-        const joined = await deliveryRoomApi.joinRoom(room.id);
-        
+        const joined = await deliveryRoomApi.joinRoom(room.id)
+
         if (joined) {
-          console.log('방 참여 성공!');
-          
+          console.log('방 참여 성공!')
+
           // 참여 상태 업데이트
-          setLocalRoomState(prev => ({
+          setLocalRoomState((prev) => ({
             ...prev,
-            isJoined: true
-          }));
-          
+            isJoined: true,
+          }))
+
           // 성공적으로 참여한 방 ID를 로컬 스토리지에 저장
           try {
-            const joinedRoomsStr = localStorage.getItem('joinedRooms');
-            const joinedRooms = joinedRoomsStr ? JSON.parse(joinedRoomsStr) : [];
+            const joinedRoomsStr = localStorage.getItem('joinedRooms')
+            const joinedRooms = joinedRoomsStr ? JSON.parse(joinedRoomsStr) : []
             if (!joinedRooms.includes(room.id)) {
-              localStorage.setItem('joinedRooms', JSON.stringify([...joinedRooms, room.id]));
+              localStorage.setItem(
+                'joinedRooms',
+                JSON.stringify([...joinedRooms, room.id]),
+              )
             }
           } catch (e) {
-            console.error('로컬 스토리지 저장 오류:', e);
+            console.error('로컬 스토리지 저장 오류:', e)
           }
         } else {
-          console.log('방 참여 실패 - 상태 갱신 실패');
+          console.log('방 참여 실패 - 상태 갱신 실패')
         }
       } catch (error) {
-        console.error('자동 참여 오류:', error);
+        console.error('자동 참여 오류:', error)
       }
-    };
-    
+    }
+
     // 참여 여부 확인 및 참여 처리 함수 호출
-    checkAndJoinRoom();
-  }, [room?.id, currentUserId, localRoomState.isJoined]);
+    checkAndJoinRoom()
+  }, [room?.id, currentUserId, localRoomState.isJoined])
 
   // room객체가 undefined일 경우 대비
   if (!room || !room.participants) {
@@ -238,7 +254,7 @@ const RoomDetail: React.FC<RoomDetailProps> = ({
   // 사용자 ID 중 undefined값이 있을 경우 오류 방지
   // 로컬 상태에서 참여자 정보 찾기
   const currentUserParticipant = localRoomState.participants.find(
-    (p) => p && p.id && p.id === currentUserId
+    (p) => p && p.id && p.id === currentUserId,
   )
   const isUserInRoom = localRoomState.isJoined
   const deliveryFeePerPerson =
@@ -284,7 +300,9 @@ const RoomDetail: React.FC<RoomDetailProps> = ({
         </InfoRow>
         <InfoRow>
           <InfoLabel>최소 주문 금액</InfoLabel>
-          <InfoValue>{(room?.minOrderAmount || 0).toLocaleString()}원</InfoValue>
+          <InfoValue>
+            {(room?.minOrderAmount || 0).toLocaleString()}원
+          </InfoValue>
         </InfoRow>
         <InfoRow>
           <InfoLabel>배달비</InfoLabel>
@@ -303,106 +321,50 @@ const RoomDetail: React.FC<RoomDetailProps> = ({
     )
   }
 
-  const renderParticipants = () => {
+  // 참여자 데이터 처리 로직
+  useEffect(() => {
     const participants = localRoomState.participants;
     
-    if (!participants || !Array.isArray(participants)) {
-      return (
-        <ParticipantsSection>
-          <SectionTitle>참여자 정보를 불러올 수 없습니다</SectionTitle>
-        </ParticipantsSection>
-      )
+    // 참여자 데이터 처리는 그대로 유지 (디버깅 로그)
+    if (participants && Array.isArray(participants)) {
+      console.log(`참여자 데이터 처리: ${participants.length}명`);
+      
+      // 사용자 이름 매핑 확인
+      participants.forEach(p => {
+        if (p && p.user && p.user.nickname) {
+          // 새 구조: user 객체 내부에 nickname이 있는 경우
+          console.log(`참여자 ID: ${p.id}, 이름: ${p.user.nickname}`);
+        } else if (p && p.name) {
+          // 이전 구조: participant에 직접 name이 있는 경우
+          console.log(`참여자 ID: ${p.id}, 이름: ${p.name}`);
+        }
+      });
     }
-    
-    // 참여자 디버깅 - 상세 정보 추가
-    console.log('현재 참여자 상세 데이터:', participants);
-    console.log('현재 참여자 구조 분석:', participants.map(p => ({
-      id: p.id,
-      // 중첩된 user 객체가 있는지 확인
-      hasUserObj: !!p.user,
-      userInfo: p.user ? {
-        id: p.user.id,
-        nickname: p.user.nickname,
-        kakaoId: p.user.kakaoId
-      } : '없음',
-      directName: p.name, // 이전 방식 (가능성 있음)
-      directAvatar: p.avatar // 이전 방식 (가능성 있음)
-    })));
-
-    return (
-      <ParticipantsSection>
-        <SectionTitle>참여자 ({participants.length}명)</SectionTitle>
-        <ParticipantsList>
-          {participants.map((participant, index) => {
-            // 확인: participant 객체가 정상인지
-            if (!participant) {
-              console.warn('잘못된 참여자 데이터:', participant);
-              return null;
-            }
-            
-            // 사용자 이름 가져오기 - 중첩된 user 객체 체크
-            // 참여자 데이터 구조가 다른 뤜가지 경우 모두 처리
-            let userName = '익명';
-            
-            // 새로운 구조: user 객체 내부에 nickname이 있는 경우
-            if (participant.user && participant.user.nickname) {
-              userName = participant.user.nickname;
-            }
-            // 이전 구조: participant에 직접 name이 있는 경우 (이전 API 호환성)
-            else if (participant.name) {
-              userName = participant.name;
-            }
-            
-            console.log(`참여자 표시: id=${participant.id}, 사용자 이름=${userName}, 데이터 구조=`, 
-              participant.user ? 'user 객체 있음' : '레거시 방식');
-            const isCurrentUser = participant.id === currentUserId;
-            const isHost = participant.id === room?.createdBy;
-            
-            return (
-              <ParticipantItem
-                key={`${room.id}-${participant.id || index}-${Date.now()}`}
-                $isCurrentUser={isCurrentUser}
-              >
-                <UserAvatar>
-                  {userName.charAt(0).toUpperCase()}
-                </UserAvatar>
-                <ParticipantName>
-                  {userName}
-                  {isCurrentUser && ' (나)'}
-                  {isHost && (
-                    <HostBadge>방장</HostBadge>
-                  )}
-                </ParticipantName>
-              </ParticipantItem>
-            );
-          })}
-        </ParticipantsList>
-      </ParticipantsSection>
-    )
-  }
+  }, [localRoomState.participants]);
 
   // 방 상태 변경시 로컬 상태 업데이트
   useEffect(() => {
     if (room && room.participants) {
       // 방 정보가 변경되면 참여자 정보 상세 로깅
-      console.log('방 정보 변경 -> 참여자 정보:', room.participants);
-      
+      console.log('방 정보 변경 -> 참여자 정보:', room.participants)
+
       // 참여자 정보가 유효한지 확인
-      const validParticipants = room.participants.filter(p => p && (p.id || (p.user && p.user.id)));
+      const validParticipants = room.participants.filter(
+        (p) => p && (p.id || (p.user && p.user.id)),
+      )
       if (validParticipants.length !== room.participants.length) {
-        console.warn('일부 유효하지 않은 참여자 정보가 제외됨');
+        console.warn('일부 유효하지 않은 참여자 정보가 제외됨')
       }
-      
-      setLocalRoomState(prev => ({
+
+      setLocalRoomState((prev) => ({
         ...prev,
         participants: validParticipants,
-        isJoined: validParticipants.some(p => p.id === currentUserId)
-      }));
+        isJoined: validParticipants.some((p) => p.id === currentUserId),
+      }))
     }
-  }, [room, currentUserId]);
+  }, [room, currentUserId])
 
   const renderOrderSection = () => {
-
     return (
       <OrderSection>
         <SectionTitle>내 주문 정보</SectionTitle>
@@ -452,7 +414,6 @@ const RoomDetail: React.FC<RoomDetailProps> = ({
       {renderHeader()}
       <MainContent>
         {renderRoomInfo()}
-        {renderParticipants()}
         {isUserInRoom && renderOrderSection()}
         <ChatRoom
           roomId={room.id}
@@ -616,9 +577,10 @@ const ParticipantItem = styled.div<{ $isCurrentUser?: boolean }>`
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background-color: ${props => props.$isCurrentUser ? '#e3f9ff' : '#f8f9fa'};
+  background-color: ${(props) =>
+    props.$isCurrentUser ? '#e3f9ff' : '#f8f9fa'};
   border-radius: 20px;
-  border: ${props => props.$isCurrentUser ? '1px solid #13cfb8' : 'none'};
+  border: ${(props) => (props.$isCurrentUser ? '1px solid #13cfb8' : 'none')};
 `
 
 const UserAvatar = styled.div`

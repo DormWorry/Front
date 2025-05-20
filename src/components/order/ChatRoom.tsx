@@ -38,32 +38,102 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
   // 소켓 연결 상태
   const [isConnected, setIsConnected] = useState<boolean>(true);
   
-  // 참여자 이름 찾기 유틸리티
+  // 참여자 이름 찾기 유틸리티 (개선된 버전)
   const getParticipantName = useCallback((senderId: string) => {
-    const participant = localParticipants.find(p => 
-      p.id === senderId || 
-      (p.userId !== undefined && p.userId.toString() === senderId) ||
-      (p.user && p.user.id && p.user.id.toString() === senderId)
-    );
-    if (participant) {
-      // 이름 정보를 찾는 여러 방법 시도
-      if (participant.name) {
-        return participant.name;
-      } else if (participant.user && participant.user.nickname) {
-        return participant.user.nickname; // UserType은 nickname을 사용함
-      }
+    // 현재 사용자인 경우 '나'로 바로 표시
+    if (senderId === currentUserId.toString()) {
+      return '나';
     }
-    return '알 수 없음';
-  }, [localParticipants]);
+    
+    // 참여자 목록에서 발신자 찾기
+    console.log('발신자 ID 조회:', senderId, '참여자 수:', localParticipants.length);
+    const participant = localParticipants.find(p => {
+      // 모든 ID 대조 시 문자열로 변환하여 비교
+      const pId = p.id?.toString() || '';
+      const pUserId = p.userId?.toString() || '';
+      const pUserObjId = p.user?.id?.toString() || '';
+      const sId = senderId?.toString() || '';
+      
+      // 디버깅을 위한 로그
+      if (pId === sId || pUserId === sId || pUserObjId === sId) {
+        console.log('참여자 매칭 성공:', 
+          p.user?.nickname || p.name || '이름 없음');
+      }
+      
+      return pId === sId || pUserId === sId || pUserObjId === sId;
+    });
+    
+    if (participant) {
+      // 이름 정보를 찾는 여러 방법 시도 (개선된 버전)
+      const name = participant.user?.nickname || participant.name || '사용자';
+      return name;
+    }
+    
+    // 발신자가 시스템인 경우
+    if (senderId === 'system') {
+      return '시스템';
+    }
+    
+    return '사용자';
+  }, [localParticipants, currentUserId]);
   
+  // 참여자 목록 업데이트 핸들러
+  const handleParticipantsUpdated = useCallback((participants: ChatParticipant[]) => {
+    console.log('[ChatRoom] 참여자 목록 업데이트:', participants.length);
+    
+    if (!participants || participants.length === 0) {
+      console.warn('참여자 정보가 없습니다.');
+      return;
+    }
+    
+    // 서버 데이터를 UI 형식으로 변환
+    const transformedParticipants = participants.map(p => {
+      // 유효한 사용자 정보가 있는지 확인
+      if (!p.user || !p.user.name) {
+        console.warn('사용자 정보가 없는 참여자:', p.id);
+      }
+      
+      return {
+        id: p.id,
+        userId: parseInt(p.userId, 10) || 0,
+        deliveryRoomId: p.deliveryRoomId,
+        joinedAt: p.createdAt || new Date().toISOString(),
+        isPaid: false,
+        amount: p.amount || 0,
+        orderDetails: p.orderDetails || '',
+        name: p.user?.name || '알 수 없음',
+        user: {
+          id: p.user?.id || 0,
+          nickname: p.user?.name || '알 수 없음',
+          kakaoId: ''
+        }
+      };
+    });
+    
+    console.log('변환된 참여자 데이터:', transformedParticipants);
+    setLocalParticipants(transformedParticipants);
+  }, []);
+
   // 채팅방 입장
   useEffect(() => {
     console.log('소켓을 통해 채팅방 입장 시도 | 방 ID:', roomId);
+    
+    // 다른 방에서 날아온 메시지 캐시 삭제
+    setMessages([]);
     
     deliveryChatService.joinRoom(roomId)
       .then(() => {
         console.log('채팅방 입장 성공');
         setIsConnected(true);
+        
+        // 채팅방 입장 후 참여자 목록 요청
+        deliveryChatService.getParticipants(roomId)
+          .then(participants => {
+            if (participants && participants.length > 0) {
+              handleParticipantsUpdated(participants);
+            }
+          })
+          .catch(err => console.error('참여자 목록 조회 오류:', err));
       })
       .catch(error => {
         console.error('채팅방 입장 실패:', error);
@@ -89,16 +159,22 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
         setLoading(true);
         const chatMessages = await deliveryChatService.getMessages(roomId);
         
-        // 소켓 메시지를 UI 메시지로 변환
-        const transformedMessages = (chatMessages || []).map(msg => ({
-          id: msg.id || `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-          senderId: msg.userId || '',
-          senderName: msg.user?.name || '',
-          content: msg.message || '',
-          timestamp: msg.createdAt || new Date().toISOString(),
-          roomId: msg.deliveryRoomId || roomId,
-          isFromCurrentUser: msg.isFromCurrentUser || msg.userId === currentUserId.toString()
-        }));
+        // 소켓 메시지를 UI 메시지로 변환 (개선된 버전)
+        const transformedMessages = (chatMessages || []).map(msg => {
+          const isFromCurrentUser = msg.isFromCurrentUser || msg.userId === currentUserId.toString();
+          return {
+            id: msg.id || `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            senderId: msg.userId || '',
+            // 발신자 이름 개선: 가장 우선 순위로 확인
+            senderName: isFromCurrentUser 
+              ? '나' 
+              : (msg.user?.name || getParticipantName(msg.userId || '')),
+            content: msg.message || '',
+            timestamp: msg.createdAt || new Date().toISOString(),
+            roomId: msg.deliveryRoomId || roomId,
+            isFromCurrentUser
+          };
+        });
         
         setMessages(transformedMessages);
       } catch (error) {
@@ -124,19 +200,59 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
       }
       
       // 메시지 객체 변환
+      // 발신자가 현재 사용자인지 확인 (toString 사용 시 안전하게)
+      const isFromCurrentUser = newMsg.userId === String(currentUserId);
+      
+      // 자신이 보낸 메시지의 중복 처리 확인
+      if (isFromCurrentUser && messages.some(msg => 
+        msg.content === newMsg.message && 
+        new Date(msg.timestamp).getTime() > Date.now() - 2000)) {
+        console.log('자신이 보낸 메시지가 서버에서 다시 전송됨, 무시함');
+        return;
+      }
+      
+      // 발신자 이름 확인 개선
+      let senderName = '사용자';
+      
+      // 1. 자신의 메시지인 경우
+      if (isFromCurrentUser) {
+        senderName = '나';
+      }
+      // 2. user 객체에 name이 있는 경우 
+      else if (newMsg.user?.name) {
+        senderName = newMsg.user.name;
+        console.log('사용자 이름 확인 (user 객체):', senderName);
+      }
+      // 3. 참여자 목록에서 이름 찾기
+      else {
+        const participantName = getParticipantName(newMsg.userId);
+        if (participantName !== '사용자') {
+          senderName = participantName;
+          console.log('참여자 목록에서 이름 찾음:', senderName);
+        }
+      }
+      
       const transformedMsg: MessageType = {
         id: newMsg.id || `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         senderId: newMsg.userId,
-        senderName: newMsg.user?.name || getParticipantName(newMsg.userId),
+        senderName,
         content: newMsg.message,
         timestamp: newMsg.createdAt || new Date().toISOString(),
         roomId: newMsg.deliveryRoomId,
-        isFromCurrentUser: newMsg.userId === currentUserId.toString()
+        isFromCurrentUser
       };
       
       // 중복 메시지 방지 처리
       setMessages(prevMsgs => {
-        if (prevMsgs.some(msg => msg.id === transformedMsg.id)) {
+        const isDuplicate = prevMsgs.some(msg => 
+          msg.id === transformedMsg.id || 
+          (msg.content === transformedMsg.content && 
+           msg.senderId === transformedMsg.senderId &&
+           Math.abs(new Date(msg.timestamp).getTime() - new Date(transformedMsg.timestamp).getTime()) < 2000)
+        );
+        
+        if (isDuplicate) {
+          console.log('중복 메시지 검출, 무시함:', transformedMsg);
           return prevMsgs;
         }
         
@@ -151,29 +267,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, participants: initialPartic
       });
     };
     
-    // 참여자 목록 업데이트 핸들러
-    const handleParticipantsUpdated = (participants: ChatParticipant[]) => {
-      console.log('[ChatRoom] 참여자 목록 업데이트:', participants.length);
-      
-      // 서버 데이터를 UI 형식으로 변환
-      const transformedParticipants = participants.map(p => ({
-        id: p.id,
-        userId: parseInt(p.userId, 10) || 0,
-        deliveryRoomId: p.deliveryRoomId,
-        joinedAt: p.createdAt || new Date().toISOString(),
-        isPaid: false,
-        amount: p.amount || 0,
-        orderDetails: p.orderDetails || '',
-        name: p.user?.name || '',
-        user: {
-          id: p.user?.id || 0,
-          nickname: p.user?.name || '',
-          kakaoId: ''
-        }
-      }));
-      
-      setLocalParticipants(transformedParticipants);
-    };
+    // 이 함수는 위로 이동했습니다.
     
     // 소켓 이벤트 리스너 등록
     deliveryChatService.onNewMessage(roomId, handleNewMessage);
