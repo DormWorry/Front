@@ -1,290 +1,475 @@
-import { useEffect, useState } from 'react';
-import { useCarousel } from '../../hooks/useCarousel';
-import { useCredits } from '../../hooks/matching/useCredits';
-import { useRoommateData } from '../../hooks/matching/useRoommateData';
-import roommateApi from '../../api/roommate';
+import React, { useEffect, useState } from 'react'
+import { useCredits } from '../../hooks/matching/useCredits'
+import { useRoommateData } from '../../hooks/matching/useRoommateData'
+import roommateApi from '../../api/roommate'
+import { RoommateProfile, RoommateType } from './types'
 import {
-    Container,
-    CarouselContainer,
-    Card,
-    Button,
-    ButtonContainer,
-    ProfileImage,
-    CardContent,
-    Name,
-    Role,
-    Description,
-    ContactInfo,
-    ModalOverlay,
-    ModalContent,
-    ModalClose,
-    TypeTitle,
-    TypeEmoji,
-    TraitList,
-    Trait,
-    TypeDescription,
-
-    LoadingContainer,
-    ErrorMessage,
-    SpinnerContainer,
-    WaitingSpinner,
-    ActionButton,
-    SecondaryButton,
-    ButtonGroup,
-    WaitingContainer,
-    NoMatchContainer
-} from './styles';
-import { RoommateProfile, RoommateType } from './types';
+  // 컴포넌트 모듈에서 필요한 컴포넌트들 가져오기
+  Button,
+  ErrorMessage,
+  WaitingContainer,
+  SpinnerContainer,
+  WaitingSpinner,
+  NoMatchContainer,
+  ButtonGroup,
+  ActionButton,
+  SecondaryButton as ComponentSecondaryButton,
+  Container,
+} from './components'
+import {
+  MatchingResultContainer,
+  SectionHeader,
+  MainTitle,
+  SubTitle,
+  FilterContainer,
+  FilterButton,
+  CardsGrid,
+  RoommateCard,
+  CardHeader,
+  CardPattern,
+  ProfileImageContainer,
+  ProfileImg,
+  CardBody,
+  RoommateInfo,
+  RoommateName,
+  DormitoryBadge,
+  IntroText,
+  PersonalityTypeContainer,
+  TypeHeader,
+  TypeEmoji,
+  TypeName,
+  TypeTraits,
+  TraitTag,
+  CardFooter,
+  ContactButton,
+  ModalBackdrop,
+  ModalContent,
+  ModalCloseButton,
+  ModalHeader,
+  ModalTitle,
+  ModalSubTitle,
+  DetailSection,
+  SectionTitle,
+  ContactSection,
+  ContactItem,
+  ContactIcon,
+  ContactText,
+  LoadingContainer,
+  WaitingSpinnerContainer,
+  Spinner,
+  ActionButtonsContainer,
+  PrimaryButton,
+  SecondaryButton,
+  NavButtonContainer,
+  NavButton,
+  EmptyStateContainer,
+  EmptyStateIcon,
+  EmptyStateText,
+  EmptyStateSubText,
+  NoMoreCard,
+} from './matchingCardStyles'
 
 interface Props {
-    selectedType: RoommateType;
+  selectedType: RoommateType
 }
 
 const CardCarousel = ({ selectedType }: Props) => {
-    // 매칭 대기 상태 관리 - 모든 useState 훅을 최상단에 배치
-    const [isWaiting, setIsWaiting] = useState<boolean>(true);
-    const [noMatchFound, setNoMatchFound] = useState<boolean>(false);
+  // 매칭 대기 상태 관리
+  const [isWaiting, setIsWaiting] = useState<boolean>(true)
+  const [noMatchFound, setNoMatchFound] = useState<boolean>(false)
+  const [selectedProfile, setSelectedProfile] =
+    useState<RoommateProfile | null>(null)
+  const [currentPage, setCurrentPage] = useState<number>(1)
+  const [filteredProfiles, setFilteredProfiles] = useState<RoommateProfile[]>(
+    [],
+  )
+  const [activeFilter, setActiveFilter] = useState<string>('all')
+  const [showContactInfo, setShowContactInfo] = useState<
+    Record<string, boolean>
+  >({})
 
-    // 백엔드에서 프로필 데이터 가져오기
-    const { profiles = [], loading, error } = useRoommateData({
-        preferredType: selectedType?.id // 사용자가 선택한 유형으로 정렬
-    }) || { profiles: [], loading: false, error: null };
+  // 백엔드에서 프로필 데이터 가져오기
+  const {
+    profiles = [],
+    loading,
+    error,
+  } = useRoommateData({
+    preferredType: selectedType?.id, // 사용자가 선택한 유형으로 정렬
+  }) || { profiles: [], loading: false, error: null }
 
-    const {
-        activeIndex,
-        selectedCard,
-        isMobile,
-        handlePrevClick,
-        handleNextClick,
-        handleCardClick,
-        handleCloseModal,
-        getCardStyle,
-        setTotalCards
-    } = useCarousel((profiles && profiles.length) || 0);
+  // 크레딧 시스템 훅 사용
+  const { credits, useCredit, isRevealed } = useCredits()
 
-    // 총 카드 수 업데이트
-    useEffect(() => {
-        if (profiles.length > 0) {
-            setTotalCards(profiles.length);
-        }
-    }, [profiles.length, setTotalCards]);
+  // 프로필이 없을 때 10초 대기 후 매칭 실패 메시지 표시
+  useEffect(() => {
+    if (!loading && profiles.length === 0) {
+      setIsWaiting(true)
+      const timer = setTimeout(() => {
+        setIsWaiting(false)
+        setNoMatchFound(true)
+      }, 10000) // 10초 대기
 
-    // 크레딧 시스템 훅 사용
-    const { credits, useCredit, isRevealed } = useCredits();
+      return () => clearTimeout(timer)
+    } else {
+      setIsWaiting(false)
+      setNoMatchFound(false)
+      // 초기 필터링된 프로필 설정
+      setFilteredProfiles(profiles)
+    }
+  }, [loading, profiles])
 
-    // 크레딧 사용 핸들러
-    const handleUseCredit = (profileId: number | string | null) => {
-        if (profileId) {
-            useCredit(profileId);
-        }
-    };
+  // 필터 변경 시 프로필 필터링
+  const handleFilterChange = (filter: string) => {
+    setActiveFilter(filter)
+    setCurrentPage(1)
 
-    // 모바일일 때만 화면에 표시될 카드를 필터링하는 함수
-    const getCardsToRender = () => {
-        if (!profiles || !profiles.length) return [];
+    if (filter === 'all') {
+      setFilteredProfiles(profiles)
+    } else if (filter === 'dormitory') {
+      // 같은 기숙사 필터링
+      const currentUserDorm = profiles.find((p) => p.dormitory)?.dormitory?.id
+      setFilteredProfiles(
+        profiles.filter((p) => p.dormitory?.id === currentUserDorm),
+      )
+    } else if (filter === 'recent') {
+      // 최근 추가된 순으로 정렬
+      setFilteredProfiles(
+        [...profiles].sort((a, b) => {
+          return (
+            new Date(b.createdAt || 0).getTime() -
+            new Date(a.createdAt || 0).getTime()
+          )
+        }),
+      )
+    }
+  }
 
-        if (!isMobile) {
-            return [...profiles];
-        }
+  // 프로필 상세 보기
+  const handleViewProfile = (profile: RoommateProfile) => {
+    setSelectedProfile(profile)
+  }
 
-        // 모바일인 경우: 현재 카드 및 전후 카드만 표시
-        const visibleRange = 1; // 현재 카드 기준으로 양쪽으로 보여줄 카드 수
-        return profiles.filter((_, index) =>
-            Math.abs(index - activeIndex) <= visibleRange ||
-            (activeIndex === 0 && index === profiles.length - 1) ||
-            (activeIndex === profiles.length - 1 && index === 0)
-        );
-    };
+  // 모달 닫기
+  const handleCloseModal = () => {
+    setSelectedProfile(null)
+  }
 
-    // 프로필 찾는 함수 추가
-    const findSelectedProfile = (profiles: RoommateProfile[], selectedCardId: string | number | null) => {
-        if (!selectedCardId) return null;
-        return profiles.find(profile => profile.id === String(selectedCardId));
-    };
+  // 연락처 정보 확인 시 크레딧 사용
+  const handleContactReveal = (profileId: string) => {
+    useCredit(profileId)
+    setShowContactInfo((prev) => ({
+      ...prev,
+      [profileId]: true,
+    }))
+  }
 
-    // 프로필이 없을 때 10초 대기 후 매칭 실패 메시지 표시
-    useEffect(() => {
-        if (!loading && profiles.length === 0) {
-            setIsWaiting(true);
-            const timer = setTimeout(() => {
-                setIsWaiting(false);
-                setNoMatchFound(true);
-            }, 10000); // 10초 대기
+  // 홈으로 돌아가기
+  const handleGoHome = () => {
+    window.location.href = '/main'
+  }
 
-            return () => clearTimeout(timer);
+  // 다시 검색하기
+  const handleRetry = () => {
+    setIsWaiting(true)
+    setNoMatchFound(false)
+
+    // 프로필 새로 불러오기
+    roommateApi
+      .getProfiles({ preferredType: selectedType?.id })
+      .then((newProfiles) => {
+        if (newProfiles && newProfiles.length > 0) {
+          setIsWaiting(false)
+          setFilteredProfiles(newProfiles)
         } else {
-            setIsWaiting(false);
-            setNoMatchFound(false);
+          setTimeout(() => {
+            setIsWaiting(false)
+            setNoMatchFound(true)
+          }, 10000)
         }
-    }, [loading, profiles.length]);
+      })
+      .catch((err) => {
+        console.error('API 호출 오류:', err)
+        setIsWaiting(false)
+        setNoMatchFound(true)
+      })
+  }
 
-    // 로딩 중일 때
-    if (loading) {
-        return (
-            <LoadingContainer>
-                <h3>룸메이트 프로필을 불러오는 중...</h3>
-                <p>잠시만 기다려주세요.</p>
-            </LoadingContainer>
-        );
-    }
-
-    // 오류 발생 시
-    if (error) {
-        return (
-            <ErrorMessage>
-                <h3>오류가 발생했습니다</h3>
-                <p>{error}</p>
-                <Button onClick={() => window.location.reload()}>다시 시도</Button>
-            </ErrorMessage>
-        );
-    }
-
-    // 홈으로 돌아가기
-    const handleGoHome = () => {
-        window.location.href = '/';
-    };
-
-    // 다시 검색하기 - API 다시 호출
-    const handleRetry = () => {
-        setIsWaiting(true);
-        setNoMatchFound(false);
-
-        // 프로필 새로 불러오기 - API 재호출
-        roommateApi.getProfiles({ preferredType: selectedType?.id })
-            .then(newProfiles => {
-                if (newProfiles && newProfiles.length > 0) {
-                    // 매칭된 프로필이 있으면 표시
-                    setIsWaiting(false);
-                } else {
-                    // 매칭된 프로필이 없으면 대기 후 실패 메시지 표시
-                    setTimeout(() => {
-                        setIsWaiting(false);
-                        setNoMatchFound(true);
-                    }, 10000);
-                }
-            })
-            .catch(err => {
-                console.error('API 호출 오류:', err);
-                setIsWaiting(false);
-                setNoMatchFound(true);
-            });
-    };
-
-    // 대기 중인 경우
-    if (isWaiting && profiles.length === 0) {
-        return (
-            <WaitingContainer>
-                <h3>룸메이트 매칭을 기다리고 있어요</h3>
-                <p>매칭되는 룸메이트를 찾고 있습니다...</p>
-                <SpinnerContainer>
-                    <WaitingSpinner />
-                </SpinnerContainer>
-            </WaitingContainer>
-        );
-    }
-
-    // 매칭을 찾지 못한 경우
-    if (noMatchFound && profiles.length === 0) {
-        return (
-            <NoMatchContainer>
-                <h3>적합한 룸메이트를 찾지 못했어요</h3>
-                <p>아직 현재 유형에 매칭되는 룸메이트가 없습니다. 다시 시도해보세요.</p>
-                <ButtonGroup>
-                    <ActionButton onClick={handleRetry}>다시 검색하기</ActionButton>
-                    <SecondaryButton onClick={handleGoHome}>홈으로 돌아가기</SecondaryButton>
-                </ButtonGroup>
-            </NoMatchContainer>
-        );
-    }
-
-    // 프로필이 없는 경우 (대기 상태가 아닐 때)
-    if (profiles.length === 0) {
-        return (
-            <Container>
-                <h3>아직 등록된 룸메이트 프로필이 없습니다</h3>
-                <p>첫 번째 프로필을 등록해보세요!</p>
-            </Container>
-        );
-    }
-
+  // 로딩 중일 때
+  if (loading) {
     return (
-        <Container>
-            <CarouselContainer style={isMobile ? { transformStyle: 'flat' } : undefined}>
-                {getCardsToRender().map((profile) => (
-                    <Card
-                        key={profile.id}
-                        onClick={() => handleCardClick(profile.id)}
-                        style={getCardStyle(profiles.findIndex(p => p.id === profile.id))}
-                    >
-                        <ProfileImage>
-                            <img src="/user.png" alt={profile.user?.nickname || '사용자'} />
-                        </ProfileImage>
-                        <CardContent>
-                            <Name>{profile.user?.nickname || '사용자'}</Name>
-                            <Role>
-                                {profile.dormitory?.name || profile.dormitoryId}
-                            </Role>
-                            <Description>{profile.introduction}</Description>
-                            <TypeTitle style={{ fontSize: '1rem', paddingTop: '10px', marginBottom: '5px' }}>
-                                <TypeEmoji style={{ fontSize: '1.2rem' }}>
-                                    {profile.myPersonalityType?.emoji || selectedType.emoji}
-                                </TypeEmoji>
-                                {profile.myPersonalityType?.title || selectedType.title}
-                            </TypeTitle>
-                            <TypeDescription style={{ fontSize: '0.7rem', margin: '0', maxHeight: '60px', overflow: 'hidden' }}>
-                                {profile.myPersonalityType?.description || selectedType.description}
-                            </TypeDescription>
-                        </CardContent>
+      <LoadingContainer>
+        <h3>룸메이트 프로필을 불러오는 중...</h3>
+        <p>잠시만 기다려주세요.</p>
+      </LoadingContainer>
+    )
+  }
 
+  // 오류 발생 시
+  if (error) {
+    return (
+      <ErrorMessage>
+        <h3>오류가 발생했습니다</h3>
+        <p>{error}</p>
+        <Button onClick={() => window.location.reload()}>다시 시도</Button>
+      </ErrorMessage>
+    )
+  }
 
-                    </Card>
+  // 대기 중인 경우
+  if (isWaiting && profiles.length === 0) {
+    return (
+      <WaitingContainer>
+        <h3>룸메이트 매칭을 기다리고 있어요</h3>
+        <p>매칭되는 룸메이트를 찾고 있습니다...</p>
+        <SpinnerContainer>
+          <WaitingSpinner />
+        </SpinnerContainer>
+      </WaitingContainer>
+    )
+  }
 
+  // 매칭을 찾지 못한 경우
+  if (noMatchFound && profiles.length === 0) {
+    return (
+      <NoMatchContainer>
+        <h3>적합한 룸메이트를 찾지 못했어요</h3>
+        <p>아직 현재 유형에 매칭되는 룸메이트가 없습니다. 다시 시도해보세요.</p>
+        <ButtonGroup>
+          <ActionButton onClick={handleRetry}>다시 검색하기</ActionButton>
+          <ComponentSecondaryButton onClick={handleGoHome}>
+            홈으로 돌아가기
+          </ComponentSecondaryButton>
+        </ButtonGroup>
+      </NoMatchContainer>
+    )
+  }
+
+  // 프로필이 없는 경우 (대기 상태가 아닐 때)
+  if (profiles.length === 0) {
+    return (
+      <Container>
+        <h3>아직 등록된 룸메이트 프로필이 없습니다</h3>
+        <p>첫 번째 프로필을 등록해보세요!</p>
+      </Container>
+    )
+  }
+
+  return (
+    <MatchingResultContainer>
+      {/* 하나로 통합된 헤더 + 홈으로 가는 버튼 */}
+      <div
+        style={{
+          display: 'flex',
+          width: '100%',
+          alignItems: 'center',
+          padding: '0 20px',
+          marginBottom: '20px',
+        }}
+      >
+        <SectionHeader style={{ flex: 1 }}>
+          {/* 필터 버튼들 */}
+          <div
+            style={{
+              marginTop: '15px',
+              display: 'flex',
+              gap: '10px',
+              justifyContent: 'center',
+            }}
+          >
+            <FilterButton
+              active={activeFilter === 'all'}
+              onClick={() => handleFilterChange('all')}
+            >
+              전체보기
+            </FilterButton>
+            <FilterButton
+              active={activeFilter === 'dormitory'}
+              onClick={() => handleFilterChange('dormitory')}
+            >
+              같은 기숙사
+            </FilterButton>
+            <FilterButton
+              active={activeFilter === 'recent'}
+              onClick={() => handleFilterChange('recent')}
+            >
+              최근 추가된 순
+            </FilterButton>
+          </div>
+        </SectionHeader>
+      </div>
+
+      {/* 카드 그리드 */}
+      <CardsGrid>
+        {filteredProfiles.map((profile) => (
+          <RoommateCard
+            key={profile.id}
+            onClick={() => handleViewProfile(profile)}
+          >
+            <CardHeader>
+              <CardPattern />
+            </CardHeader>
+
+            <ProfileImageContainer>
+              <ProfileImg
+                src="/user.png"
+                alt={profile.user?.nickname || '사용자'}
+              />
+            </ProfileImageContainer>
+
+            <CardBody>
+              <RoommateInfo>
+                <RoommateName>
+                  {profile.user?.nickname || '사용자'}
+                </RoommateName>
+                <DormitoryBadge>
+                  {profile.dormitory?.name || '기숙사 정보 없음'}
+                </DormitoryBadge>
+              </RoommateInfo>
+
+              <IntroText>
+                {profile.introduction || '소개글이 없습니다.'}
+              </IntroText>
+
+              <PersonalityTypeContainer>
+                <TypeHeader>
+                  <TypeEmoji>
+                    {profile.myPersonalityType?.emoji ||
+                      selectedType?.emoji ||
+                      '😊'}
+                  </TypeEmoji>
+                  <TypeName>
+                    {profile.myPersonalityType?.title ||
+                      selectedType?.title ||
+                      '성격 유형'}
+                  </TypeName>
+                </TypeHeader>
+
+                <TypeTraits>
+                  {(
+                    profile.myPersonalityType?.traits ||
+                    selectedType?.traits ||
+                    []
+                  )
+                    .slice(0, 3)
+                    .map((trait, index) => (
+                      <TraitTag key={index}>{trait}</TraitTag>
+                    ))}
+                </TypeTraits>
+              </PersonalityTypeContainer>
+            </CardBody>
+
+            <CardFooter>
+              {/* 연락처보기 버튼이 가려지지 않도록 줄바꿈 제거 */}
+              <ContactButton
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (!isRevealed(profile.id)) {
+                    handleContactReveal(profile.id)
+                  }
+                }}
+                style={{ padding: '12px', fontSize: '0.95rem' }}
+              >
+                {isRevealed(profile.id)
+                  ? '연락처 보기'
+                  : `연락처 보기 (${credits})`}
+              </ContactButton>
+            </CardFooter>
+          </RoommateCard>
+        ))}
+      </CardsGrid>
+
+      {/* 상세 보기 모달 */}
+      {selectedProfile && (
+        <ModalBackdrop onClick={handleCloseModal}>
+          <ModalContent onClick={(e) => e.stopPropagation()}>
+            <ModalCloseButton onClick={handleCloseModal}>
+              &times;
+            </ModalCloseButton>
+
+            <ModalHeader>
+              <ModalTitle>
+                {selectedProfile.user?.nickname || '사용자'} 님의 프로필
+              </ModalTitle>
+              <ModalSubTitle>
+                {selectedProfile.dormitory?.name || '기숙사 정보 없음'}
+              </ModalSubTitle>
+            </ModalHeader>
+
+            <DetailSection>
+              <SectionTitle>소개</SectionTitle>
+              <p>{selectedProfile.introduction || '소개글이 없습니다.'}</p>
+            </DetailSection>
+
+            <DetailSection>
+              <SectionTitle>성격 유형</SectionTitle>
+              <TypeHeader>
+                <TypeEmoji>
+                  {selectedProfile.myPersonalityType?.emoji ||
+                    selectedType?.emoji ||
+                    '😊'}
+                </TypeEmoji>
+                <TypeName>
+                  {selectedProfile.myPersonalityType?.title ||
+                    selectedType?.title ||
+                    '성격 유형'}
+                </TypeName>
+              </TypeHeader>
+
+              <TypeTraits>
+                {(
+                  selectedProfile.myPersonalityType?.traits ||
+                  selectedType?.traits ||
+                  []
+                ).map((trait, index) => (
+                  <TraitTag key={index}>{trait}</TraitTag>
                 ))}
-                <ButtonContainer style={{ position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%)' }}>
-                    <Button onClick={handlePrevClick}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                    </Button>
-                    <Button onClick={handleNextClick}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <path d="M9 6L15 12L9 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                    </Button>
-                </ButtonContainer>
-            </CarouselContainer>
+              </TypeTraits>
 
+              <p
+                style={{ marginTop: '15px', fontSize: '0.9rem', color: '#555' }}
+              >
+                {selectedProfile.myPersonalityType?.description ||
+                  selectedType?.description ||
+                  '유형 설명이 없습니다.'}
+              </p>
+            </DetailSection>
 
-            {selectedCard && (
-                <ModalOverlay onClick={handleCloseModal}>
-                    <ModalContent onClick={e => e.stopPropagation()}>
-                        <ModalClose onClick={handleCloseModal}>&times;</ModalClose>
-                        <h2>
-                            {findSelectedProfile(profiles, selectedCard)?.user?.nickname || '사용자'}님의 성격 유형
-                        </h2>
-                        <TypeTitle>
-                            <TypeEmoji>
-                                {findSelectedProfile(profiles, selectedCard)?.myPersonalityType?.emoji || selectedType?.emoji || '😊'}
-                            </TypeEmoji>
-                            {findSelectedProfile(profiles, selectedCard)?.myPersonalityType?.title || selectedType?.title || '성격 유형'}
-                        </TypeTitle>
-                        <TraitList>
-                            {(findSelectedProfile(profiles, selectedCard)?.myPersonalityType?.traits || selectedType?.traits || []).map((trait, index) => (
-                                <Trait key={index}>{trait}</Trait>
-                            ))}
-                        </TraitList>
-
-                        <ContactInfo>
-                            <div>💬 카카오: {findSelectedProfile(profiles, selectedCard)?.kakaoTalkId}</div>
-                            <div>👤 인스타: {findSelectedProfile(profiles, selectedCard)?.instagramId}</div>
-                        </ContactInfo>
-
-
-                    </ModalContent>
-                </ModalOverlay>
+            {isRevealed(selectedProfile.id) && (
+              <ContactSection>
+                <SectionTitle>연락처 정보</SectionTitle>
+                {selectedProfile.kakaoTalkId && (
+                  <ContactItem>
+                    <ContactIcon>💬</ContactIcon>
+                    <ContactText>
+                      KakaoTalk: {selectedProfile.kakaoTalkId}
+                    </ContactText>
+                  </ContactItem>
+                )}
+                {selectedProfile.instagramId && (
+                  <ContactItem>
+                    <ContactIcon>👤</ContactIcon>
+                    <ContactText>
+                      Instagram: {selectedProfile.instagramId}
+                    </ContactText>
+                  </ContactItem>
+                )}
+              </ContactSection>
             )}
-        </Container>
-    );
-};
 
-export default CardCarousel;
+            {!isRevealed(selectedProfile.id) && (
+              <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                <ContactButton
+                  onClick={() => handleContactReveal(selectedProfile.id)}
+                >
+                  연락처 보기 ({credits} 크레딧)
+                </ContactButton>
+              </div>
+            )}
+          </ModalContent>
+        </ModalBackdrop>
+      )}
+    </MatchingResultContainer>
+  )
+}
+
+export default CardCarousel
