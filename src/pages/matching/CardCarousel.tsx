@@ -68,6 +68,158 @@ import {
   EmptyStateSubText,
   NoMoreCard,
 } from './matchingCardStyles'
+import GoBackIcon from '../../assets/icons/goBackIcon.svg'
+
+// 기숙사 ID를 이름으로 변환하는 함수
+const getDormitoryName = (dormitoryId: string | undefined): string => {
+  if (!dormitoryId) return '기숙사 정보 없음'
+  
+  switch (dormitoryId) {
+    case '1':
+      return '제 1기숙사'
+    case '2':
+      return '제 2기숙사'
+    case '3':
+      return '제 3기숙사'
+    default:
+      return `기숙사 ${dormitoryId}`
+  }
+}
+
+// 유형 ID를 유형 이름으로 변환하는 함수
+const getPersonalityTypeInfo = (typeId: number | string | undefined) => {
+  if (!typeId) return { title: '성격 유형 정보 없음', traits: [], description: '' }
+  
+  const id = typeof typeId === 'string' ? parseInt(typeId) : typeId
+  
+  // roommateTypes.ts에서 가져온 유형 데이터
+  switch (id) {
+    case 1:
+      return {
+        title: '부지런한 깔끼쟹이',
+        traits: [
+          '아침형 인간 🌅',
+          '깔끼쟹이 🧹',
+          '잠귀 밝음 🔔',
+          '정리정돈 필수 📏',
+          '조용한 환경 선호 🤫',
+        ],
+        description: '깔끼하고 규칙적인 생활을 추구하는 타입입니다. 조용하고 정돈된 환경에서 생활하기를 선호합니다.',
+        emoji: '🧹',
+      }
+    case 2:
+      return {
+        title: '자유로운 밤샘러',
+        traits: [
+          '밤샘형 인간 🌙',
+          '자유로운 스타일 😎',
+          '소음 무관 🔊',
+          '방에서 주로 생활 🏠',
+          '야식 자주 먹음 🍜',
+        ],
+        description: '자유로운 라이프스타일을 가진 야행성 타입입니다. 룸메이트의 생활 패턴에 크게 구애받지 않습니다.',
+        emoji: '🌙',
+      }
+    case 3:
+      return {
+        title: '사교적인 활동러',
+        traits: [
+          '아침형 인간 🌅',
+          '운동하는 타입 🏋️‍♂️',
+          '친해지고 싶음 💬',
+          '함께 밥 먹는 거 좋아함 🍽️',
+          '청소 루틴 있음 🗓️',
+        ],
+        description: '활발하고 사교적인 성격으로, 룸메이트와 함께하는 활동을 즐기는 타입입니다.',
+        emoji: '🏋️‍♂️',
+      }
+    case 4:
+      return {
+        title: '조용한 독서가',
+        traits: [
+          '아침형 인간 🌅',
+          '책 읽는 걸 좋아함 📚',
+          '잠귀 밝음 🔔',
+          '각자 생활 선호 🚪',
+          '깔끼한 식사 선호 🍽️',
+        ],
+        description: '조용하고 독립적인 생활을 즐기는 타입입니다. 서로의 프라이버시를 존중하는 것을 중요시합니다.',
+        emoji: '📚',
+      }
+    case 5:
+      return {
+        title: '밤샘형 넷플릭스 매니아',
+        traits: [
+          '밤샘형 인간 🌙',
+          '넷플릭스/유튜브 매니아 📺',
+          '이어폰 필수 🎧',
+          '샤워 오래 하는 편 🚿⏳',
+          '시끄러운 소음 X 🚫',
+        ],
+        description: '밤늦게까지 영상 시청을 즐기지만, 타인에 대한 배려도 갖춘 타입입니다.',
+        emoji: '📺',
+      }
+    case 6:
+      return {
+        title: '독립적인 미니멀리스트',
+        traits: [
+          '아침형 인간 🌅',
+          '최소한의 대화 🤝',
+          '깔끼쟹이 🧹',
+          '방에서 주로 생활 🏠',
+          '택배 거의 안 시탔 📦❌',
+        ],
+        description: '심플하고 독립적인 라이프스타일을 추구하며, 불필요한 소통과 물건을 최소화하는 타입입니다.',
+        emoji: '🧘‍♂️',
+      }
+    case 7:
+      return {
+        title: '게임러 야식러',
+        traits: [
+          '밤샘형 인간 🌙',
+          '게임러 🎮',
+          '야식 자주 먹음 🍜',
+          '이어폰 필수 🎧',
+          '적당히 정리하는 편 🏡',
+        ],
+        description: '게임을 즐기고 야식을 좋아하지만, 타인을 배려할 줄 아는 타입입니다.',
+        emoji: '🎮',
+      }
+    case 8:
+      return {
+        title: '소셜 네트워커',
+        traits: [
+          '아침형 인간 🌅',
+          '사교적인 성격 🗣️',
+          '친구 자주 초대함 🏡',
+          '함께 밥 먹는 거 좋아함 🍽️',
+          '외출 많은 편 🚶‍♂️',
+        ],
+        description: '활발한 사회생활을 즐기며, 룸메이트와도 친밀한 관계를 형성하고 싶어하는 타입입니다.',
+        emoji: '🤝',
+      }
+    case 9:
+      return {
+        title: '집중이 필요한 공부러',
+        traits: [
+          '아침형 인간 🌅',
+          '잠귀 밝음 🔔',
+          '조용한 환경 필수 🤫',
+          '정리정돈 필수 📏',
+          '시끄러운 소음 X 🚫',
+        ],
+        description: '학업에 집중하기 위해 조용하고 정돈된 환경을 필요로 하는 타입입니다.',
+        emoji: '📚',
+      }
+    default:
+      return {
+        title: `유형 ${id}`,
+        traits: [`성격 트레이트 정보 (유형 ${id})`],
+        description: `이 유형(${id})은 다른 사람들과의 색다른 성격과 특성을 가지고 있습니다.`,
+        emoji: '😊',
+      }
+  }
+}
 
 interface Props {
   selectedType: RoommateType
@@ -94,8 +246,24 @@ const CardCarousel = ({ selectedType }: Props) => {
     loading,
     error,
   } = useRoommateData({
-    preferredType: selectedType?.id, // 사용자가 선택한 유형으로 정렬
+    // preferredType이 아닌 현재 사용자가 선택한 유형(myPersonalityTypeId)을 가진 드로리로 찾기
+    myPersonalityTypeId: selectedType?.id,
   }) || { profiles: [], loading: false, error: null }
+  
+  // 디버깅용 로그
+  useEffect(() => {
+    if (profiles.length > 0) {
+      console.log('매칭된 프로필:', profiles)
+      console.log('첫 번째 프로필 정보:', {
+        userId: profiles[0].userId,
+        myPersonalityTypeId: profiles[0].myPersonalityTypeId,
+        preferredPersonalityTypeId: profiles[0].preferredPersonalityTypeId,
+        dormitoryId: profiles[0].dormitoryId,
+        dormitory: profiles[0].dormitory,
+        myPersonalityType: profiles[0].myPersonalityType
+      })
+    }
+  }, [profiles])
 
   // 크레딧 시스템 훅 사용
   const { credits, useCredit, isRevealed } = useCredits()
@@ -321,8 +489,9 @@ const CardCarousel = ({ selectedType }: Props) => {
                 <RoommateName>
                   {profile.user?.nickname || '사용자'}
                 </RoommateName>
+                {/* 기숙사 ID 대신 실제 기숙사 이름 표시 */}
                 <DormitoryBadge>
-                  {profile.dormitory?.name || '기숙사 정보 없음'}
+                  {profile.dormitory?.name || getDormitoryName(profile.dormitoryId)}
                 </DormitoryBadge>
               </RoommateInfo>
 
@@ -331,29 +500,27 @@ const CardCarousel = ({ selectedType }: Props) => {
               </IntroText>
 
               <PersonalityTypeContainer>
+                {/* 실제 유형 정보 표시 */}
                 <TypeHeader>
                   <TypeEmoji>
-                    {profile.myPersonalityType?.emoji ||
-                      selectedType?.emoji ||
-                      '😊'}
+                    {profile.myPersonalityType?.emoji || 
+                      getPersonalityTypeInfo(profile.myPersonalityTypeId)?.emoji}
                   </TypeEmoji>
                   <TypeName>
                     {profile.myPersonalityType?.title ||
-                      selectedType?.title ||
-                      '성격 유형'}
+                      `${getPersonalityTypeInfo(profile.myPersonalityTypeId)?.title}`}
                   </TypeName>
                 </TypeHeader>
 
                 <TypeTraits>
-                  {(
-                    profile.myPersonalityType?.traits ||
-                    selectedType?.traits ||
-                    []
-                  )
-                    .slice(0, 3)
-                    .map((trait, index) => (
+                  {profile.myPersonalityType?.traits ?
+                    profile.myPersonalityType.traits.slice(0, 3).map((trait, index) => (
                       <TraitTag key={index}>{trait}</TraitTag>
-                    ))}
+                    )) :
+                    getPersonalityTypeInfo(profile.myPersonalityTypeId)?.traits.slice(0, 3).map((trait, index) => (
+                      <TraitTag key={index}>{trait}</TraitTag>
+                    ))
+                  }
                 </TypeTraits>
               </PersonalityTypeContainer>
             </CardBody>
@@ -391,7 +558,8 @@ const CardCarousel = ({ selectedType }: Props) => {
                 {selectedProfile.user?.nickname || '사용자'} 님의 프로필
               </ModalTitle>
               <ModalSubTitle>
-                {selectedProfile.dormitory?.name || '기숙사 정보 없음'}
+                {/* 기숙사명이 없으면 ID를 기숙사 이름으로 변환하여 표시 */}
+                {selectedProfile.dormitory?.name || getDormitoryName(selectedProfile.dormitoryId)}
               </ModalSubTitle>
             </ModalHeader>
 
@@ -405,32 +573,32 @@ const CardCarousel = ({ selectedType }: Props) => {
               <TypeHeader>
                 <TypeEmoji>
                   {selectedProfile.myPersonalityType?.emoji ||
-                    selectedType?.emoji ||
-                    '😊'}
+                   getPersonalityTypeInfo(selectedProfile.myPersonalityTypeId)?.emoji}
                 </TypeEmoji>
                 <TypeName>
                   {selectedProfile.myPersonalityType?.title ||
-                    selectedType?.title ||
-                    '성격 유형'}
+                   getPersonalityTypeInfo(selectedProfile.myPersonalityTypeId)?.title}
                 </TypeName>
               </TypeHeader>
 
               <TypeTraits>
-                {(
-                  selectedProfile.myPersonalityType?.traits ||
-                  selectedType?.traits ||
-                  []
-                ).map((trait, index) => (
-                  <TraitTag key={index}>{trait}</TraitTag>
-                ))}
+                {selectedProfile.myPersonalityType?.traits 
+                  ? selectedProfile.myPersonalityType.traits.map((trait, index) => (
+                      <TraitTag key={index}>{trait}</TraitTag>
+                    ))
+                  : getPersonalityTypeInfo(selectedProfile.myPersonalityTypeId)?.traits.map((trait, index) => (
+                      <TraitTag key={index}>{trait}</TraitTag>
+                    ))
+                }
               </TypeTraits>
 
               <p
                 style={{ marginTop: '15px', fontSize: '0.9rem', color: '#555' }}
               >
+                {/* 유형 설명 정보 */}
                 {selectedProfile.myPersonalityType?.description ||
-                  selectedType?.description ||
-                  '유형 설명이 없습니다.'}
+                 getPersonalityTypeInfo(selectedProfile.myPersonalityTypeId)?.description ||
+                 '유형 설명이 없습니다.'}
               </p>
             </DetailSection>
 

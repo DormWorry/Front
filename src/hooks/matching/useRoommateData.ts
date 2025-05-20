@@ -6,10 +6,14 @@ import { userAtom } from '../../atoms/userAtom'
 
 interface UseRoommateDataProps {
   preferredType?: number
+  myPersonalityTypeId?: number
+  dormitoryId?: string
 }
 
 export const useRoommateData = ({
   preferredType,
+  myPersonalityTypeId,
+  dormitoryId,
 }: UseRoommateDataProps = {}) => {
   const [profiles, setProfiles] = useState<RoommateProfile[]>([])
   const [loading, setLoading] = useState<boolean>(true)
@@ -21,15 +25,26 @@ export const useRoommateData = ({
     const fetchProfiles = async () => {
       try {
         setLoading(true)
-        const data = await roommateApi.getProfiles({ preferredType })
+        console.log('API 요청 매개변수:', { myPersonalityTypeId, preferredType, dormitoryId })
+        
+        // API 호출 시 필터 옵션 전달
+        const data = await roommateApi.getProfiles({
+          myPersonalityTypeId,
+          preferredType,
+          dormitoryId
+        })
         
         // 자신의 프로필은 매칭 결과에서 제외
         let filteredProfiles = data
-        if (currentUser.id) {
+        if (currentUser?.id) {
           filteredProfiles = data.filter(profile => 
             String(profile.userId) !== String(currentUser.id)
           )
           console.log('자신의 프로필을 제외한 매칭 결과:', filteredProfiles.length, '개')
+          console.log('현재 사용자 ID:', currentUser.id)
+          console.log('필터링된 프로필 IDs:', filteredProfiles.map(p => p.userId))
+        } else {
+          console.log('현재 사용자 정보가 없습니다. 필터링을 건너뜁니다.')
         }
         
         setProfiles(filteredProfiles)
@@ -43,15 +58,15 @@ export const useRoommateData = ({
     }
 
     fetchProfiles()
-  }, [preferredType, currentUser.id])
+  }, [preferredType, myPersonalityTypeId, dormitoryId, currentUser?.id])
 
   // 프로필 생성 함수
   const createProfile = async (profileData: {
     myPersonalityTypeId: number
     preferredPersonalityTypeId: number
-    description: string
-    kakaoId: string
-    instagram: string
+    introduction: string  // description이 아닌 introduction으로 수정
+    kakaoTalkId: string   // kakaoId가 아닌 kakaoTalkId로 수정
+    instagramId: string  // instagram이 아닌 instagramId로 수정
     dormitoryId: string
   }) => {
     try {
@@ -78,8 +93,21 @@ export const useRoommateData = ({
     createProfile,
     refreshProfiles: () => {
       roommateApi
-        .getProfiles({ preferredType })
-        .then((data) => setProfiles(data))
+        .getProfiles({ 
+          preferredType,
+          myPersonalityTypeId,
+          dormitoryId 
+        })
+        .then((data) => {
+          // 자신의 프로필은 매칭 결과에서 제외
+          let filteredProfiles = data
+          if (currentUser?.id) {
+            filteredProfiles = data.filter(profile => 
+              String(profile.userId) !== String(currentUser.id)
+            )
+          }
+          setProfiles(filteredProfiles)
+        })
         .catch((err) => {
           console.error('프로필 새로고침 실패:', err)
           setError('프로필을 새로고침하는 중 오류가 발생했습니다.')
