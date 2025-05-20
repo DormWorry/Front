@@ -84,6 +84,10 @@ export function useWeather(defaultCoords: Coordinates, apiKey: string | undefine
         }
 
         // 기상청 API 응답에서 필요한 데이터 추출
+        if (!data.response.body.items || !data.response.body.items.item || data.response.body.items.item.length === 0) {
+          throw new Error('NO_DATA');
+        }
+        
         const items = data.response.body.items.item
         let temperature = 0
         let ptyCode = '0' // 강수형태 코드
@@ -97,14 +101,24 @@ export function useWeather(defaultCoords: Coordinates, apiKey: string | undefine
             ptyCode = item.obsrValue
           }
         })
+        
+        // 필수 데이터가 모두 있는지 확인
+        if (isNaN(temperature)) {
+          throw new Error('NO_DATA');
+        }
 
         // 강수형태 코드에 따른 날씨 설명
         const weatherDescription = getWeatherDescriptionByCode(ptyCode)
 
         // 도시 이름 찾기 (실제 앱에서는 위경도->주소 변환 API를 사용하는 것이 좋습니다)
         let cityName = '서울'
-        if (Math.abs(lat - 37.5665) > 0.1 || Math.abs(lon - 126.978) > 0.1) {
-          cityName = '현재 위치'
+        try {
+          if (Math.abs(lat - 37.5665) > 0.1 || Math.abs(lon - 126.978) > 0.1) {
+            cityName = '현재 위치'
+          }
+        } catch (e) {
+          console.error('위치 변환 오류:', e);
+          cityName = '알 수 없음';
         }
 
         setWeather({
@@ -118,10 +132,16 @@ export function useWeather(defaultCoords: Coordinates, apiKey: string | undefine
         })
       } catch (error) {
         console.error('날씨 정보 가져오기 오류:', error)
+        const errorMessage = error instanceof Error && error.message === 'NO_DATA'
+          ? '날씨 데이터가 없습니다.'
+          : '날씨 정보를 가져오는데 실패했습니다.';
+          
         setWeather((prev) => ({
           ...prev,
           loading: false,
-          error: '날씨 정보를 가져오는데 실패했습니다.',
+          error: errorMessage,
+          description: '날씨 정보를 표시할 수 없습니다',
+          icon: '🌦️'
         }))
       }
     }

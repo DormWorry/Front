@@ -360,8 +360,8 @@ const RoomDetail: React.FC<RoomDetailProps> = ({
             
             return (
               <ParticipantItem
-                key={participant.id || `participant-${index}`}
-                isCurrentUser={isCurrentUser}
+                key={`${room.id}-${participant.id || index}-${Date.now()}`}
+                $isCurrentUser={isCurrentUser}
               >
                 <UserAvatar>
                   {userName.charAt(0).toUpperCase()}
@@ -611,14 +611,14 @@ const ParticipantsList = styled.div`
   gap: 12px;
 `
 
-const ParticipantItem = styled.div<{ isCurrentUser?: boolean }>`
+const ParticipantItem = styled.div<{ $isCurrentUser?: boolean }>`
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background-color: ${props => props.isCurrentUser ? '#e3f9ff' : '#f8f9fa'};
+  background-color: ${props => props.$isCurrentUser ? '#e3f9ff' : '#f8f9fa'};
   border-radius: 20px;
-  border: ${props => props.isCurrentUser ? '1px solid #13cfb8' : 'none'};
+  border: ${props => props.$isCurrentUser ? '1px solid #13cfb8' : 'none'};
 `
 
 const UserAvatar = styled.div`

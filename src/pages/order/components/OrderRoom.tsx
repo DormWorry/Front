@@ -63,8 +63,8 @@ const OrderRoom: React.FC<OrderRoomProps> = ({ room, onJoinRoom }) => {
       <ParticipantsContainer>
         <ParticipantsLabel>참여자</ParticipantsLabel>
         <ParticipantsList>
-          {displayedParticipants.map((participant) => (
-            <ParticipantAvatar key={participant.id}>
+          {displayedParticipants.map((participant, idx) => (
+            <ParticipantAvatar key={`${room.id}-participant-${participant.id || idx}-${Date.now()}`}>
               {participant.name.charAt(0).toUpperCase()}
             </ParticipantAvatar>
           ))}
