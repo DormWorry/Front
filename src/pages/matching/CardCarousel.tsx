@@ -487,12 +487,7 @@ const CardCarousel = ({ selectedType }: Props) => {
               <CardPattern />
             </CardHeader>
 
-            <ProfileImageContainer>
-              <ProfileImg
-                src="/user.png"
-                alt={profile.user?.nickname || '사용자'}
-              />
-            </ProfileImageContainer>
+            {/* 프로필 이미지 제거 */}
 
             <CardBody>
               <RoommateInfo>
