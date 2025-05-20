@@ -15,7 +15,7 @@ import {
   ActionButton,
   SecondaryButton as ComponentSecondaryButton,
   Container,
-} from './components'
+} from '../../components/matching/components'
 import {
   MatchingResultContainer,
   SectionHeader,
