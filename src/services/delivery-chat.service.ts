@@ -148,22 +148,36 @@ class DeliveryChatService {
       // currentUser와 currentUser.id가 존재하는지 확인하여 TypeError 방지
       const isFromCurrentUser = !!(currentUser && currentUser.id && message.userId === String(currentUser.id));
 
-      // 발신자 이름 결정 (메시지 저장을 위한 영구적인 정보)
+      // 발신자 이름 결정 (우선순위)
       let senderName: string | undefined;
 
       // 1. 자신이 보낸 메시지
-      if (isFromCurrentUser && currentUser) {
+      if (isFromCurrentUser) {
+        senderName = '나';
         message.senderName = '나'; // UI용 표시 이름
 
         // 백엔드에 저장하기 위한 실제 발신자 정보 보존
-        if (!message.user) {
+        if (!message.user && currentUser) {
           message.user = {
             id: currentUser.id,
             nickname: currentUser.nickname || ''
           };
         }
       }
-      // 2. 다른 사용자가 보낸 메시지는 user 객체 사용
+      // 2. 메시지에 senderNickname 필드가 있는 경우 (소켓 이벤트에서 추가로 받은 경우)
+      else if ((message as any).senderNickname) {
+        senderName = (message as any).senderNickname;
+        message.senderName = senderName;
+        
+        // user 정보가 없다면 추가
+        if (!message.user) {
+          message.user = {
+            id: Number((message as any).senderId) || 0,
+            nickname: senderName
+          };
+        }
+      }
+      // 3. 다른 사용자가 보낸 메시지는 user 객체 사용
       else if (message.user) {
         senderName = message.user.nickname || message.user.name;
         // 발신자 이름 캐싱
@@ -338,9 +352,12 @@ class DeliveryChatService {
           return;
         }
 
+        // 사용자 닉네임 정보를 함께 보내어 발신자가 "알 수 없음"으로 표시되는 문제 해결
         this.socket.emit('sendMessage', {
           roomId,
-          message: content
+          message: content,
+          senderNickname: user.nickname || '',
+          senderId: user.id
         }, (response: any) => {
           if (response.success) {
             console.log(`[DeliveryChat] 메시지 전송 성공`);
