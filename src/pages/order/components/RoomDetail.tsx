@@ -311,12 +311,71 @@ const RoomDetail: React.FC<RoomDetailProps> = ({
             {Math.ceil(deliveryFeePerPerson).toLocaleString()}원)
           </InfoValue>
         </InfoRow>
-        {room?.description && (
-          <InfoRow>
-            <InfoLabel>설명</InfoLabel>
-            <InfoValue>{room.description}</InfoValue>
-          </InfoRow>
-        )}
+      </InfoSection>
+    )
+  }
+  
+  // 공동주문 링크 섹션 렌더링
+  const renderOrderLinks = () => {
+    return (
+      <InfoSection>
+        <InfoHeader>공동주문 링크</InfoHeader>
+        <div
+          style={{
+            color: '#444',
+            fontSize: '15px',
+            padding: '12px 0',
+            lineHeight: '1.5',
+          }}
+        >
+          {room.description ? (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                flexWrap: 'wrap'
+              }}
+            >
+              <a
+                href={room.description}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: '#26a69a',
+                  textDecoration: 'none',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  fontWeight: 500,
+                  flex: 1,
+                  minWidth: '200px'
+                }}
+              >
+                {room.description}
+              </a>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(room.description || '')
+                  alert('링크가 복사되었습니다!')
+                }}
+                style={{
+                  backgroundColor: '#e0f2f1',
+                  color: '#00695c',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '8px 14px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
+              >
+                복사
+              </button>
+            </div>
+          ) : (
+            '등록된 공동주문 링크가 없습니다'
+          )}
+        </div>
       </InfoSection>
     )
   }
@@ -409,277 +468,13 @@ const RoomDetail: React.FC<RoomDetailProps> = ({
     )
   }
 
-  // 공동주문 링크 관리 상태 추가
-  const [orderLink, setOrderLink] = useState<string>('')
-  const [showLinkEditor, setShowLinkEditor] = useState<boolean>(false)
-  const [isLinkSaving, setIsLinkSaving] = useState<boolean>(false)
-  const [linkRegistered, setLinkRegistered] = useState<boolean>(false)
-
   // 모든 참여자가 편집 가능하도록 변경
   const isUserInTheRoom = Boolean(localRoomState.isJoined)
   
   // 디버깅을 위한 콘솔 로그
   useEffect(() => {
     console.log('[디버깅] 사용자 방 참여 상태:', isUserInTheRoom)
-    console.log('[디버깅] 링크 등록 상태:', linkRegistered)
-    console.log('[디버깅] 현재 링크:', orderLink)
-  }, [isUserInTheRoom, linkRegistered, orderLink])
-
-  // localStorage에서 링크 정보 불러오기
-  useEffect(() => {
-    // localStorage에서 방 ID에 해당하는 링크 가져오기
-    const checkLinkUpdate = () => {
-      console.log('[디버깅] localStorage 링크 확인 중...')
-      const savedLink = localStorage.getItem(`room_link_${room.id}`)
-      console.log('[디버깅] localStorage 링크 값:', savedLink)
-      
-      if (savedLink) {
-        setOrderLink(savedLink)
-        setLinkRegistered(true)
-        console.log('[디버깅] 링크 발견, 등록 완료 상태로 설정')
-      } else {
-        // 링크가 없는 경우 링크 미등록 상태로 설정
-        setLinkRegistered(false)
-        console.log('[디버깅] 링크 없음, 미등록 상태로 설정')
-      }
-    }
-    
-    // 초기 로딩 시 링크 확인
-    checkLinkUpdate()
-    
-    // 페이지가 포커스를 받을 때마다 링크 업데이트 확인 (다른 탭/창에서 업데이트 감지)
-    const handleFocus = () => {
-      checkLinkUpdate()
-    }
-    
-    window.addEventListener('focus', handleFocus)
-    
-    // 1초마다 주기적으로 localStorage 확인 (실시간 업데이트 시뮬레이션)
-    const intervalId = setInterval(checkLinkUpdate, 1000)
-    
-    // 컴포넌트 언마운트 시 이벤트 리스너와 인터벌 제거
-    return () => {
-      window.removeEventListener('focus', handleFocus)
-      clearInterval(intervalId)
-    }
-  }, [room.id])
-
-  // 링크 저장 함수 - localStorage 사용 (최초 등록 후 수정 불가)
-  const handleSaveLink = () => {
-    if (!isUserInTheRoom || linkRegistered) return
-
-    setIsLinkSaving(true)
-    try {
-      // 링크가 비어있지 않은 경우에만 저장
-      if (orderLink.trim()) {
-        // localStorage에 링크 저장
-        localStorage.setItem(`room_link_${room.id}`, orderLink)
-        // 링크 등록 완료 표시
-        setLinkRegistered(true)
-        setShowLinkEditor(false)
-        alert('링크가 저장되었습니다! 이후 수정이 불가합니다.')
-      } else {
-        alert('유효한 링크를 입력해주세요.')
-      }
-    } catch (error) {
-      console.error('링크 저장 오류:', error)
-      alert('링크 저장 중 오류가 발생했습니다.')
-    } finally {
-      setIsLinkSaving(false)
-    }
-  }
-
-  // 공동주문 링크 섹션 렌더링
-  const renderOrderLinks = () => {
-    // 디버깅을 위한 콘솔 로그 (렌더링 시점)
-    console.log('[디버깅] 링크 섹션 렌더링 - 사용자 방 참여:', isUserInTheRoom, '링크 등록 상태:', linkRegistered)
-    
-    return (
-      <InfoSection>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '15px',
-          }}
-        >
-          <InfoHeader>공동주문 링크</InfoHeader>
-          {isUserInTheRoom && !linkRegistered && (
-            <button
-              onClick={() =>
-                showLinkEditor ? handleSaveLink() : setShowLinkEditor(true)
-              }
-              style={{
-                backgroundColor: showLinkEditor ? '#00796b' : '#26a69a',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                padding: '8px 15px',
-                fontSize: '14px',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                transition: 'all 0.2s ease',
-              }}
-              disabled={isLinkSaving}
-            >
-              {isLinkSaving ? '저장 중...' : showLinkEditor ? '저장' : '편집'}
-            </button>
-          )}
-          {isUserInTheRoom && linkRegistered && (
-            <div style={{ fontSize: '13px', color: '#555', fontStyle: 'italic' }}>
-              (한 번 등록된 링크는 수정할 수 없습니다)
-            </div>
-          )}
-        </div>
-
-        {showLinkEditor ? (
-          <div
-            style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
-          >
-            <div
-              style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
-            >
-              <label
-                style={{ fontSize: '15px', color: '#00695c', fontWeight: 500 }}
-              >
-                공동주문 링크 입력
-              </label>
-              <div style={{ display: 'flex' }}>
-                <input
-                  type="url"
-                  placeholder="공동주문 링크를 입력해주세요 (예: https://baemin.com/share...)"
-                  value={orderLink}
-                  onChange={(e) => setOrderLink(e.target.value)}
-                  style={{
-                    padding: '12px 16px',
-                    border: '1px solid #b2dfdb',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    outline: 'none',
-                    flexGrow: 1,
-                  }}
-                />
-                <button
-                  onClick={() => setShowLinkEditor(false)}
-                  style={{
-                    backgroundColor: '#f5f5f5',
-                    color: '#777',
-                    border: 'none',
-                    borderRadius: '6px',
-                    padding: '8px 12px',
-                    marginLeft: '8px',
-                    fontSize: '13px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  취소
-                </button>
-              </div>
-              <div
-                style={{ fontSize: '13px', color: '#777', marginTop: '4px' }}
-              >
-                * 링크를 입력한 후 '저장' 버튼을 눌러 저장하세요. 입력한 링크는
-                다른 참여자들도 확인할 수 있습니다.
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div
-            style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
-          >
-            {orderLink ? (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '14px',
-                  backgroundColor: 'white',
-                  borderRadius: '10px',
-                  border: '1px solid #e0f2f1',
-                  boxShadow: '0 2px 5px rgba(0, 0, 0, 0.05)',
-                }}
-              >
-                <div style={{ fontSize: '22px', marginRight: '15px' }}>🍝</div>
-                <div
-                  style={{
-                    flex: 1,
-                    overflow: 'hidden',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '4px',
-                  }}
-                >
-                  <div
-                    style={{
-                      fontWeight: 500,
-                      color: '#00695c',
-                      fontSize: '15px',
-                    }}
-                  >
-                    공동주문 링크
-                  </div>
-                  <a
-                    href={orderLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      color: '#26a69a',
-                      textDecoration: 'none',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      fontSize: '15px',
-                      fontWeight: 500,
-                    }}
-                  >
-                    {orderLink.length > 40
-                      ? `${orderLink.substring(0, 40)}...`
-                      : orderLink}
-                  </a>
-                </div>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(orderLink)
-                    alert('링크가 복사되었습니다!')
-                  }}
-                  style={{
-                    backgroundColor: '#e0f2f1',
-                    color: '#00695c',
-                    border: 'none',
-                    borderRadius: '6px',
-                    padding: '8px 14px',
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    marginLeft: '10px',
-                  }}
-                >
-                  복사
-                </button>
-              </div>
-            ) : (
-              <div
-                style={{
-                  padding: '20px',
-                  backgroundColor: '#f7f7f7',
-                  borderRadius: '10px',
-                  color: '#555',
-                  fontSize: '15px',
-                  textAlign: 'center',
-                  border: '1px dashed #b2dfdb',
-                }}
-              >
-                {isUserInTheRoom
-                  ? '편집 버튼을 눌러 공동주문 링크를 추가해보세요!'
-                  : '아직 등록된 공동주문 링크가 없습니다.'}
-              </div>
-            )}
-          </div>
-        )}
-      </InfoSection>
-    )
-  }
+  }, [isUserInTheRoom])
 
   return (
     <Container>

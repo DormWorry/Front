@@ -23,7 +23,7 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
   const [minOrderAmount, setMinOrderAmount] = useState<number>(0)
   const [deliveryFee, setDeliveryFee] = useState<number>(0)
   const [categoryId, setCategoryId] = useState<string>('')
-  const [description, setDescription] = useState('')
+  const [orderLink, setOrderLink] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,7 +43,7 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
       minOrderAmount,
       deliveryFee,
       categoryId,
-      description: description || undefined,
+      description: orderLink || undefined, // 공동주문 링크를 description 필드에 저장
     })
 
     onClose()
@@ -116,13 +116,13 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
           </FormRow>
 
           <FormGroup>
-            <Label htmlFor="description">설명 (선택사항)</Label>
-            <TextArea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="추가 정보를 입력하세요 (메뉴 추천, 주문 시간 등)"
-              rows={3}
+            <Label htmlFor="orderLink">공동주문 링크 (선택사항)</Label>
+            <Input
+              id="orderLink"
+              type="url"
+              value={orderLink}
+              onChange={(e) => setOrderLink(e.target.value)}
+              placeholder="공동주문 링크를 입력하세요 (예: https://baemin.com/share...)"
             />
           </FormGroup>
 
